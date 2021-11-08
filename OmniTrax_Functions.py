@@ -18,7 +18,7 @@ from operator import itemgetter
 from ctypes import *
 
 # load darknet with compiled DLLs for windows from respective path
-sys.path.append('C:/Users/Legos/Documents/PhD/Blender/OmniTrax/OmniTrax_WIP/build/darknet/x64')
+sys.path.append('C:/Users/Legos/Documents/PhD/Blender/OmniTrax/OmniTrax/build/darknet/x64')
 import darknet
 
 bl_info = {
@@ -33,13 +33,12 @@ bl_info = {
 }
 
 # now for the file management fucntions
-sys.path.append('C:/Users/Legos/Documents/PhD/Blender/OmniTrax/OmniTrax_WIP')
+sys.path.append('C:/Users/Legos/Documents/PhD/Blender/OmniTrax/OmniTrax')
 from OmniTrax_utils import import_tracks, display_video, get_exact_frame, extractPatches, display_patches, \
     sortByDistance
 
 # kalman imports
 import copy
-from detectors import Detectors
 from tracker import Tracker
 
 
