@@ -23,7 +23,6 @@ from ctypes import *
 # load darknet with compiled DLLs for windows from respective path
 from omni_trax.build.darknet.x64 import darknet
 
-os.add_dll_directory("${omni_trax/build/darknet/x64}")
 # now for the file management fucntions
 from omni_trax.OmniTrax_utils import import_tracks, display_video, get_exact_frame, extractPatches, display_patches, \
     sortByDistance
