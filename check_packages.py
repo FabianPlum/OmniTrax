@@ -43,7 +43,7 @@ OVERWRITE_DLC_DISPLAY = False
 dlclive_display = Path.joinpath(Path(py_exec[:-14]), "lib", "dlclive", "display.py")
 
 orig_tk_import = "from tkinter import Tk, Label\n"
-orig_PIL_import = "from PIL import Image, ImageTk, ImageDraw"
+orig_PIL_import = "from PIL import Image, ImageTk, ImageDraw\n"
 
 updated_tk_import = "# " + orig_tk_import
 updated_PIL_import = "# " + orig_PIL_import
@@ -55,8 +55,9 @@ for line in dlclive_display_file:
     if line == orig_tk_import:
         line = updated_tk_import
         OVERWRITE_DLC_DISPLAY = True
-    elif line == orig_PIL_import:
+    if line == orig_PIL_import:
         line = updated_PIL_import
+        OVERWRITE_DLC_DISPLAY = True
 
     updated_file_content += line
 
