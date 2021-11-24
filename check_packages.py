@@ -7,11 +7,6 @@ print("\nINFO: Checking requirements for OmniTrax addon...\n")
 # get path of blender internal python executable
 py_exec = str(sys.executable)
 
-# ensure pip is installed
-subprocess.call([py_exec, "-m", "ensurepip", "--user"])
-# update pip
-subprocess.call([py_exec, "-m", "pip", "install", "--upgrade", "pip"])
-
 # install packages (if they are not already installed)
 required_libraries = {"scipy": "scipy",
                       "pandas": "pandas",
@@ -26,11 +21,18 @@ installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
 
 print("\nInstalled packages:", installed_packages, "\n")
 
+first_check = True
+
 for library in required_libraries:
     if library in installed_packages:
         print(f"{library!r} already installed!")
     else:
         print(f"{library!r} not found! Installing package...\n")
+        if first_check:
+            # ensure pip is installed
+            subprocess.call([py_exec, "-m", "ensurepip", "--user"])
+            # update pip
+            subprocess.call([py_exec, "-m", "pip", "install", "--upgrade", "pip"])
         subprocess.call(
             [py_exec, "-m", "pip", "install", f"--target={py_exec[:-14]}" + "lib", required_libraries[library]])
 
