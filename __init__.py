@@ -66,9 +66,9 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         global track_classes
 
         if "netMain" in globals():
-            print("Initialised network found!")
+            print("\nINFO: Initialised network found!\n")
         else:
-            print("Initialising network...")
+            print("\nINFO: Initialising network...\n")
             netMain = None
             metaMain = None
             altNames = None
@@ -327,6 +327,97 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         cap.set(1, context.scene.frame_start - 1)
         cap.release()
         video_out.release()
+
+        return {"FINISHED"}
+
+
+class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
+    """Run Pose estimation on the tracked animals"""
+    bl_idname = "scene.pose_estimation_run"
+    bl_label = "Run Pose Estimation (using tracks as inputs)"
+
+    def execute(self, context):
+        print("\nRUNNING POSE ESTIMATION\n")
+        print("Importing DLC-Live")
+
+        global dlc_proc
+        global dlc_live
+
+        if "dlc_proc" not in globals():
+            from dlclive import DLCLive, Processor
+            try:
+                model_path = bpy.path.abspath(context.scene.pose_network_path)
+                dlc_proc = Processor()
+                print("Loading DLC Network from", model_path)
+                dlc_live = DLCLive(model_path, processor=dlc_proc, dynamic=(False, 0.1, 10))
+            except:
+                print("Failed to load trained network... Check your model path!")
+                return {"FINISHED"}
+        else:
+            print("Initialised DLC Network found!")
+
+        try:
+            clip = context.edit_movieclip
+            clip_path = bpy.path.abspath(bpy.context.edit_movieclip.filepath)
+
+            clip_width = clip.size[0]
+            clip_height = clip.size[1]
+        except:
+            print("You need to load and track a video, before running pose estimation!\n")
+            return {"FINISHED"}
+
+        first_frame = context.scene.frame_start
+        last_frames = context.scene.frame_end
+
+        # now we can load the captured video file and display it
+        cap = cv2.VideoCapture(clip_path)
+
+        network_initialised = False
+
+        print("Using", clip_path, "for pose estimation... Checking for tracks")
+
+        if len(clip.tracking.objects[0].tracks) == 0:
+            print("No tracks found! Run automated or manual tracking to define centres before running pose estimation!")
+        else:
+            print("Tracks found...\n")
+        for track in clip.tracking.objects[0].tracks:
+            print(track)
+
+            for frame_id in range(first_frame, last_frames):
+
+                marker = track.markers.find_frame(frame_id)
+                if marker:
+                    marker_x = round(marker.co.x * clip_width)
+                    marker_y = round(marker.co.y * clip_height)
+                    print("Frame:", frame_id, " : ",
+                          "X", marker_x, ",",
+                          "Y", marker_y)
+
+                    cap.set(1, frame_id)
+                    ret, frame_temp = cap.read()
+                    if ret:
+                        # crop frame to detection and rescale
+                        frame_cropped = frame_temp[clip.size[1] - marker_y - 100:clip.size[1] - marker_y + 100,
+                                        marker_x - 100:marker_x + 100].copy()
+                        # initialise network
+                        if not network_initialised:
+                            dlc_live.init_inference(frame_cropped)
+                            network_initialised = True
+
+                        # estimate pose in cropped frame
+                        pose = dlc_live.get_pose(frame_cropped)
+
+                        for p, point in enumerate(pose):
+                            frame_cropped = cv2.circle(frame_cropped, (int(point[0]), int(point[1])), 5,
+                                                       (int(255 * point[2]), int(100 * point[2]), 200), -1)
+
+                        cv2.imshow("DLC Pose Estimation", frame_cropped)
+                        if cv2.waitKey(1) & 0xFF == ord('q'):
+                            break
+            print("\n")
+
+        cv2.destroyAllWindows()
+        print("Read all frames")
 
         return {"FINISHED"}
 
@@ -593,6 +684,51 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
         col.operator("scene.detection_run", text="TRACK")
 
 
+class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
+    bl_label = "Pose Estimation (DLC)"
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_category = "OmniTrax"
+
+    bpy.types.Scene.pose_network_path = StringProperty(
+        name="DLC Network path",
+        description="Path to your trained and exported DLC network," +
+                    "where your pose_cfg.yaml and snapshot files are stored",
+        default="",
+        subtype='FILE_PATH')
+    bpy.types.Scene.pose_enforce_constant_size = BoolProperty(
+        name="constant (input) detection sizes",
+        description="Check to enforce constant detection sizes. This affects the following POSE inference," +
+                    "regarding the used regions of interest.",
+        default=False)
+    bpy.types.Scene.pose_constant_size = IntProperty(
+        name="constant (input) detection sizes (px)",
+        description="Constant detection size in pixels." +
+                    "All detections will be rescaled and padded, if necessary for pose estimation",
+        default=40)
+    bpy.types.Scene.pose_pcutoff = FloatProperty(
+        name="pcutoff (minimum key point confidence)",
+        description="Predicted key points with a confidence below this threshold" +
+                    "will be discarded during pose estimation",
+        default=0.5)
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.label(text="DLC network path:")
+        col.prop(context.scene, "pose_network_path", text="")
+        col.separator()
+
+        col.prop(context.scene, "pose_enforce_constant_size")
+        col.prop(context.scene, "pose_constant_size")
+        col.prop(context.scene, "pose_pcutoff")
+        col.separator()
+
+        col.label(text="Run Pose Estimation")
+        col.operator("scene.pose_estimation_run", text="ESTIMATE POSES")
+
+
 class EXPORT_PT_TrackingPanel(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
@@ -662,7 +798,6 @@ class EXPORT_PT_DataPanel(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_category = "OmniTrax"
 
-    # In andere Klasse kopieren
     bl_options = {'DEFAULT_CLOSED'}
 
     bpy.types.Scene.exp_path = StringProperty(
@@ -759,6 +894,10 @@ def register():
     bpy.utils.register_class(OMNITRAX_OT_DetectionOperator)
     bpy.utils.register_class(OMNITRAX_PT_DetectionPanel)
     bpy.utils.register_class(OMNITRAX_PT_TrackingPanel)
+
+    bpy.utils.register_class(OMNITRAX_OT_PoseEstimationOperator)
+    bpy.utils.register_class(OMNITRAX_PT_PoseEstimationPanel)
+
     bpy.utils.register_class(EXPORT_OT_Operator)
     bpy.utils.register_class(EXPORT_PT_TrackingPanel)
     bpy.utils.register_class(EXPORT_PT_DataPanel)
@@ -768,10 +907,10 @@ def unregister():
     bpy.utils.unregister_class(OMNITRAX_OT_DetectionOperator)
     bpy.utils.unregister_class(OMNITRAX_PT_DetectionPanel)
     bpy.utils.unregister_class(OMNITRAX_PT_TrackingPanel)
+
+    bpy.utils.unregister_class(OMNITRAX_OT_PoseEstimationOperator)
+    bpy.utils.unregister_class(OMNITRAX_PT_PoseEstimationPanel)
+
     bpy.utils.unregister_class(EXPORT_OT_Operator)
     bpy.utils.unregister_class(EXPORT_PT_TrackingPanel)
-    bpy.utils.unregister_class(EXPORT_PT_DataPanel)
-
-
-if __name__ == "__main__":
-    register()
+    bpy.utils.unregis
