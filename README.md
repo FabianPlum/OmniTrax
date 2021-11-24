@@ -18,6 +18,9 @@ It will track many things. Eventually. In Blender.
 * [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)
 * [3 class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1wQcfLlDUvnWthyzbvyVy9oqyTZ2F-JFo?usp=sharing)
 
+**DLC Networks**
+* [bad multi ant pose-estimator (trained on synthetic data, for testing only!)](https://drive.google.com/file/d/1TaDvvJu0hkv7cEq32c5yP_05pfO95P8E/view?usp=sharing)
+
 
 ***
 ## License
