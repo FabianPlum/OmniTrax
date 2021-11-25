@@ -342,6 +342,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
 
         global dlc_proc
         global dlc_live
+        global network_initialised
 
         if "dlc_proc" not in globals():
             from dlclive import DLCLive, Processor
@@ -349,7 +350,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 model_path = bpy.path.abspath(context.scene.pose_network_path)
                 dlc_proc = Processor()
                 print("Loading DLC Network from", model_path)
-                dlc_live = DLCLive(model_path, processor=dlc_proc, dynamic=(False, 0.1, 10))
+                dlc_live = DLCLive(model_path, processor=dlc_proc, dynamic=(False, context.scene.pose_pcutoff, 10))
             except:
                 print("Failed to load trained network... Check your model path!")
                 return {"FINISHED"}
@@ -372,7 +373,8 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         # now we can load the captured video file and display it
         cap = cv2.VideoCapture(clip_path)
 
-        network_initialised = False
+        if "network_initialised" not in globals():
+            network_initialised = False
 
         ROI_size = int(context.scene.pose_constant_size / 2)
 
@@ -401,25 +403,43 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                         # first, create an empty image object to be filled with the ROI
                         # this is important in case the detection lies close to the edge
                         # where the ROI would go outside the image
-                        min_x = max([0, marker_x - ROI_size])
-                        max_x = min([clip.size[0], marker_x + ROI_size])
-                        min_y = max([0, clip.size[1] - marker_y - ROI_size])
-                        max_y = min([clip.size[1], clip.size[1] - marker_y + ROI_size])
+                        dlc_input_img = np.zeros([ROI_size * 2, ROI_size * 2, 3], dtype=np.uint8)
+                        dlc_input_img.fill(0)  # fill with zeros
+
+                        true_min_x = marker_x - ROI_size
+                        true_max_x = marker_x + ROI_size
+                        true_min_y = clip.size[1] - marker_y - ROI_size
+                        true_max_y = clip.size[1] - marker_y + ROI_size
+
+                        min_x = max([0, true_min_x])
+                        max_x = min([clip.size[0], true_max_x])
+                        min_y = max([0, true_min_y])
+                        max_y = min([clip.size[1], true_max_y])
                         # crop frame to detection and rescale
                         frame_cropped = frame_temp[min_y:max_y, min_x:max_x]
-                        # initialise network
+
+                        # place the cropped frame in the previously created empty image
+                        x_min_offset = max([0, - true_min_x])
+                        x_max_offset = min([ROI_size * 2, ROI_size * 2 - (true_max_x - clip.size[0])])
+                        y_min_offset = max([0, - true_min_y])
+                        y_max_offset = min([ROI_size * 2, ROI_size * 2 - (true_max_y - clip.size[1])])
+
+                        print("Cropped image ROI:", x_min_offset, x_max_offset, y_min_offset, y_max_offset)
+                        dlc_input_img[y_min_offset:y_max_offset, x_min_offset:x_max_offset] = frame_cropped
+
+                        # initialise network (if it has not been initialised yet)
                         if not network_initialised:
-                            dlc_live.init_inference(frame_cropped)
+                            dlc_live.init_inference(dlc_input_img)
                             network_initialised = True
 
                         # estimate pose in cropped frame
-                        pose = dlc_live.get_pose(frame_cropped)
+                        pose = dlc_live.get_pose(dlc_input_img)
 
                         for p, point in enumerate(pose):
-                            frame_cropped = cv2.circle(frame_cropped, (int(point[0]), int(point[1])), 5,
+                            dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])), 5,
                                                        (int(255 * point[2]), int(100 * point[2]), 200), -1)
 
-                        cv2.imshow("DLC Pose Estimation", frame_cropped)
+                        cv2.imshow("DLC Pose Estimation", dlc_input_img)
                         if cv2.waitKey(1) & 0xFF == ord('q'):
                             break
             print("\n")
