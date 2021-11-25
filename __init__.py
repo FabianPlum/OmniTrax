@@ -350,7 +350,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 model_path = bpy.path.abspath(context.scene.pose_network_path)
                 dlc_proc = Processor()
                 print("Loading DLC Network from", model_path)
-                dlc_live = DLCLive(model_path, processor=dlc_proc, dynamic=(False, context.scene.pose_pcutoff, 10))
+                dlc_live = DLCLive(model_path, processor=dlc_proc, pcutoff=context.scene.pose_pcutoff)
             except:
                 print("Failed to load trained network... Check your model path!")
                 return {"FINISHED"}
@@ -436,8 +436,9 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                         pose = dlc_live.get_pose(dlc_input_img)
 
                         for p, point in enumerate(pose):
-                            dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])), 5,
-                                                       (int(255 * point[2]), int(100 * point[2]), 200), -1)
+                            if point[2] >= context.scene.pose_pcutoff:
+                                dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])), 5,
+                                                           (int(255 * point[2]), int(100 * point[2]), 200), -1)
 
                         cv2.imshow("DLC Pose Estimation", dlc_input_img)
                         if cv2.waitKey(1) & 0xFF == ord('q'):
