@@ -374,6 +374,8 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
 
         network_initialised = False
 
+        ROI_size = int(context.scene.pose_constant_size / 2)
+
         print("Using", clip_path, "for pose estimation... Checking for tracks")
 
         if len(clip.tracking.objects[0].tracks) == 0:
@@ -396,9 +398,15 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                     cap.set(1, frame_id)
                     ret, frame_temp = cap.read()
                     if ret:
+                        # first, create an empty image object to be filled with the ROI
+                        # this is important in case the detection lies close to the edge
+                        # where the ROI would go outside the image
+                        min_x = max([0, marker_x - ROI_size])
+                        max_x = min([clip.size[0], marker_x + ROI_size])
+                        min_y = max([0, clip.size[1] - marker_y - ROI_size])
+                        max_y = min([clip.size[1], clip.size[1] - marker_y + ROI_size])
                         # crop frame to detection and rescale
-                        frame_cropped = frame_temp[clip.size[1] - marker_y - 100:clip.size[1] - marker_y + 100,
-                                        marker_x - 100:marker_x + 100].copy()
+                        frame_cropped = frame_temp[min_y:max_y, min_x:max_x]
                         # initialise network
                         if not network_initialised:
                             dlc_live.init_inference(frame_cropped)
