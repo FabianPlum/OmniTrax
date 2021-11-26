@@ -48,6 +48,11 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
     bl_idname = "scene.detection_run"
     bl_label = "Run Detection"
 
+    restart_tracking: BoolProperty(
+        name="Restart Tracking",
+        description="Re-initialises tracker with new settings. WARNING: Current identities will NOT be retained!",
+        default=False)
+
     def execute(self, context):
         """
         Tracker settings
@@ -64,6 +69,8 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         global metaMain
         global altNames
         global track_classes
+        global tracks_dict
+        global tracker_KF
 
         if "netMain" in globals():
             print("\nINFO: Initialised network found!\n")
@@ -87,15 +94,25 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         bpy.context.scene.render.fps_base = fps
 
         # Create Object Tracker
-        tracker = Tracker(dist_thresh=context.scene.tracking_dist_thresh,
-                          max_frames_to_skip=context.scene.tracking_max_frames_to_skip,
-                          max_trace_length=context.scene.tracking_max_trace_length,
-                          trackIdCount=context.scene.tracking_trackIdCount,
-                          use_kf=context.scene.tracker_use_KF,
-                          std_acc=context.scene.tracker_std_acc,
-                          x_std_meas=context.scene.tracker_x_std_meas,
-                          y_std_meas=context.scene.tracker_y_std_meas,
-                          dt=1 / fps)
+        if "tracker_KF" not in globals() or self.restart_tracking:
+            print("INITIALISED TRACKER!")
+            tracker_KF = Tracker(dist_thresh=context.scene.tracking_dist_thresh,
+                                 max_frames_to_skip=context.scene.tracking_max_frames_to_skip,
+                                 max_trace_length=context.scene.tracking_max_trace_length,
+                                 trackIdCount=context.scene.tracking_trackIdCount,
+                                 use_kf=context.scene.tracker_use_KF,
+                                 std_acc=context.scene.tracker_std_acc,
+                                 x_std_meas=context.scene.tracker_x_std_meas,
+                                 y_std_meas=context.scene.tracker_y_std_meas,
+                                 dt=1 / fps)
+            tracker_continue = False
+        else:
+            tracker_continue = True
+
+        # clear the tracker trace to ensure existing tracks are not overwritten
+        if tracker_continue:
+            for track in tracker_KF.tracks:
+                track.trace = []
 
         # and produce an output file    
         video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4] + "_online_tracking.avi"
@@ -220,7 +237,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             centres = []
             predicted_classes = []
 
-            bpy.context.scene.frame_current = frame_counter + 1
+            bpy.context.scene.frame_current = bpy.context.scene.frame_start + frame_counter + 1
 
             for detection in detections:
                 if detection[2][2] >= bpy.context.scene.detection_min_size and detection[2][
@@ -255,47 +272,48 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             if (len(centres) > 0):
 
                 # Track object using Kalman Filter
-                tracker.Update(centres, predicted_classes=predicted_classes)
+                tracker_KF.Update(centres, predicted_classes=predicted_classes)
 
                 # For identified object tracks draw tracking line
                 # Use various colors to indicate different track_id
-                for i in range(len(tracker.tracks)):
-                    if (len(tracker.tracks[i].trace) > 1):
-                        mname = "track_" + str(tracker.tracks[i].track_id)
+                for i in range(len(tracker_KF.tracks)):
+                    if (len(tracker_KF.tracks[i].trace) > 1):
+                        mname = "track_" + str(tracker_KF.tracks[i].track_id)
 
                         # record the predicted class at each increment for every track
                         if mname in track_classes:
-                            track_classes[mname][bpy.context.scene.frame_current] = tracker.tracks[i].predicted_class[
-                                -1]
+                            track_classes[mname][bpy.context.scene.frame_current] = \
+                                tracker_KF.tracks[i].predicted_class[
+                                    -1]
                         else:
                             track_classes[mname] = {
-                                bpy.context.scene.frame_current: tracker.tracks[i].predicted_class[-1]}
+                                bpy.context.scene.frame_current: tracker_KF.tracks[i].predicted_class[-1]}
 
                         if mname not in track_colors:
                             track_colors[mname] = np.random.randint(low=100, high=255, size=3).tolist()
 
                         # draw direction of movement onto footage
-                        x_t, y_t = tracker.tracks[i].trace[-1]
-                        tracker_velocity = 5 * (tracker.tracks[i].trace[-1] - tracker.tracks[i].trace[-2])
-                        x_t_future, y_t_future = tracker.tracks[i].trace[-1] + tracker_velocity
+                        x_t, y_t = tracker_KF.tracks[i].trace[-1]
+                        tracker_KF_velocity = 5 * (tracker_KF.tracks[i].trace[-1] - tracker_KF.tracks[i].trace[-2])
+                        x_t_future, y_t_future = tracker_KF.tracks[i].trace[-1] + tracker_KF_velocity
                         cv2.arrowedLine(image, (int(x_t), int(y_t)), (int(x_t_future), int(y_t_future)),
                                         (np.array(track_colors[mname]) - np.array([70, 70, 70])).tolist(), 3,
                                         tipLength=0.75)
 
-                        for j in range(len(tracker.tracks[i].trace) - 1):
-                            hind_sight_frame = bpy.context.scene.frame_current - len(tracker.tracks[i].trace) + j
+                        for j in range(len(tracker_KF.tracks[i].trace) - 1):
+                            hind_sight_frame = bpy.context.scene.frame_current - len(tracker_KF.tracks[i].trace) + j
                             # Draw trace line on preview                         
-                            x1 = tracker.tracks[i].trace[j][0][0]
-                            y1 = tracker.tracks[i].trace[j][1][0]
-                            x2 = tracker.tracks[i].trace[j + 1][0][0]
-                            y2 = tracker.tracks[i].trace[j + 1][1][0]
+                            x1 = tracker_KF.tracks[i].trace[j][0][0]
+                            y1 = tracker_KF.tracks[i].trace[j][1][0]
+                            x2 = tracker_KF.tracks[i].trace[j + 1][0][0]
+                            y2 = tracker_KF.tracks[i].trace[j + 1][1][0]
                             if mname not in track_colors:
                                 track_colors[mname] = np.random.randint(low=100, high=255, size=3).tolist()
                             cv2.line(image, (int(x1), int(y1)), (int(x2), int(y2)),
                                      track_colors[mname], 2)
 
                             if x1 != 0 and x2 != 0 and len(
-                                    tracker.tracks[i].trace) > context.scene.tracking_max_frames_to_skip:
+                                    tracker_KF.tracks[i].trace) > context.scene.tracking_max_frames_to_skip:
                                 # write track to clip markers
                                 if mname in clip.tracking.objects[0].tracks:
                                     # if the corresponding marker exists, update it's position on the current frame
@@ -711,6 +729,7 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
 
         col.label(text="Run tracking")
         col.operator("scene.detection_run", text="TRACK")
+        col.operator("scene.detection_run", text="RESTART Tracking").restart_tracking = True
 
 
 class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
