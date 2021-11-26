@@ -210,6 +210,8 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         # build array for all tracks and classes     
         track_classes = {}
 
+        ROI_size = int(context.scene.pose_constant_size / 2)
+
         while True:
             if frame_counter == context.scene.frame_end + 1 - context.scene.frame_start:
                 break
@@ -235,15 +237,15 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             print("Frame:", frame_counter + 1)
             viable_detections = []
             centres = []
+            bounding_boxes = []
             predicted_classes = []
 
             bpy.context.scene.frame_current = bpy.context.scene.frame_start + frame_counter + 1
 
             for detection in detections:
-                if detection[2][2] >= bpy.context.scene.detection_min_size and detection[2][
-                    3] >= bpy.context.scene.detection_min_size:
+                if detection[2][2] >= bpy.context.scene.detection_min_size and \
+                        detection[2][3] >= bpy.context.scene.detection_min_size:
                     predicted_classes.append(str(detection[0]).split("'")[1])
-
                     # we need to scale the detections to the original imagesize, as they are downsampled above
                     scaled_xy = scale_detections(x=detection[2][0], y=detection[2][1],
                                                  network_w=darknet.network_width(netMain),
@@ -253,6 +255,13 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
                     # kalman stuff here
                     centres.append(np.round(np.array([[detection[2][0]], [detection[2][1]]])))
+                    # TODO
+                    # IT WOULD BE EVEN COOLER if the bounding boxes were directly transfered to the track marker.
+                    # add bounding box info by associating it with corresponding matched centres / tracks
+                    bounding_boxes.append([detection[2][0] - detection[2][2] / 2,
+                                           detection[2][0] + detection[2][2] / 2,
+                                           detection[2][1] - detection[2][3] / 2,
+                                           detection[2][0] + detection[2][3] / 2])
 
             all_detection_centres.append(viable_detections)
 
@@ -264,12 +273,11 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                 image = cvDrawBoxes(detections, frame_resized, min_size=bpy.context.scene.detection_min_size,
                                     class_colours=class_colours)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            # print(1/(time.time()-prev_time))
 
             # before we show stuff, let's add some tracking fun
             # SO, if animals are detected then track them
 
-            if (len(centres) > 0):
+            if len(centres) > 0:
 
                 # Track object using Kalman Filter
                 tracker_KF.Update(centres, predicted_classes=predicted_classes)
@@ -277,7 +285,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                 # For identified object tracks draw tracking line
                 # Use various colors to indicate different track_id
                 for i in range(len(tracker_KF.tracks)):
-                    if (len(tracker_KF.tracks[i].trace) > 1):
+                    if len(tracker_KF.tracks[i].trace) > 1:
                         mname = "track_" + str(tracker_KF.tracks[i].track_id)
 
                         # record the predicted class at each increment for every track
@@ -321,6 +329,12 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                                     clip.tracking.objects[0].tracks[mname].markers.insert_frame(hind_sight_frame,
                                                                                                 co=(x2 / clip_width,
                                                                                                     1 - y2 / clip_height))
+                                    clip.tracking.objects[0].tracks[mname].markers.find_frame(
+                                        hind_sight_frame).pattern_corners = (
+                                        (ROI_size / clip_width, ROI_size / clip_height),
+                                        (ROI_size / clip_width, -ROI_size / clip_height),
+                                        (-ROI_size / clip_width, -ROI_size / clip_height),
+                                        (-ROI_size / clip_width, ROI_size / clip_height))
                                 else:
                                     # add new tracks to the set of markers
                                     bpy.ops.clip.add_marker(location=(x2 / clip_width, 1 - y2 / clip_height))
