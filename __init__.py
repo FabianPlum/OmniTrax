@@ -210,7 +210,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         # build array for all tracks and classes     
         track_classes = {}
 
-        ROI_size = int(context.scene.pose_constant_size / 2)
+        ROI_size = int(context.scene.detection_constant_size / 2)
 
         while True:
             if frame_counter == context.scene.frame_end + 1 - context.scene.frame_start:
@@ -256,12 +256,12 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                     # kalman stuff here
                     centres.append(np.round(np.array([[detection[2][0]], [detection[2][1]]])))
                     # TODO
-                    # IT WOULD BE EVEN COOLER if the bounding boxes were directly transfered to the track marker.
+                    # IT WOULD BE EVEN COOLER if the bounding boxes were directly transferred to the track marker.
                     # add bounding box info by associating it with corresponding matched centres / tracks
                     bounding_boxes.append([detection[2][0] - detection[2][2] / 2,
                                            detection[2][0] + detection[2][2] / 2,
                                            detection[2][1] - detection[2][3] / 2,
-                                           detection[2][0] + detection[2][3] / 2])
+                                           detection[2][1] + detection[2][3] / 2])
 
             all_detection_centres.append(viable_detections)
 
@@ -280,7 +280,9 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             if len(centres) > 0:
 
                 # Track object using Kalman Filter
-                tracker_KF.Update(centres, predicted_classes=predicted_classes)
+                tracker_KF.Update(centres,
+                                  predicted_classes=predicted_classes,
+                                  bounding_boxes=bounding_boxes)
 
                 # For identified object tracks draw tracking line
                 # Use various colors to indicate different track_id
@@ -303,7 +305,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                         # draw direction of movement onto footage
                         x_t, y_t = tracker_KF.tracks[i].trace[-1]
                         tracker_KF_velocity = 5 * (tracker_KF.tracks[i].trace[-1] - tracker_KF.tracks[i].trace[-2])
-                        x_t_future, y_t_future = tracker_KF.tracks[i].trace[-1] + tracker_KF_velocity
+                        x_t_future, y_t_future = tracker_KF.tracks[i].trace[-1] + tracker_KF_velocity * 0.1
                         cv2.arrowedLine(image, (int(x_t), int(y_t)), (int(x_t_future), int(y_t_future)),
                                         (np.array(track_colors[mname]) - np.array([70, 70, 70])).tolist(), 3,
                                         tipLength=0.75)
@@ -329,12 +331,24 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                                     clip.tracking.objects[0].tracks[mname].markers.insert_frame(hind_sight_frame,
                                                                                                 co=(x2 / clip_width,
                                                                                                     1 - y2 / clip_height))
-                                    clip.tracking.objects[0].tracks[mname].markers.find_frame(
-                                        hind_sight_frame).pattern_corners = (
-                                        (ROI_size / clip_width, ROI_size / clip_height),
-                                        (ROI_size / clip_width, -ROI_size / clip_height),
-                                        (-ROI_size / clip_width, -ROI_size / clip_height),
-                                        (-ROI_size / clip_width, ROI_size / clip_height))
+                                    if context.scene.detection_enforce_constant_size:
+                                        clip.tracking.objects[0].tracks[mname].markers.find_frame(
+                                            hind_sight_frame).pattern_corners = (
+                                            (ROI_size / clip_width, ROI_size / clip_height),
+                                            (ROI_size / clip_width, -ROI_size / clip_height),
+                                            (-ROI_size / clip_width, -ROI_size / clip_height),
+                                            (-ROI_size / clip_width, ROI_size / clip_height))
+                                    else:
+                                        clip.tracking.objects[0].tracks[mname].markers.find_frame(
+                                            hind_sight_frame).pattern_corners = (
+                                            ((tracker_KF.tracks[i].bbox_trace[j][0] - x1) / clip_width,
+                                             (tracker_KF.tracks[i].bbox_trace[j][3] - y1) / clip_height),
+                                            ((tracker_KF.tracks[i].bbox_trace[j][1] - x1) / clip_width,
+                                             (tracker_KF.tracks[i].bbox_trace[j][3] - y1) / clip_height),
+                                            ((tracker_KF.tracks[i].bbox_trace[j][1] - x1) / clip_width,
+                                             (tracker_KF.tracks[i].bbox_trace[j][2] - y1) / clip_height),
+                                            ((tracker_KF.tracks[i].bbox_trace[j][0] - x1) / clip_width,
+                                             (tracker_KF.tracks[i].bbox_trace[j][2] - y1) / clip_height))
                                 else:
                                     # add new tracks to the set of markers
                                     bpy.ops.clip.add_marker(location=(x2 / clip_width, 1 - y2 / clip_height))
@@ -417,7 +431,6 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         else:
             print("Tracks found...\n")
         for track in clip.tracking.objects[0].tracks:
-            print(track)
 
             for frame_id in range(first_frame, last_frames):
 
@@ -438,26 +451,61 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                         dlc_input_img = np.zeros([ROI_size * 2, ROI_size * 2, 3], dtype=np.uint8)
                         dlc_input_img.fill(0)  # fill with zeros
 
-                        true_min_x = marker_x - ROI_size
-                        true_max_x = marker_x + ROI_size
-                        true_min_y = clip.size[1] - marker_y - ROI_size
-                        true_max_y = clip.size[1] - marker_y + ROI_size
+                        if context.scene.pose_enforce_constant_size:
+                            true_min_x = marker_x - ROI_size
+                            true_max_x = marker_x + ROI_size
+                            true_min_y = clip_height - marker_y - ROI_size
+                            true_max_y = clip_height - marker_y + ROI_size
 
-                        min_x = max([0, true_min_x])
-                        max_x = min([clip.size[0], true_max_x])
-                        min_y = max([0, true_min_y])
-                        max_y = min([clip.size[1], true_max_y])
-                        # crop frame to detection and rescale
-                        frame_cropped = frame_temp[min_y:max_y, min_x:max_x]
+                            min_x = max([0, true_min_x])
+                            max_x = min([clip.size[0], true_max_x])
+                            min_y = max([0, true_min_y])
+                            max_y = min([clip.size[1], true_max_y])
+                            # crop frame to detection and rescale
+                            frame_cropped = frame_temp[min_y:max_y, min_x:max_x]
 
-                        # place the cropped frame in the previously created empty image
-                        x_min_offset = max([0, - true_min_x])
-                        x_max_offset = min([ROI_size * 2, ROI_size * 2 - (true_max_x - clip.size[0])])
-                        y_min_offset = max([0, - true_min_y])
-                        y_max_offset = min([ROI_size * 2, ROI_size * 2 - (true_max_y - clip.size[1])])
+                            # place the cropped frame in the previously created empty image
+                            x_min_offset = max([0, - true_min_x])
+                            x_max_offset = min([ROI_size * 2, ROI_size * 2 - (true_max_x - clip.size[0])])
+                            y_min_offset = max([0, - true_min_y])
+                            y_max_offset = min([ROI_size * 2, ROI_size * 2 - (true_max_y - clip.size[1])])
 
-                        print("Cropped image ROI:", x_min_offset, x_max_offset, y_min_offset, y_max_offset)
-                        dlc_input_img[y_min_offset:y_max_offset, x_min_offset:x_max_offset] = frame_cropped
+                            print("Cropped image ROI:", x_min_offset, x_max_offset, y_min_offset, y_max_offset)
+                            dlc_input_img[y_min_offset:y_max_offset, x_min_offset:x_max_offset] = frame_cropped
+                        else:
+                            bbox = marker.pattern_corners
+                            print("OH COOL, DYNAMIC THINGS!")
+                            true_min_x = marker_x + int(bbox[0][0] * clip_width)
+                            true_max_x = marker_x - int(bbox[0][0] * clip_width)
+                            true_min_y = clip_height - marker_y - int(bbox[0][1] * clip_height)
+                            true_max_y = clip_height - marker_y + int(bbox[0][1] * clip_height)
+                            true_width = true_max_x - true_min_x
+                            true_height = true_max_y - true_min_y
+
+                            print("bbox_coords",
+                                  true_min_x, true_max_x,
+                                  true_min_y, true_max_y,
+                                  true_height, true_width)
+
+                            # resize image and maintain aspect ratio to the specified ROI
+                            if true_width >= true_height:
+                                rescale_width = int(ROI_size * 2)
+                                rescale_height = int((true_height / true_width) * ROI_size * 2)
+                                border_height = max([int((rescale_width - rescale_height) / 2), 0])
+                                frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
+                                                           true_min_x:true_max_x],
+                                                           (rescale_width, rescale_height))
+
+                                dlc_input_img[border_height:rescale_height + border_height, :] = frame_cropped
+                            else:
+                                rescale_width = int((true_width / true_height) * ROI_size * 2)
+                                rescale_height = int(ROI_size * 2)
+                                border_width = max([int((rescale_height - rescale_width) / 2), 0])
+                                frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
+                                                           true_min_x:true_max_x],
+                                                           (rescale_width, rescale_height))
+
+                                dlc_input_img[:, border_width:rescale_width + border_width] = frame_cropped
 
                         # initialise network (if it has not been initialised yet)
                         if not network_initialised:
@@ -764,7 +812,7 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
                     "regarding the used regions of interest.",
         default=False)
     bpy.types.Scene.pose_constant_size = IntProperty(
-        name="constant (input) detection sizes (px)",
+        name="Pose (input) frame size (px)",
         description="Constant detection size in pixels." +
                     "All detections will be rescaled and padded, if necessary for pose estimation",
         default=40)
@@ -796,6 +844,7 @@ class EXPORT_PT_TrackingPanel(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_label = "Manual Tracking"
     bl_category = "OmniTrax"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -859,7 +908,6 @@ class EXPORT_PT_DataPanel(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_category = "OmniTrax"
-
     bl_options = {'DEFAULT_CLOSED'}
 
     bpy.types.Scene.exp_path = StringProperty(
@@ -957,11 +1005,12 @@ def register():
     bpy.utils.register_class(OMNITRAX_PT_DetectionPanel)
     bpy.utils.register_class(OMNITRAX_PT_TrackingPanel)
 
+    bpy.utils.register_class(EXPORT_OT_Operator)
+    bpy.utils.register_class(EXPORT_PT_TrackingPanel)
+
     bpy.utils.register_class(OMNITRAX_OT_PoseEstimationOperator)
     bpy.utils.register_class(OMNITRAX_PT_PoseEstimationPanel)
 
-    bpy.utils.register_class(EXPORT_OT_Operator)
-    bpy.utils.register_class(EXPORT_PT_TrackingPanel)
     bpy.utils.register_class(EXPORT_PT_DataPanel)
 
 
@@ -970,9 +1019,10 @@ def unregister():
     bpy.utils.unregister_class(OMNITRAX_PT_DetectionPanel)
     bpy.utils.unregister_class(OMNITRAX_PT_TrackingPanel)
 
+    bpy.utils.unregister_class(EXPORT_OT_Operator)
+    bpy.utils.unregister_class(EXPORT_PT_TrackingPanel)
+
     bpy.utils.unregister_class(OMNITRAX_OT_PoseEstimationOperator)
     bpy.utils.unregister_class(OMNITRAX_PT_PoseEstimationPanel)
 
-    bpy.utils.unregister_class(EXPORT_OT_Operator)
-    bpy.utils.unregister_class(EXPORT_PT_TrackingPanel)
-    bpy.utils.unregis
+    bpy.utils.unregister_class(EXPORT_PT_DataPanel)

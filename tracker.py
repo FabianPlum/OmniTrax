@@ -19,9 +19,11 @@ class Track(object):
         None
     """
 
-    def __init__(self, prediction, trackIdCount, predicted_class=None,
+    def __init__(self, prediction, trackIdCount,
                  dt=0.033, u_x=0, u_y=0,
-                 std_acc=5, y_std_meas=0.1, x_std_meas=0.1):
+                 std_acc=5, y_std_meas=0.1, x_std_meas=0.1,
+                 predicted_class=None,
+                 bbox=[None, None, None, None]):
         """Initialize variables used by Track class
         Args:
             prediction: predicted centroids of object to be tracked
@@ -36,6 +38,8 @@ class Track(object):
         self.prediction = np.asarray(prediction)  # predicted centroids (x,y)
         self.skipped_frames = 0  # number of frames skipped undetected
         self.trace = []  # trace path
+        if any(bbox) is not None:
+            self.bbox_trace = [bbox]  # trace bounding boxes
         if predicted_class is not None:
             # we create a list of predicted classes for each frame, so when terminating the track,
             # we can perform a majority vote to determine the most likely class.
@@ -59,7 +63,7 @@ class Tracker(object):
                          track will be deleted and new track is created
             max_frames_to_skip: maximum allowed frames to be skipped for
                                 the track object undetected
-            max_trace_lenght: trace path history length
+            max_trace_length: trace path history length
             trackIdCount: identification of each track object
         Return:
             None
@@ -77,7 +81,7 @@ class Tracker(object):
         self.y_std_meas = y_std_meas
         self.x_std_meas = x_std_meas
 
-    def Update(self, detections, predicted_classes=None):
+    def Update(self, detections, predicted_classes=None, bounding_boxes=None):
         """Update tracks vector using following steps:
             - Create tracks if no tracks vector found
             - Calculate cost using sum of square distance
@@ -99,9 +103,11 @@ class Tracker(object):
         # Create tracks if no tracks vector was found
         if (len(self.tracks) == 0):
             for i in range(len(detections)):
-                track = Track(detections[i], self.trackIdCount, predicted_class=predicted_classes[i],
+                track = Track(detections[i], self.trackIdCount,
                               dt=self.dt, u_x=self.u_x, u_y=self.u_y, std_acc=self.std_acc,
-                              y_std_meas=self.y_std_meas, x_std_meas=self.x_std_meas)
+                              y_std_meas=self.y_std_meas, x_std_meas=self.x_std_meas,
+                              predicted_class=predicted_classes[i],
+                              bbox=bounding_boxes[i])
                 self.trackIdCount += 1
                 self.tracks.append(track)
 
@@ -172,14 +178,18 @@ class Tracker(object):
         # Start new tracks
         if len(un_assigned_detects) != 0:
             for i in range(len(un_assigned_detects)):
-                if predicted_classes is not None:
+                if predicted_classes is not None and any(bounding_boxes) is not None:
                     track = Track(detections[un_assigned_detects[i]],
-                                  self.trackIdCount, predicted_class=predicted_classes[un_assigned_detects[i]],
+                                  self.trackIdCount,
                                   dt=self.dt, u_x=self.u_x, u_y=self.u_y, std_acc=self.std_acc,
-                                  y_std_meas=self.y_std_meas, x_std_meas=self.x_std_meas)
+                                  y_std_meas=self.y_std_meas, x_std_meas=self.x_std_meas,
+                                  predicted_class=predicted_classes[un_assigned_detects[i]],
+                                  bbox=bounding_boxes[un_assigned_detects[i]])
                 else:
                     track = Track(detections[un_assigned_detects[i]],
-                                  self.trackIdCount)
+                                  self.trackIdCount,
+                                  dt=self.dt, u_x=self.u_x, u_y=self.u_y, std_acc=self.std_acc,
+                                  y_std_meas=self.y_std_meas, x_std_meas=self.x_std_meas)
                 self.trackIdCount += 1
                 self.tracks.append(track)
                 assignment.append(-1)
@@ -201,6 +211,12 @@ class Tracker(object):
                     self.tracks[i].predicted_class.append(predicted_classes[assignment[i]])
                 else:
                     self.tracks[i].predicted_class.append("")
+            if any(bounding_boxes) is not None:
+                if i not in un_assigned_tracks:
+                    self.tracks[i].bbox_trace.append(bounding_boxes[assignment[i]])
+                else:
+                    # if no new detection could be found, use the bounding box shape of the previous frame
+                    self.tracks[i].bbox_trace.append(self.tracks[i].bbox_trace[-1])
 
             if self.use_kf:
                 # Use Kalman Filter for track predictions
