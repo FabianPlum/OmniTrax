@@ -390,6 +390,17 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         global dlc_live
         global network_initialised
 
+        # TODO import skeleton rather than hard-coding relationships
+        skeleton = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],  # thorax
+                    [0, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13],  # l_1
+                    [0, 14], [14, 15], [15, 16], [16, 17], [17, 18], [18, 19], [19, 20],  # l_2
+                    [0, 21], [21, 22], [22, 23], [23, 24], [24, 25], [25, 26], [26, 27],  # l_3
+                    [0, 28], [28, 29], [29, 30], [30, 31], [31, 32], [32, 33], [33, 34],  # r_1
+                    [0, 35], [35, 36], [36, 37], [37, 38], [38, 39], [39, 40], [40, 41],  # r_2
+                    [0, 42], [42, 43], [43, 44], [44, 45], [45, 46], [46, 47], [47, 48],  # r_3
+                    [0, 49], [49, 50], [49, 51], [49, 52], [52, 53], [53, 54], [54, 55],  # ma_r & an_r
+                    [49, 56], [56, 57], [56, 58], [58, 59], [59, 60], [60, 61]]  # ma_l & an_l
+
         if "dlc_proc" not in globals():
             from dlclive import DLCLive, Processor
             try:
@@ -474,17 +485,15 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                             dlc_input_img[y_min_offset:y_max_offset, x_min_offset:x_max_offset] = frame_cropped
                         else:
                             bbox = marker.pattern_corners
-                            print("OH COOL, DYNAMIC THINGS!")
                             true_min_x = marker_x + int(bbox[0][0] * clip_width)
                             true_max_x = marker_x - int(bbox[0][0] * clip_width)
                             true_min_y = clip_height - marker_y - int(bbox[0][1] * clip_height)
                             true_max_y = clip_height - marker_y + int(bbox[0][1] * clip_height)
                             true_width = true_max_x - true_min_x
                             true_height = true_max_y - true_min_y
-
-                            print("bbox_coords",
+                            print("Cropped image ROI:",
                                   true_min_x, true_max_x,
-                                  true_min_y, true_max_y,
+                                  true_min_y, true_max_y, "\n Detection h/w:",
                                   true_height, true_width)
 
                             # resize image and maintain aspect ratio to the specified ROI
@@ -514,11 +523,20 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
 
                         # estimate pose in cropped frame
                         pose = dlc_live.get_pose(dlc_input_img)
+                        thresh = context.scene.pose_pcutoff
 
                         for p, point in enumerate(pose):
-                            if point[2] >= context.scene.pose_pcutoff:
+                            if point[2] >= thresh:
                                 dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])), 5,
                                                            (int(255 * point[2]), int(100 * point[2]), 200), -1)
+
+                        if context.scene.pose_plot_skeleton:
+                            for bone in skeleton:
+                                if pose[bone[0]][2] >= thresh and pose[bone[1]][2] >= thresh:
+                                    dlc_input_img = cv2.line(dlc_input_img,
+                                                             (int(pose[bone[0]][0]), int(pose[bone[0]][1])),
+                                                             (int(pose[bone[1]][0]), int(pose[bone[1]][1])),
+                                                             (120, 220, 120), 2)
 
                         cv2.imshow("DLC Pose Estimation", dlc_input_img)
                         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -821,6 +839,10 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         description="Predicted key points with a confidence below this threshold" +
                     "will be discarded during pose estimation",
         default=0.5)
+    bpy.types.Scene.pose_plot_skeleton = BoolProperty(
+        name="Plot skeleton",
+        description="Plot the pre-defined skeleton based on the detected landmarks",
+        default=False)
 
     def draw(self, context):
         layout = self.layout
@@ -834,6 +856,9 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         col.prop(context.scene, "pose_constant_size")
         col.prop(context.scene, "pose_pcutoff")
         col.separator()
+
+        col.label(text="Analysis and plotting:")
+        col.prop(context.scene, "pose_plot_skeleton")
 
         col.label(text="Run Pose Estimation")
         col.operator("scene.pose_estimation_run", text="ESTIMATE POSES")
