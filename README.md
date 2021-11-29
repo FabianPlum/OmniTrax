@@ -3,6 +3,10 @@ It will track many things. Eventually. In Blender.
 
 ![](images/preview_tracking.gif)
 
+Oh, and pose-estimate as well
+
+![](images/single_ant_1080p_POSE_track_0.gif)
+
 ## Updates:
 
 * 20/11/2021 - Added **pre-release** version, tested for **Blender 2.9.2** only
@@ -19,7 +23,7 @@ It will track many things. Eventually. In Blender.
 * [3 class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1wQcfLlDUvnWthyzbvyVy9oqyTZ2F-JFo?usp=sharing)
 
 **DLC Networks**
-* [bad multi ant pose-estimator (trained on synthetic data, for testing only!)](https://drive.google.com/file/d/1TaDvvJu0hkv7cEq32c5yP_05pfO95P8E/view?usp=sharing)
+* [ResNet101 (single) ant pose-estimator (trained on synthetic data)](https://drive.google.com/file/d/1VnGXy_KyPHUIbFMx5n_ncN6z0H6qg5uB/view?usp=sharing)
 
 
 ***
