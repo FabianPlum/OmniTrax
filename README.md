@@ -5,7 +5,7 @@ It will track many things. Eventually. In Blender.
 
 Oh, and pose-estimate as well
 
-![](images/single_ant_1080p_POSE_track_0.gif)
+![](images/single_ant_1080p_POSE_track_0.gif) ![](images/single_ant_1080p_POSE_track_0_skeleton.gif)
 
 ## Updates:
 
