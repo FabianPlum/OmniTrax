@@ -534,7 +534,8 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                             if p > 50:
                                 break
                             if point[2] >= thresh:
-                                dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])), 5,
+                                dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])),
+                                                           context.scene.pose_point_size,
                                                            (int(255 * p / 49), int(255 - 255 * p / 49), 200), -1)
 
                         if context.scene.pose_plot_skeleton:
@@ -543,7 +544,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                     dlc_input_img = cv2.line(dlc_input_img,
                                                              (int(pose[bone[0]][0]), int(pose[bone[0]][1])),
                                                              (int(pose[bone[1]][0]), int(pose[bone[1]][1])),
-                                                             (120, 220, 120), 2)
+                                                             (120, 220, 120), context.scene.pose_skeleton_bone_width)
 
                         cv2.imshow("DLC Pose Estimation", dlc_input_img)
                         video_out.write(dlc_input_img)
@@ -846,7 +847,7 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         name="Pose (input) frame size (px)",
         description="Constant detection size in pixels." +
                     "All detections will be rescaled and padded, if necessary for pose estimation",
-        default=40)
+        default=300)
     bpy.types.Scene.pose_pcutoff = FloatProperty(
         name="pcutoff (minimum key point confidence)",
         description="Predicted key points with a confidence below this threshold" +
@@ -856,6 +857,14 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         name="Plot skeleton",
         description="Plot the pre-defined skeleton based on the detected landmarks",
         default=False)
+    bpy.types.Scene.pose_point_size = IntProperty(
+        name="Key point marker size",
+        description="(visualisation) Size of marker points on pose estimation",
+        default=3)
+    bpy.types.Scene.pose_skeleton_bone_width = IntProperty(
+        name="Skeleton line thickness",
+        description="(visualisation) Line width of skeleton bones in pixels",
+        default=2)
 
     def draw(self, context):
         layout = self.layout
@@ -870,8 +879,14 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         col.prop(context.scene, "pose_pcutoff")
         col.separator()
 
-        col.label(text="Analysis and plotting:")
+        col.label(text="Visualisation:")
         col.prop(context.scene, "pose_plot_skeleton")
+        col.prop(context.scene, "pose_point_size")
+        col.prop(context.scene, "pose_skeleton_bone_width")
+        col.separator()
+
+        # col.label(text="Analysis and plotting:")
+        # col.separator()
 
         col.label(text="Run Pose Estimation")
         col.operator("scene.pose_estimation_run", text="ESTIMATE POSES")
