@@ -445,7 +445,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         for track in clip.tracking.objects[0].tracks:
 
             video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4] + "_POSE_" + track.name + ".mp4"
-            video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc(*'MP4V'), fps,
+            video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc(*'mp4v'), fps,
                                         (int(context.scene.pose_constant_size), int(context.scene.pose_constant_size)))
 
             for frame_id in range(first_frame, last_frames):
@@ -496,6 +496,11 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                             true_max_y = clip_height - marker_y + int(bbox[0][1] * clip_height)
                             true_width = true_max_x - true_min_x
                             true_height = true_max_y - true_min_y
+
+                            if true_height < 0:  # flip y axis, if required
+                                true_min_y, true_max_y = true_max_y, true_min_y
+                                true_height = -true_height
+
                             print("Cropped image ROI:",
                                   true_min_x, true_max_x,
                                   true_min_y, true_max_y, "\n Detection h/w:",
@@ -506,6 +511,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                 rescale_width = int(ROI_size * 2)
                                 rescale_height = int((true_height / true_width) * ROI_size * 2)
                                 border_height = max([int((rescale_width - rescale_height) / 2), 0])
+                                print(rescale_width, rescale_height, border_height)
                                 frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
                                                            true_min_x:true_max_x],
                                                            (rescale_width, rescale_height))
@@ -514,7 +520,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                             else:
                                 rescale_width = int((true_width / true_height) * ROI_size * 2)
                                 rescale_height = int(ROI_size * 2)
-                                border_width = max([int((rescale_height - rescale_width) / 2), 0])
+                                border_width = max([int(abs((rescale_height - rescale_width)) / 2), 0])
                                 frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
                                                            true_min_x:true_max_x],
                                                            (rescale_width, rescale_height))
@@ -544,12 +550,14 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                     dlc_input_img = cv2.line(dlc_input_img,
                                                              (int(pose[bone[0]][0]), int(pose[bone[0]][1])),
                                                              (int(pose[bone[1]][0]), int(pose[bone[1]][1])),
-                                                             (120, 220, 120), context.scene.pose_skeleton_bone_width)
+                                                             (120, 220, 120),
+                                                             context.scene.pose_skeleton_bone_width)
 
                         cv2.imshow("DLC Pose Estimation", dlc_input_img)
                         video_out.write(dlc_input_img)
                         if cv2.waitKey(1) & 0xFF == ord('q'):
                             break
+
             print("\n")
 
         cv2.destroyAllWindows()
