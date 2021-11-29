@@ -398,8 +398,8 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                     [0, 28], [28, 29], [29, 30], [30, 31], [31, 32], [32, 33], [33, 34],  # r_1
                     [0, 35], [35, 36], [36, 37], [37, 38], [38, 39], [39, 40], [40, 41],  # r_2
                     [0, 42], [42, 43], [43, 44], [44, 45], [45, 46], [46, 47], [47, 48],  # r_3
-                    [0, 49], [49, 50], [49, 51], [49, 52], [52, 53], [53, 54], [54, 55],  # ma_r & an_r
-                    [49, 56], [56, 57], [56, 58], [58, 59], [59, 60], [60, 61]]  # ma_l & an_l
+                    [0, 49]]  # , [49, 50], [49, 51], [49, 52], [52, 53], [53, 54], [54, 55],  # ma_r & an_r
+        # [49, 56], [56, 57], [56, 58], [58, 59], [59, 60], [60, 61]]  # ma_l & an_l
 
         if "dlc_proc" not in globals():
             from dlclive import DLCLive, Processor
@@ -429,6 +429,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
 
         # now we can load the captured video file and display it
         cap = cv2.VideoCapture(clip_path)
+        fps = cap.get(cv2.CAP_PROP_FPS)
 
         if "network_initialised" not in globals():
             network_initialised = False
@@ -442,6 +443,10 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         else:
             print("Tracks found...\n")
         for track in clip.tracking.objects[0].tracks:
+
+            video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4] + "_POSE_" + track.name + ".mp4"
+            video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc(*'MP4V'), fps,
+                                        (int(context.scene.pose_constant_size), int(context.scene.pose_constant_size)))
 
             for frame_id in range(first_frame, last_frames):
 
@@ -526,9 +531,11 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                         thresh = context.scene.pose_pcutoff
 
                         for p, point in enumerate(pose):
+                            if p > 50:
+                                break
                             if point[2] >= thresh:
                                 dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])), 5,
-                                                           (int(255 * point[2]), int(100 * point[2]), 200), -1)
+                                                           (int(255 * p / 49), int(255 - 255 * p / 49), 200), -1)
 
                         if context.scene.pose_plot_skeleton:
                             for bone in skeleton:
@@ -539,11 +546,17 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                                              (120, 220, 120), 2)
 
                         cv2.imshow("DLC Pose Estimation", dlc_input_img)
+                        video_out.write(dlc_input_img)
                         if cv2.waitKey(1) & 0xFF == ord('q'):
                             break
             print("\n")
 
         cv2.destroyAllWindows()
+
+        # always reset frame from capture at the end to avoid incorrect skips during access
+        cap.set(1, context.scene.frame_start - 1)
+        cap.release()
+        video_out.release()
         print("Read all frames")
 
         return {"FINISHED"}
