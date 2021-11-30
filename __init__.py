@@ -114,10 +114,11 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             for track in tracker_KF.tracks:
                 track.trace = []
 
-        # and produce an output file    
-        video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4] + "_online_tracking.avi"
-        video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps,
-                                    (int(cap.get(3)), int(cap.get(4))))
+        # and produce an output file
+        if context.scene.tracker_save_video:
+            video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4] + "_online_tracking.avi"
+            video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps,
+                                        (int(cap.get(3)), int(cap.get(4))))
 
         # check the number of frames of the imported video file
         numFramesMax = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -360,8 +361,8 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                                      int(y1) - bpy.context.scene.detection_constant_size), cv2.FONT_HERSHEY_SIMPLEX,
                                     0.4,
                                     track_colors[mname], 2)
-
-            video_out.write(image)
+            if context.scene.tracker_save_video:
+                video_out.write(image)
             cv2.imshow('Detections on video', image)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -372,7 +373,8 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         # always reset frame from capture at the end to avoid incorrect skips during access
         cap.set(1, context.scene.frame_start - 1)
         cap.release()
-        video_out.release()
+        if context.scene.tracker_save_video:
+            video_out.release()
 
         return {"FINISHED"}
 
@@ -444,9 +446,10 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
             print("Tracks found...\n")
         for track in clip.tracking.objects[0].tracks:
 
-            video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4] + "_POSE_" + track.name + ".mp4"
-            video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc(*'mp4v'), fps,
-                                        (int(context.scene.pose_constant_size), int(context.scene.pose_constant_size)))
+            if context.scene.pose_save_video:
+                video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4] + "_POSE_" + track.name + ".mp4"
+                video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc(*'mp4v'), fps,
+                                            (int(context.scene.pose_constant_size), int(context.scene.pose_constant_size)))
 
             for frame_id in range(first_frame, last_frames):
 
@@ -554,7 +557,8 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                                              context.scene.pose_skeleton_bone_width)
 
                         cv2.imshow("DLC Pose Estimation", dlc_input_img)
-                        video_out.write(dlc_input_img)
+                        if context.scene.pose_save_video:
+                            video_out.write(dlc_input_img)
                         if cv2.waitKey(1) & 0xFF == ord('q'):
                             break
 
@@ -565,7 +569,8 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         # always reset frame from capture at the end to avoid incorrect skips during access
         cap.set(1, context.scene.frame_start - 1)
         cap.release()
-        video_out.release()
+        if context.scene.pose_save_video:
+            video_out.release()
         print("Read all frames")
 
         return {"FINISHED"}
@@ -809,6 +814,10 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
         name="std in y-direction",
         description="standard deviation of the measurement in y-direction",
         default=0.1)
+    bpy.types.Scene.tracker_save_video = BoolProperty(
+        name="Export tracked video",
+        description="Write the video with tracked overlay to the location of the input video",
+        default=False)
 
     def draw(self, context):
         layout = self.layout
@@ -830,6 +839,7 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
         col.separator()
 
         col.label(text="Run tracking")
+        col.prop(context.scene, "tracker_save_video")
         col.operator("scene.detection_run", text="TRACK")
         col.operator("scene.detection_run", text="RESTART Tracking").restart_tracking = True
 
@@ -873,6 +883,10 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         name="Skeleton line thickness",
         description="(visualisation) Line width of skeleton bones in pixels",
         default=2)
+    bpy.types.Scene.pose_save_video = BoolProperty(
+        name="Export pose estimation video",
+        description="Write the cropped video with tracked overlay to the location of the input video",
+        default=False)
 
     def draw(self, context):
         layout = self.layout
@@ -897,6 +911,7 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         # col.separator()
 
         col.label(text="Run Pose Estimation")
+        col.prop(context.scene, "pose_save_video")
         col.operator("scene.pose_estimation_run", text="ESTIMATE POSES")
 
 
