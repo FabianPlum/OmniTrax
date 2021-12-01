@@ -1,4 +1,4 @@
-# from:  https://machinelearningspace.com/2d-object-tracking-using-kalman-filter/
+# adapted from:  https://machinelearningspace.com/2d-object-tracking-using-kalman-filter/
 import numpy as np
 
 

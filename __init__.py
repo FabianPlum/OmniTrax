@@ -36,7 +36,7 @@ bl_info = {
     "author": "Fabian Plum",
     "description": "Using some deep learning to do fancy multi-animal tracking",
     "blender": (2, 92, 0),
-    "version": (0, 0, 1),
+    "version": (0, 0, 2),
     "location": "",
     "warning": "THIS ADDON WILL INSTALL 3RD PARTY LIBRARIES AND CAUSE SEVERE HEADACHES",
     "category": "motion capture"
