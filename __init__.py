@@ -893,6 +893,10 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         name="Export pose estimation video",
         description="Write the cropped video with tracked overlay to the location of the input video",
         default=False)
+    bpy.types.Scene.pose_export_pose = BoolProperty(
+        name="Export pose estimation data",
+        description="Write estimated pose data to disk, including landmark locations in pixel space and joint angles.",
+        default=False)
 
     def draw(self, context):
         layout = self.layout
@@ -918,6 +922,7 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
 
         col.label(text="Run Pose Estimation")
         col.prop(context.scene, "pose_save_video")
+        col.prop(context.scene, "pose_export_pose")
         col.operator("scene.pose_estimation_run", text="ESTIMATE POSES")
 
 
