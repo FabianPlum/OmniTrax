@@ -447,9 +447,11 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         for track in clip.tracking.objects[0].tracks:
 
             if context.scene.pose_save_video:
-                video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4] + "_POSE_" + track.name + ".mp4"
+                video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[
+                               :-4] + "_POSE_" + track.name + ".mp4"
                 video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc(*'mp4v'), fps,
-                                            (int(context.scene.pose_constant_size), int(context.scene.pose_constant_size)))
+                                            (int(context.scene.pose_constant_size),
+                                             int(context.scene.pose_constant_size)))
 
             for frame_id in range(first_frame, last_frames):
 
@@ -503,6 +505,10 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                             if true_height < 0:  # flip y axis, if required
                                 true_min_y, true_max_y = true_max_y, true_min_y
                                 true_height = -true_height
+
+                            if true_width < 0:  # flip x axis, if required
+                                true_min_x, true_max_x = true_max_x, true_min_x
+                                true_width = -true_width
 
                             print("Cropped image ROI:",
                                   true_min_x, true_max_x,
