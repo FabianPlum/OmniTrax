@@ -618,7 +618,6 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 pose_output_file.write("frame," + pose_joint_header + ",r1_deg,r2_deg,r3_deg,l1_deg,l2_deg,l3_deg\n")
                 for key, value in track_pose.items():
                     line = key + ',' + ','.join(str(e) for e in value.flatten())
-                    print(line)
                     pose_output_file.write(line + "\n")
                 pose_output_file.close()
 
