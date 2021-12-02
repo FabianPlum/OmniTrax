@@ -10,6 +10,7 @@ py_exec = str(sys.executable)
 # install packages (if they are not already installed)
 required_libraries = {"scipy": "scipy",
                       "pandas": "pandas",
+                      "PyYAML": "PyYAML",
                       "matplotlib": "matplotlib",
                       "opencv-python": "opencv-python",
                       "scikit-learn": "scikit-learn",

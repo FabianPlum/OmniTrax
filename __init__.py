@@ -15,6 +15,7 @@ import math
 import time
 import random
 import sys
+import yaml
 import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 from operator import itemgetter
@@ -391,15 +392,17 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         global dlc_proc
         global dlc_live
         global network_initialised
+        global pose_cfg
 
         # TODO import skeleton rather than hard-coding relationships
-        skeleton = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],  # head & thorax
-                    [0, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13],  # r_1
-                    [0, 14], [14, 15], [15, 16], [16, 17], [17, 18], [18, 19],  # [19, 20],  # r_2
-                    [0, 21], [21, 22], [22, 23], [23, 24], [24, 25], [25, 26],  # [26, 27],  # r_3
-                    [0, 32], [32, 33], [33, 34], [34, 35], [35, 36], [36, 37],  # [37, 38],  # l_1
-                    [0, 39], [39, 40], [40, 41], [41, 42], [42, 43], [43, 44],  # [44, 45],  # l_2
-                    [0, 46], [46, 47], [47, 48], [48, 49], [49, 50], [50, 51],  # [51, 52]]  # l_3
+        skeleton = [[0, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13],  # r_1
+                    [0, 14], [14, 15], [15, 16], [16, 17], [17, 18], [18, 19], [19, 20],  # r_2
+                    [0, 21], [21, 22], [22, 23], [23, 24], [24, 25], [25, 26], [26, 27],  # r_3
+                    [0, 32], [32, 33], [33, 34], [34, 35], [35, 36], [36, 37], [37, 38],  # l_1
+                    [0, 39], [39, 40], [40, 41], [41, 42], [42, 43], [43, 44], [44, 45],  # l_2
+                    [0, 46], [46, 47], [47, 48], [48, 49], [49, 50], [50, 51], [51, 52],  # l_3
+                    # use only legs (first 42 entries) to retrieve angles relevant for locomotion
+                    [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],  # head & thorax
                     [7, 14], [14, 21], [21, 1],  # l_co to b_a
                     [32, 39], [39, 46], [46, 1]]  # r_co to b_a
 
@@ -410,6 +413,17 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 dlc_proc = Processor()
                 print("Loading DLC Network from", model_path)
                 dlc_live = DLCLive(model_path, processor=dlc_proc, pcutoff=context.scene.pose_pcutoff)
+
+                # create a list of join names from those defined in the pose_cfg.yaml file
+                pose_cfg = os.path.join(model_path, "pose_cfg.yaml")
+                with open(pose_cfg, 'r') as stream:
+                    pose_cfg_yaml = yaml.safe_load(stream)
+
+                pose_joint_names = pose_cfg_yaml["all_joints_names"]
+                pose_joint_header = ','.join(str(e) + "_x," +
+                                             str(e) + "_y," +
+                                             str(e) + "_prob" for e in pose_joint_names)
+
             except:
                 print("Failed to load trained network... Check your model path!")
                 return {"FINISHED"}
@@ -452,6 +466,10 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc(*'mp4v'), fps,
                                             (int(context.scene.pose_constant_size),
                                              int(context.scene.pose_constant_size)))
+
+            # keeps track of the pose info at each frame for each track
+            # frame_id : [[joint_a_X, joint_a_Y, joint_a_Confidence], [joint_b_X, joint_b_Y, joint_b_Confidence],  ...]
+            track_pose = {}
 
             for frame_id in range(first_frame, last_frames):
 
@@ -545,6 +563,8 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                         pose = dlc_live.get_pose(dlc_input_img)
                         thresh = context.scene.pose_pcutoff
 
+                        track_pose[str(frame_id)] = pose.flatten()
+
                         for p, point in enumerate(pose):
                             if p > 50:
                                 break  # only plot locomotor body parts
@@ -553,20 +573,44 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                                            context.scene.pose_point_size,
                                                            (int(255 * p / 49), int(255 - 255 * p / 49), 200), -1)
 
-                        if context.scene.pose_plot_skeleton:
-                            for bone in skeleton:
-                                if pose[bone[0]][2] >= thresh and pose[bone[1]][2] >= thresh:
+                        jont_angles = np.zeros(42)
+                        main_body_axis = [pose[0][0] - pose[6][0], pose[0][1] - pose[6][1]]  # b_t to b_h
+                        unit_vector_body_axis = main_body_axis / np.linalg.norm(main_body_axis)
+                        for b, bone in enumerate(skeleton):
+                            if pose[bone[0]][2] >= thresh and pose[bone[1]][2] >= thresh:
+                                # save angles between keypoints
+                                if b < 42:
+                                    bone_vector = [pose[bone[0]][0] - pose[bone[1]][0],
+                                                   pose[bone[0]][1] - pose[bone[1]][1]]
+                                    unit_vector_bone_vector = bone_vector / np.linalg.norm(bone_vector)
+                                    dot_product = np.dot(unit_vector_body_axis, unit_vector_bone_vector)
+                                    jont_angles[b] = np.arccos(dot_product)
+
+                                if context.scene.pose_plot_skeleton:
                                     dlc_input_img = cv2.line(dlc_input_img,
                                                              (int(pose[bone[0]][0]), int(pose[bone[0]][1])),
                                                              (int(pose[bone[1]][0]), int(pose[bone[1]][1])),
                                                              (120, 220, 120),
                                                              context.scene.pose_skeleton_bone_width)
 
+                        track_pose[str(frame_id)] = np.concatenate((track_pose[str(frame_id)], jont_angles))
+
                         cv2.imshow("DLC Pose Estimation", dlc_input_img)
                         if context.scene.pose_save_video:
                             video_out.write(dlc_input_img)
                         if cv2.waitKey(1) & 0xFF == ord('q'):
                             break
+
+            if context.scene.pose_export_pose:
+                pose_output_file = open(bpy.path.abspath(bpy.context.edit_movieclip.filepath)[
+                                        :-4] + "_POSE_" + track.name + ".csv", "w")
+                # write header line
+                pose_output_file.write("frame," + pose_joint_header + "\n")
+                for key, value in track_pose.items():
+                    line = key + ',' + ','.join(str(e) for e in value.flatten())
+                    print(line)
+                    pose_output_file.write(line + "\n")
+                pose_output_file.close()
 
             print("\n")
 
