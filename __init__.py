@@ -403,10 +403,12 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                     [0, 32], [32, 33], [33, 34], [34, 35], [35, 36], [36, 37], [37, 38],  # l_1
                     [0, 39], [39, 40], [40, 41], [41, 42], [42, 43], [43, 44], [44, 45],  # l_2
                     [0, 46], [46, 47], [47, 48], [48, 49], [49, 50], [50, 51], [51, 52],  # l_3
-                    # use only legs (first 42 entries) to retrieve angles relevant for locomotion
+                    # use only legs to retrieve angles relevant for locomotion
                     [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],  # head & thorax
                     [7, 14], [14, 21], [21, 1],  # l_co to b_a
                     [32, 39], [39, 46], [46, 1]]  # r_co to b_a
+
+        include_points = list(range(0, 53))
 
         if "dlc_proc" not in globals():
             from dlclive import DLCLive, Processor
@@ -421,7 +423,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 with open(pose_cfg, 'r') as stream:
                     pose_cfg_yaml = yaml.safe_load(stream)
 
-                pose_joint_names = pose_cfg_yaml["all_joints_names"]
+                pose_joint_names = pose_cfg_yaml["all_joints_names"][0:53]
                 pose_joint_header = ','.join(str(e) + "_x," +
                                              str(e) + "_y," +
                                              str(e) + "_prob" for e in pose_joint_names)
@@ -565,13 +567,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                         pose = dlc_live.get_pose(dlc_input_img)
                         thresh = context.scene.pose_pcutoff
 
-                        track_pose[str(frame_id)] = pose.flatten()
-
-                        include_points = list(range(0, 28)) + list(range(32, 53)) + [57]
-                        # 0 to 6 b_t to b_a_5_end
-                        # 7 to 27 right legs
-                        # 28 to 31 unassigned
-                        # 32 to 52 left legs
+                        track_pose[str(frame_id)] = pose[:53].flatten()
 
                         for p, point in enumerate(pose):
                             if p in include_points:
@@ -589,7 +585,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                                                     1)
 
                         jont_angles = np.empty(42)
-                        main_body_axis = [pose[0][0] - pose[6][0], pose[0][1] - pose[6][1]]  # b_t to b_h
+                        main_body_axis = [pose[0][0] - pose[6][0], pose[0][1] - pose[6][1]]  # b_t to b_a
                         unit_vector_body_axis = main_body_axis / np.linalg.norm(main_body_axis)
                         for b, bone in enumerate(skeleton):
                             if pose[bone[0]][2] >= thresh and pose[bone[1]][2] >= thresh:
@@ -610,12 +606,12 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                                              context.scene.pose_skeleton_bone_width)
 
                         # now get the angle of each leg by taking the median angle from each associated joint
-                        leg_angles = np.array([np.mean(jont_angles[0:5]),
-                                               np.mean(jont_angles[7:12]),
-                                               np.mean(jont_angles[14:19]),
-                                               np.mean(jont_angles[21:26]),
-                                               np.mean(jont_angles[28:33]),
-                                               np.mean(jont_angles[35:40])])
+                        leg_angles = np.array([np.mean(jont_angles[1:3]),
+                                               np.mean(jont_angles[8:10]),
+                                               np.mean(jont_angles[15:17]),
+                                               np.mean(jont_angles[22:24]),
+                                               np.mean(jont_angles[29:33]),
+                                               np.mean(jont_angles[36:38])])
 
                         track_pose[str(frame_id)] = np.concatenate((track_pose[str(frame_id)], leg_angles))
 
