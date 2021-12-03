@@ -394,6 +394,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         global network_initialised
         global pose_cfg
         global pose_joint_header
+        global pose_joint_names
 
         # TODO import skeleton rather than hard-coding relationships
         skeleton = [[0, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13],  # r_1
@@ -566,15 +567,28 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
 
                         track_pose[str(frame_id)] = pose.flatten()
 
-                        for p, point in enumerate(pose):
-                            if p > 50:
-                                break  # only plot locomotor body parts
-                            if point[2] >= thresh:
-                                dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])),
-                                                           context.scene.pose_point_size,
-                                                           (int(255 * p / 49), int(255 - 255 * p / 49), 200), -1)
+                        include_points = list(range(0, 28)) + list(range(32, 53)) + [57]
+                        # 0 to 6 b_t to b_a_5_end
+                        # 7 to 27 right legs
+                        # 28 to 31 unassigned
+                        # 32 to 52 left legs
 
-                        jont_angles = np.zeros(42)
+                        for p, point in enumerate(pose):
+                            if p in include_points:
+                                if point[2] >= thresh:
+                                    dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])),
+                                                               context.scene.pose_point_size,
+                                                               (int(255 * p / 49), int(255 - 255 * p / 49), 200), -1)
+
+                                    if context.scene.pose_show_labels:
+                                        dlc_input_img = cv2.putText(dlc_input_img, pose_joint_names[p],
+                                                                    (int(point[0]), int(point[1])),
+                                                                    cv2.FONT_HERSHEY_SIMPLEX,
+                                                                    1,
+                                                                    (int(255 * p / 49), int(255 - 255 * p / 49), 200),
+                                                                    1)
+
+                        jont_angles = np.empty(42)
                         main_body_axis = [pose[0][0] - pose[6][0], pose[0][1] - pose[6][1]]  # b_t to b_h
                         unit_vector_body_axis = main_body_axis / np.linalg.norm(main_body_axis)
                         for b, bone in enumerate(skeleton):
@@ -586,7 +600,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                                        pose[bone[0]][1] - pose[bone[1]][1]]
                                         unit_vector_bone_vector = bone_vector / np.linalg.norm(bone_vector)
                                         dot_product = np.dot(unit_vector_body_axis, unit_vector_bone_vector)
-                                        jont_angles[b] = np.arccos(dot_product)
+                                        jont_angles[b] = np.arccos(np.clip(dot_product, -1.0, 1.0))
 
                                 if context.scene.pose_plot_skeleton:
                                     dlc_input_img = cv2.line(dlc_input_img,
@@ -596,14 +610,14 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                                              context.scene.pose_skeleton_bone_width)
 
                         # now get the angle of each leg by taking the median angle from each associated joint
-                        leg_angles = np.array([np.median(jont_angles[0:3]),
-                                               np.median(jont_angles[7:10]),
-                                               np.median(jont_angles[14:17]),
-                                               np.median(jont_angles[21:24]),
-                                               np.median(jont_angles[28:31]),
-                                               np.median(jont_angles[35:38])])
+                        leg_angles = np.array([np.mean(jont_angles[0:5]),
+                                               np.mean(jont_angles[7:12]),
+                                               np.mean(jont_angles[14:19]),
+                                               np.mean(jont_angles[21:26]),
+                                               np.mean(jont_angles[28:33]),
+                                               np.mean(jont_angles[35:40])])
 
-                        track_pose[str(frame_id)] = np.concatenate((track_pose[str(frame_id)], np.degrees(leg_angles)))
+                        track_pose[str(frame_id)] = np.concatenate((track_pose[str(frame_id)], leg_angles))
 
                         cv2.imshow("DLC Pose Estimation", dlc_input_img)
                         if context.scene.pose_save_video:
@@ -950,6 +964,10 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         name="Export pose estimation data",
         description="Write estimated pose data to disk, including landmark locations in pixel space and joint angles.",
         default=False)
+    bpy.types.Scene.pose_show_labels = BoolProperty(
+        name="Display label names",
+        description="Display label names as an overlay of the pose estimation",
+        default=False)
 
     def draw(self, context):
         layout = self.layout
@@ -968,6 +986,7 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         col.prop(context.scene, "pose_plot_skeleton")
         col.prop(context.scene, "pose_point_size")
         col.prop(context.scene, "pose_skeleton_bone_width")
+        col.prop(context.scene, "pose_show_labels")
         col.separator()
 
         # col.label(text="Analysis and plotting:")
