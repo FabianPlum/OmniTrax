@@ -478,150 +478,157 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
             for frame_id in range(first_frame, last_frames):
 
                 marker = track.markers.find_frame(frame_id)
-                if marker:
-                    marker_x = round(marker.co.x * clip_width)
-                    marker_y = round(marker.co.y * clip_height)
-                    print("Frame:", frame_id, " : ",
-                          "X", marker_x, ",",
-                          "Y", marker_y)
+                try:
+                    if marker:
+                        marker_x = round(marker.co.x * clip_width)
+                        marker_y = round(marker.co.y * clip_height)
+                        print("Frame:", frame_id, " : ",
+                              "X", marker_x, ",",
+                              "Y", marker_y)
 
-                    cap.set(1, frame_id)
-                    ret, frame_temp = cap.read()
-                    if ret:
-                        # first, create an empty image object to be filled with the ROI
-                        # this is important in case the detection lies close to the edge
-                        # where the ROI would go outside the image
-                        dlc_input_img = np.zeros([ROI_size * 2, ROI_size * 2, 3], dtype=np.uint8)
-                        dlc_input_img.fill(0)  # fill with zeros
+                        cap.set(1, frame_id)
+                        ret, frame_temp = cap.read()
+                        if ret:
+                            # first, create an empty image object to be filled with the ROI
+                            # this is important in case the detection lies close to the edge
+                            # where the ROI would go outside the image
+                            dlc_input_img = np.zeros([ROI_size * 2, ROI_size * 2, 3], dtype=np.uint8)
+                            dlc_input_img.fill(0)  # fill with zeros
 
-                        if context.scene.pose_enforce_constant_size:
-                            true_min_x = marker_x - ROI_size
-                            true_max_x = marker_x + ROI_size
-                            true_min_y = clip_height - marker_y - ROI_size
-                            true_max_y = clip_height - marker_y + ROI_size
+                            if context.scene.pose_enforce_constant_size:
+                                true_min_x = marker_x - ROI_size
+                                true_max_x = marker_x + ROI_size
+                                true_min_y = clip_height - marker_y - ROI_size
+                                true_max_y = clip_height - marker_y + ROI_size
 
-                            min_x = max([0, true_min_x])
-                            max_x = min([clip.size[0], true_max_x])
-                            min_y = max([0, true_min_y])
-                            max_y = min([clip.size[1], true_max_y])
-                            # crop frame to detection and rescale
-                            frame_cropped = frame_temp[min_y:max_y, min_x:max_x]
+                                min_x = max([0, true_min_x])
+                                max_x = min([clip.size[0], true_max_x])
+                                min_y = max([0, true_min_y])
+                                max_y = min([clip.size[1], true_max_y])
+                                # crop frame to detection and rescale
+                                frame_cropped = frame_temp[min_y:max_y, min_x:max_x]
 
-                            # place the cropped frame in the previously created empty image
-                            x_min_offset = max([0, - true_min_x])
-                            x_max_offset = min([ROI_size * 2, ROI_size * 2 - (true_max_x - clip.size[0])])
-                            y_min_offset = max([0, - true_min_y])
-                            y_max_offset = min([ROI_size * 2, ROI_size * 2 - (true_max_y - clip.size[1])])
+                                # place the cropped frame in the previously created empty image
+                                x_min_offset = max([0, - true_min_x])
+                                x_max_offset = min([ROI_size * 2, ROI_size * 2 - (true_max_x - clip.size[0])])
+                                y_min_offset = max([0, - true_min_y])
+                                y_max_offset = min([ROI_size * 2, ROI_size * 2 - (true_max_y - clip.size[1])])
 
-                            print("Cropped image ROI:", x_min_offset, x_max_offset, y_min_offset, y_max_offset)
-                            dlc_input_img[y_min_offset:y_max_offset, x_min_offset:x_max_offset] = frame_cropped
-                        else:
-                            bbox = marker.pattern_corners
-                            true_min_x = marker_x + int(bbox[0][0] * clip_width)
-                            true_max_x = marker_x - int(bbox[0][0] * clip_width)
-                            true_min_y = clip_height - marker_y - int(bbox[0][1] * clip_height)
-                            true_max_y = clip_height - marker_y + int(bbox[0][1] * clip_height)
-                            true_width = true_max_x - true_min_x
-                            true_height = true_max_y - true_min_y
-
-                            if true_height < 0:  # flip y axis, if required
-                                true_min_y, true_max_y = true_max_y, true_min_y
-                                true_height = -true_height
-
-                            if true_width < 0:  # flip x axis, if required
-                                true_min_x, true_max_x = true_max_x, true_min_x
-                                true_width = -true_width
-
-                            print("Cropped image ROI:",
-                                  true_min_x, true_max_x,
-                                  true_min_y, true_max_y, "\n Detection h/w:",
-                                  true_height, true_width)
-
-                            # resize image and maintain aspect ratio to the specified ROI
-                            if true_width >= true_height:
-                                rescale_width = int(ROI_size * 2)
-                                rescale_height = int((true_height / true_width) * ROI_size * 2)
-                                border_height = max([int((rescale_width - rescale_height) / 2), 0])
-                                print(rescale_width, rescale_height, border_height)
-                                frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
-                                                           true_min_x:true_max_x],
-                                                           (rescale_width, rescale_height))
-
-                                dlc_input_img[border_height:rescale_height + border_height, :] = frame_cropped
+                                print("Cropped image ROI:", x_min_offset, x_max_offset, y_min_offset, y_max_offset)
+                                dlc_input_img[y_min_offset:y_max_offset, x_min_offset:x_max_offset] = frame_cropped
                             else:
-                                rescale_width = int((true_width / true_height) * ROI_size * 2)
-                                rescale_height = int(ROI_size * 2)
-                                border_width = max([int(abs((rescale_height - rescale_width)) / 2), 0])
-                                frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
-                                                           true_min_x:true_max_x],
-                                                           (rescale_width, rescale_height))
+                                bbox = marker.pattern_corners
+                                true_min_x = marker_x + int(bbox[0][0] * clip_width)
+                                true_max_x = marker_x - int(bbox[0][0] * clip_width)
+                                true_min_y = clip_height - marker_y - int(bbox[0][1] * clip_height)
+                                true_max_y = clip_height - marker_y + int(bbox[0][1] * clip_height)
+                                true_width = true_max_x - true_min_x
+                                true_height = true_max_y - true_min_y
 
-                                dlc_input_img[:, border_width:rescale_width + border_width] = frame_cropped
+                                if true_height < 0:  # flip y axis, if required
+                                    true_min_y, true_max_y = true_max_y, true_min_y
+                                    true_height = -true_height
 
-                        # initialise network (if it has not been initialised yet)
-                        if not network_initialised:
-                            dlc_live.init_inference(dlc_input_img)
-                            network_initialised = True
+                                if true_width < 0:  # flip x axis, if required
+                                    true_min_x, true_max_x = true_max_x, true_min_x
+                                    true_width = -true_width
 
-                        # estimate pose in cropped frame
-                        pose = dlc_live.get_pose(dlc_input_img)
-                        thresh = context.scene.pose_pcutoff
+                                print("Cropped image ROI:",
+                                      true_min_x, true_max_x,
+                                      true_min_y, true_max_y, "\n Detection h/w:",
+                                      true_height, true_width)
 
-                        track_pose[str(frame_id)] = pose[:53].flatten()
+                                # resize image and maintain aspect ratio to the specified ROI
+                                if true_width >= true_height:
+                                    rescale_width = int(ROI_size * 2)
+                                    rescale_height = int((true_height / true_width) * ROI_size * 2)
+                                    border_height = max([int((rescale_width - rescale_height) / 2), 0])
+                                    print(rescale_width, rescale_height, border_height)
+                                    frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
+                                                               true_min_x:true_max_x],
+                                                               (rescale_width, rescale_height))
 
-                        for p, point in enumerate(pose):
-                            if p in include_points:
-                                if point[2] >= thresh:
-                                    dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])),
-                                                               context.scene.pose_point_size,
-                                                               (int(255 * p / 49), int(255 - 255 * p / 49), 200), -1)
+                                    dlc_input_img[border_height:rescale_height + border_height, :] = frame_cropped
+                                else:
+                                    rescale_width = int((true_width / true_height) * ROI_size * 2)
+                                    rescale_height = int(ROI_size * 2)
+                                    border_width = max([int(abs((rescale_height - rescale_width)) / 2), 0])
+                                    frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
+                                                               true_min_x:true_max_x],
+                                                               (rescale_width, rescale_height))
 
-                                    if context.scene.pose_show_labels:
-                                        dlc_input_img = cv2.putText(dlc_input_img, pose_joint_names[p],
-                                                                    (int(point[0]), int(point[1])),
-                                                                    cv2.FONT_HERSHEY_SIMPLEX,
-                                                                    1,
-                                                                    (int(255 * p / 49), int(255 - 255 * p / 49), 200),
-                                                                    1)
+                                    dlc_input_img[:, border_width:rescale_width + border_width] = frame_cropped
 
-                        joint_angles = np.empty(42)
-                        joint_angles_conf = np.empty(42)  # report confidence on each joint angle
-                        main_body_axis = [pose[0][0] - pose[6][0], pose[0][1] - pose[6][1]]  # b_t to b_a
-                        unit_vector_body_axis = main_body_axis / np.linalg.norm(main_body_axis)
-                        for b, bone in enumerate(skeleton):
-                            if pose[bone[0]][2] >= thresh and pose[bone[1]][2] >= thresh:
-                                if context.scene.pose_export_pose:
-                                    # save angles between keypoints
-                                    if b < 42:
-                                        bone_vector = [pose[bone[0]][0] - pose[bone[1]][0],
-                                                       pose[bone[0]][1] - pose[bone[1]][1]]
-                                        unit_vector_bone_vector = bone_vector / np.linalg.norm(bone_vector)
-                                        dot_product = np.dot(unit_vector_body_axis, unit_vector_bone_vector)
-                                        joint_angles[b] = np.arccos(np.clip(dot_product, -1.0, 1.0))
-                                        joint_angles_conf[b] = pose[bone[0]][2] + pose[bone[1]][2]
+                            # initialise network (if it has not been initialised yet)
+                            if not network_initialised:
+                                dlc_live.init_inference(dlc_input_img)
+                                network_initialised = True
 
-                                if context.scene.pose_plot_skeleton:
-                                    dlc_input_img = cv2.line(dlc_input_img,
-                                                             (int(pose[bone[0]][0]), int(pose[bone[0]][1])),
-                                                             (int(pose[bone[1]][0]), int(pose[bone[1]][1])),
-                                                             (120, 220, 120),
-                                                             context.scene.pose_skeleton_bone_width)
+                            # estimate pose in cropped frame
+                            pose = dlc_live.get_pose(dlc_input_img)
+                            thresh = context.scene.pose_pcutoff
 
-                        # now get the angle of each leg by taking the median angle from each associated joint
-                        leg_angles = np.array([np.average(joint_angles[1:3], weights=joint_angles_conf[1:3]),
-                                               np.average(joint_angles[8:10], weights=joint_angles_conf[8:10]),
-                                               np.average(joint_angles[15:17], weights=joint_angles_conf[15:17]),
-                                               np.average(joint_angles[22:24], weights=joint_angles_conf[22:24]),
-                                               np.average(joint_angles[29:31], weights=joint_angles_conf[29:31]),
-                                               np.average(joint_angles[36:38], weights=joint_angles_conf[36:38])])
+                            track_pose[str(frame_id)] = pose[:53].flatten()
 
-                        track_pose[str(frame_id)] = np.concatenate((track_pose[str(frame_id)], leg_angles))
+                            for p, point in enumerate(pose):
+                                if p in include_points:
+                                    if point[2] >= thresh:
+                                        dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])),
+                                                                   context.scene.pose_point_size,
+                                                                   (int(255 * p / 49), int(255 - 255 * p / 49), 200),
+                                                                   -1)
 
-                        cv2.imshow("DLC Pose Estimation", dlc_input_img)
-                        if context.scene.pose_save_video:
-                            video_out.write(dlc_input_img)
-                        if cv2.waitKey(1) & 0xFF == ord('q'):
-                            break
+                                        if context.scene.pose_show_labels:
+                                            dlc_input_img = cv2.putText(dlc_input_img, pose_joint_names[p],
+                                                                        (int(point[0]), int(point[1])),
+                                                                        cv2.FONT_HERSHEY_SIMPLEX,
+                                                                        1,
+                                                                        (int(255 * p / 49), int(255 - 255 * p / 49),
+                                                                         200),
+                                                                        1)
+
+                            joint_angles = np.empty(42)
+                            joint_angles_conf = np.empty(42)  # report confidence on each joint angle
+                            main_body_axis = [pose[0][0] - pose[6][0], pose[0][1] - pose[6][1]]  # b_t to b_a
+                            unit_vector_body_axis = main_body_axis / np.linalg.norm(main_body_axis)
+                            for b, bone in enumerate(skeleton):
+                                if pose[bone[0]][2] >= thresh and pose[bone[1]][2] >= thresh:
+                                    if context.scene.pose_export_pose:
+                                        # save angles between keypoints
+                                        if b < 42:
+                                            bone_vector = [pose[bone[0]][0] - pose[bone[1]][0],
+                                                           pose[bone[0]][1] - pose[bone[1]][1]]
+                                            unit_vector_bone_vector = bone_vector / np.linalg.norm(bone_vector)
+                                            dot_product = np.dot(unit_vector_body_axis, unit_vector_bone_vector)
+                                            joint_angles[b] = np.arccos(np.clip(dot_product, -1.0, 1.0))
+                                            joint_angles_conf[b] = pose[bone[0]][2] + pose[bone[1]][2]
+
+                                    if context.scene.pose_plot_skeleton:
+                                        dlc_input_img = cv2.line(dlc_input_img,
+                                                                 (int(pose[bone[0]][0]), int(pose[bone[0]][1])),
+                                                                 (int(pose[bone[1]][0]), int(pose[bone[1]][1])),
+                                                                 (120, 220, 120),
+                                                                 context.scene.pose_skeleton_bone_width)
+
+                            # now get the angle of each leg by taking the median angle from each associated joint
+                            leg_angles = np.array([np.average(joint_angles[1:3], weights=joint_angles_conf[1:3]),
+                                                   np.average(joint_angles[8:10], weights=joint_angles_conf[8:10]),
+                                                   np.average(joint_angles[15:17], weights=joint_angles_conf[15:17]),
+                                                   np.average(joint_angles[22:24], weights=joint_angles_conf[22:24]),
+                                                   np.average(joint_angles[29:31], weights=joint_angles_conf[29:31]),
+                                                   np.average(joint_angles[36:38], weights=joint_angles_conf[36:38])])
+
+                            track_pose[str(frame_id)] = np.concatenate((track_pose[str(frame_id)], leg_angles))
+
+                            cv2.imshow("DLC Pose Estimation", dlc_input_img)
+                            if context.scene.pose_save_video:
+                                video_out.write(dlc_input_img)
+                            if cv2.waitKey(1) & 0xFF == ord('q'):
+                                break
+
+                except Exception as e:
+                    print(e)
+                    track_pose[str(frame_id)] = np.array([0])
 
             if context.scene.pose_export_pose:
                 pose_output_file = open(bpy.path.abspath(bpy.context.edit_movieclip.filepath)[
