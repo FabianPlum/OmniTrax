@@ -213,6 +213,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         track_classes = {}
 
         ROI_size = int(context.scene.detection_constant_size / 2)
+        clip = context.edit_movieclip
 
         while True:
             if frame_counter == context.scene.frame_end + 1 - context.scene.frame_start:
@@ -220,7 +221,6 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
             prev_time = time.time()
             ret, frame_read = cap.read()
-            clip = context.edit_movieclip
             clip_width = frame_read.shape[1]
             clip_height = frame_read.shape[0]
             frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
