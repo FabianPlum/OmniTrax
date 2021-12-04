@@ -325,7 +325,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                                      track_colors[mname], 2)
 
                             if x1 != 0 and x2 != 0 and len(
-                                    tracker_KF.tracks[i].trace) > context.scene.tracking_max_frames_to_skip:
+                                    tracker_KF.tracks[i].trace) >= context.scene.tracking_min_track_length:
                                 # write track to clip markers
                                 if mname in clip.tracking.objects[0].tracks:
                                     # if the corresponding marker exists, update it's position on the current frame
@@ -864,6 +864,10 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
         name="Frames skipped before termination",
         description="Maximum number of frames between two detections to be associated with the same track. This is to handle simple buffer and recover tracking as well as termination of tracks of subjects that leave the scene",
         default=10)
+    bpy.types.Scene.tracking_min_track_length = IntProperty(
+        name="Minimum track length",
+        description="Minimum number of tracked frames. If a track has fewer frames, no marker will be created for it and it will not be used for any analysis",
+        default=100)
 
     # Track Display settings    
     bpy.types.Scene.tracking_max_trace_length = IntProperty(
@@ -904,6 +908,7 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
         col.label(text="Buffer and Recover settings")
         col.prop(context.scene, "tracking_dist_thresh")
         col.prop(context.scene, "tracking_max_frames_to_skip")
+        col.prop(context.scene, "tracking_min_track_length")
         col.label(text="Track Display settings")
         col.prop(context.scene, "tracking_max_trace_length")
         col.prop(context.scene, "tracking_trackIdCount")
