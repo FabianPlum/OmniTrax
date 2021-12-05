@@ -15,6 +15,7 @@ Oh, and pose-estimate as well
 ## Installation notes
 * As we are using **tensorflow 2.7**, in order to run inference on your GPU, you will need to install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1](https://developer.nvidia.com/rdp/cudnn-archive). Refer to [this](https://www.tensorflow.org/install/source#gpu) official guide for version matching and installation instructions.
 * When installing the **OmniTrax** package, you may need to run **Blender** in **admnistrator mode** (on **Windows**). Otherwise, the additional required python packages may not be installable.
+* Currently, only GPU darknet dll files have been included for Windows
 
 ## Download trained networks and config files here:
 
