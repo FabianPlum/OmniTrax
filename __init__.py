@@ -25,7 +25,7 @@ from ctypes import *
 from omni_trax.build.darknet.x64 import darknet
 
 # now for the file management functions
-from omni_trax.OmniTrax_utils import import_tracks, display_video, get_exact_frame, extractPatches, display_patches, \
+from omni_trax.omni_trax_utils import import_tracks, display_video, get_exact_frame, extractPatches, display_patches, \
     sortByDistance
 
 # kalman imports
