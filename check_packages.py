@@ -2,7 +2,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-print("\nINFO: Checking requirements for OmniTrax addon...\n")
+print("\nINFO: Checking requirements for omni_trax addon...\n")
 
 # get path of blender internal python executable
 py_exec = str(sys.executable)

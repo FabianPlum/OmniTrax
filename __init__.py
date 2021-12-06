@@ -24,7 +24,7 @@ from ctypes import *
 # load darknet with compiled DLLs for windows from respective path
 from omni_trax.build.darknet.x64 import darknet
 
-# now for the file management fucntions
+# now for the file management functions
 from omni_trax.OmniTrax_utils import import_tracks, display_video, get_exact_frame, extractPatches, display_patches, \
     sortByDistance
 
@@ -33,7 +33,7 @@ import copy
 from omni_trax.tracker import Tracker
 
 bl_info = {
-    "name": "OmniTrax",
+    "name": "omni_trax",
     "author": "Fabian Plum",
     "description": "Using some deep learning to do fancy multi-animal tracking",
     "blender": (2, 92, 0),
