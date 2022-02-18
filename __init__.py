@@ -22,15 +22,25 @@ from operator import itemgetter
 from ctypes import *
 
 # load darknet with compiled DLLs for windows from respective path
-from omni_trax.build.darknet.x64 import darknet
-
-# now for the file management functions
-from omni_trax.omni_trax_utils import import_tracks, display_video, get_exact_frame, extractPatches, display_patches, \
-    sortByDistance
+from omni_trax.darknet import darknet_cpu as darknet
 
 # kalman imports
 import copy
 from omni_trax.tracker import Tracker
+
+# testing using specific compute devices (disabling GPU)
+import tensorflow as tf
+
+physical_devices = tf.config.list_physical_devices('GPU')
+try:
+    # Disable first GPU
+    tf.config.set_visible_devices(physical_devices[1:], 'GPU')
+    logical_devices = tf.config.list_logical_devices('GPU')
+    # Logical device was not created for first GPU
+    assert len(logical_devices) == len(physical_devices) - 1
+except:
+    # Invalid device or cannot modify virtual devices once initialized.
+    pass
 
 bl_info = {
     "name": "omni_trax",
@@ -66,19 +76,20 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         Detector Settings
         """
 
-        global netMain
-        global metaMain
+        global network
+        # global metaMain
         global altNames
+        global class_names
+        global class_colours
         global track_classes
         global tracks_dict
         global tracker_KF
 
-        if "netMain" in globals():
-            print("\nINFO: Initialised network found!\n")
+        if "network" in globals():
+            print("\nINFO: Initialised darknet network found!\n")
         else:
-            print("\nINFO: Initialising network...\n")
-            netMain = None
-            metaMain = None
+            print("\nINFO: Initialising darkent network...\n")
+            network = None
             altNames = None
 
         video = bpy.path.abspath(bpy.context.edit_movieclip.filepath)
@@ -132,6 +143,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         yolo_names = bpy.path.abspath(context.scene.detection_names_path)
 
         # read obj.names file to create custom colours for each class
+        """
         class_names = []
         with open(yolo_names, "r") as yn:
             for line in yn:
@@ -147,7 +159,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                 class_colours[cn] = [int((255 / len(class_names)) * (c + 1)), int(255 - (255 / len(class_names)) * c),
                                      0]
                 class_id[cn] = c
-
+        """
         # overwrite network dimensions
         # TODO
 
@@ -164,11 +176,8 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         if not os.path.exists(metaPath):
             raise ValueError("Invalid data file path `" +
                              os.path.abspath(metaPath) + "`")
-        if netMain is None:
-            netMain = darknet.load_net_custom(configPath.encode(
-                "ascii"), weightPath.encode("ascii"), 0, 1)  # batch size = 1
-        if metaMain is None:
-            metaMain = darknet.load_meta(metaPath.encode("ascii"))
+        if network is None:
+            network, class_names, class_colours = darknet.load_network(configPath, metaPath, weightPath, batch_size=1)
         if altNames is None:
             try:
                 with open(metaPath) as metaFH:
@@ -209,7 +218,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
         cap.set(1, context.scene.frame_start - 1)
 
-        # build array for all tracks and classes     
+        # build array for all tracks and classes
         track_classes = {}
 
         ROI_size = int(context.scene.detection_constant_size / 2)
@@ -233,7 +242,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
             # thresh : detection threshold -> lower = more sensitive (higher recall)
             # nms : non maximum suppression -> higher = allow for closer proximity between detections
-            detections = darknet.detect_image(netMain, metaMain, darknet_image,
+            detections = darknet.detect_image(network, class_names, darknet_image,
                                               thresh=bpy.context.scene.detection_activation_threshold,
                                               nms=bpy.context.scene.detection_nms)
             print("Frame:", frame_counter + 1)
@@ -244,26 +253,26 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
             bpy.context.scene.frame_current = bpy.context.scene.frame_start + frame_counter + 1
 
-            for detection in detections:
-                if detection[2][2] >= bpy.context.scene.detection_min_size and \
-                        detection[2][3] >= bpy.context.scene.detection_min_size:
-                    predicted_classes.append(str(detection[0]).split("'")[1])
+            for label, confidence, bbox in detections:
+                if bbox[2] >= bpy.context.scene.detection_min_size and \
+                        bbox[3] >= bpy.context.scene.detection_min_size:
+                    predicted_classes.append(label)
                     # we need to scale the detections to the original imagesize, as they are downsampled above
-                    scaled_xy = scale_detections(x=detection[2][0], y=detection[2][1],
-                                                 network_w=darknet.network_width(netMain),
-                                                 network_h=darknet.network_height(netMain),
+                    scaled_xy = scale_detections(x=bbox[0], y=bbox[1],
+                                                 network_w=darknet.network_width(network),
+                                                 network_h=darknet.network_height(network),
                                                  output_w=frame_rgb.shape[1], output_h=frame_rgb.shape[0])
                     viable_detections.append(scaled_xy)
 
                     # kalman stuff here
-                    centres.append(np.round(np.array([[detection[2][0]], [detection[2][1]]])))
+                    centres.append(np.round(np.array([[bbox[0]], [bbox[1]]])))
                     # TODO
                     # IT WOULD BE EVEN COOLER if the bounding boxes were directly transferred to the track marker.
                     # add bounding box info by associating it with corresponding matched centres / tracks
-                    bounding_boxes.append([detection[2][0] - detection[2][2] / 2,
-                                           detection[2][0] + detection[2][2] / 2,
-                                           detection[2][1] - detection[2][3] / 2,
-                                           detection[2][1] + detection[2][3] / 2])
+                    bounding_boxes.append([bbox[0] - bbox[2] / 2,
+                                           bbox[0] + bbox[2] / 2,
+                                           bbox[1] - bbox[3] / 2,
+                                           bbox[1] + bbox[3] / 2])
 
             all_detection_centres.append(viable_detections)
 
@@ -314,7 +323,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
                         for j in range(len(tracker_KF.tracks[i].trace) - 1):
                             hind_sight_frame = bpy.context.scene.frame_current - len(tracker_KF.tracks[i].trace) + j
-                            # Draw trace line on preview                         
+                            # Draw trace line on preview
                             x1 = tracker_KF.tracks[i].trace[j][0][0]
                             y1 = tracker_KF.tracks[i].trace[j][1][0]
                             x2 = tracker_KF.tracks[i].trace[j + 1][0][0]
@@ -621,10 +630,11 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                             track_pose[str(frame_id)] = np.concatenate((track_pose[str(frame_id)], leg_angles))
 
                             cv2.imshow("DLC Pose Estimation", dlc_input_img)
-                            if context.scene.pose_save_video:
-                                video_out.write(dlc_input_img)
                             if cv2.waitKey(1) & 0xFF == ord('q'):
                                 break
+                            if context.scene.pose_save_video:
+                                video_out.write(dlc_input_img)
+
 
                 except Exception as e:
                     print(e)
@@ -869,7 +879,7 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
         description="Minimum number of tracked frames. If a track has fewer frames, no marker will be created for it and it will not be used for any analysis",
         default=100)
 
-    # Track Display settings    
+    # Track Display settings
     bpy.types.Scene.tracking_max_trace_length = IntProperty(
         name="Maximum trace length",
         description="Maximum distance number of frames included in displayed trace",
@@ -879,7 +889,7 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
         description="Number of anticipated individuals in the first frame. Leave at 0, unless to help with tracking expected constant numbers of individuals",
         default=0)
 
-    # Kalman Filter settings    
+    # Kalman Filter settings
     bpy.types.Scene.tracker_use_KF = BoolProperty(
         name="Use Kalman Filter",
         description="Enables using Kalman filter based motion tracking. Ants don't seem to care about definable motion models, so I won't guarantee this improves the tracking results.",
@@ -1129,12 +1139,12 @@ def convertBack(x, y, w, h):
 
 
 def cvDrawBoxes(detections, img, min_size=20, constant_size=False, class_colours=None):
-    for detection in detections:
+    for label, confidence, bbox in detections:
 
-        x, y, w, h = detection[2][0], \
-                     detection[2][1], \
-                     detection[2][2], \
-                     detection[2][3]
+        x, y, w, h = bbox[0], \
+                     bbox[1], \
+                     bbox[2], \
+                     bbox[3]
 
         if w >= min_size and h >= min_size:
 
@@ -1145,11 +1155,9 @@ def cvDrawBoxes(detections, img, min_size=20, constant_size=False, class_colours
                 float(x), float(y), float(w), float(h))
             pt1 = (xmin, ymin)
             pt2 = (xmax, ymax)
-            cl_colour = class_colours[str(detection[0]).split("'")[1]]
+            cl_colour = class_colours[label]
             cv2.rectangle(img, pt1, pt2, (cl_colour[0], cl_colour[1], cl_colour[2]), 1)
-            cv2.putText(img,
-                        detection[0].decode() +
-                        " [" + str(round(detection[1] * 100, 2)) + "]",
+            cv2.putText(img, label + " [" + confidence + "]",
                         (pt1[0], pt1[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.3,
                         cl_colour, 1)
     return img
@@ -1184,14 +1192,4 @@ def register():
 
 
 def unregister():
-    bpy.utils.unregister_class(OMNITRAX_OT_DetectionOperator)
-    bpy.utils.unregister_class(OMNITRAX_PT_DetectionPanel)
-    bpy.utils.unregister_class(OMNITRAX_PT_TrackingPanel)
-
-    bpy.utils.unregister_class(EXPORT_OT_Operator)
-    bpy.utils.unregister_class(EXPORT_PT_TrackingPanel)
-
-    bpy.utils.unregister_class(OMNITRAX_OT_PoseEstimationOperator)
-    bpy.utils.unregister_class(OMNITRAX_PT_PoseEstimationPanel)
-
-    bpy.utils.unregister_class(EXPORT_PT_DataPanel)
+    bpy.utils.unr
