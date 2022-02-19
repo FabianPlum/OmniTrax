@@ -65,7 +65,7 @@ There may be a few **warnings** displayed throughout the installation process, h
 
 **ATTENTION:** Double check the *"names="* filepath in the **obj.data** file points to the **ABSOLUTE** location of the **obj.names** file. Otherwise, the program may crash when running tracking without telling you why. 
 
-**EXAMPLE:  *obj.data*** from [single class ant detector (trained on synthetic data)]
+**EXAMPLE:  *obj.data*** from [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)
 
 ```bash
 classes = 1
