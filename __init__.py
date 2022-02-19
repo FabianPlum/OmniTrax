@@ -3,6 +3,7 @@ from bpy.props import BoolProperty as BoolProperty
 from bpy.props import StringProperty as StringProperty
 from bpy.props import IntProperty as IntProperty
 from bpy.props import FloatProperty as FloatProperty
+from bpy.props import EnumProperty as EnumProperty
 
 # check for installed packages and if they are missing, install them now
 from omni_trax import check_packages
@@ -21,26 +22,12 @@ from sklearn.utils import shuffle
 from operator import itemgetter
 from ctypes import *
 
-# load darknet with compiled DLLs for windows from respective path
-from omni_trax.darknet import darknet_cpu as darknet
-
 # kalman imports
 import copy
 from omni_trax.tracker import Tracker
 
 # testing using specific compute devices (disabling GPU)
 import tensorflow as tf
-
-physical_devices = tf.config.list_physical_devices('GPU')
-try:
-    # Disable first GPU
-    tf.config.set_visible_devices(physical_devices[1:], 'GPU')
-    logical_devices = tf.config.list_logical_devices('GPU')
-    # Logical device was not created for first GPU
-    assert len(logical_devices) == len(physical_devices) - 1
-except:
-    # Invalid device or cannot modify virtual devices once initialized.
-    pass
 
 bl_info = {
     "name": "omni_trax",
@@ -54,6 +41,38 @@ bl_info = {
 }
 
 
+class OMNITRAX_PT_ComputePanel(bpy.types.Panel):
+    bl_label = "Computational Device"
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_category = "OmniTrax"
+
+    physical_devices = tf.config.list_physical_devices()
+    print("Found computational devices:\n", physical_devices)
+
+    devices = []
+    for d, device in enumerate(physical_devices):
+        if device.device_type == "GPU":
+            devices.append(("GPU_" + str(d - 1), "GPU_" + str(d - 1), "Use GPU for inference (requires CUDA)"))
+        else:
+            devices.append(("CPU_" + str(d), "CPU", "Use CPU for inference"))
+
+    bpy.types.Scene.compute_device = EnumProperty(
+        name="",
+        description="Select inference device",
+        items=devices,
+        default=devices[-1][0])
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.label(text="Select computational device")
+        col.separator()
+        row = col.row(align=True)
+        row.prop(context.scene, "compute_device")
+
+
 class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
     """Run the detection based tracking pipeline according to the above defined parameters"""
     bl_idname = "scene.detection_run"
@@ -65,6 +84,17 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         default=False)
 
     def execute(self, context):
+        """
+        Check which compute device is selected and set it as active
+        """
+        setInferenceDevive(context.scene.compute_device)
+
+        # load darknet with compiled DLLs for windows for either GPU or CPU inference from respective path
+        if context.scene.compute_device.split("_")[0] == "GPU":
+            from omni_trax.darknet import darknet as darknet
+        else:
+            from omni_trax.darknet import darknet_cpu as darknet
+
         """
         Tracker settings
         """
@@ -800,11 +830,11 @@ class OMNITRAX_PT_DetectionPanel(bpy.types.Panel):
     bpy.types.Scene.detection_enforce_constant_size = BoolProperty(
         name="constant detection sizes",
         description="Check to enforce constant detection sizes. This DOES NOT affect the actual inference, only the resulting regions of interest.",
-        default=False)
+        default=True)
     bpy.types.Scene.detection_constant_size = IntProperty(
         name="constant detection sizes (px)",
         description="Constant detection size in pixels. All detections will be rescaled to this value in both width and height.",
-        default=40)
+        default=60)
     bpy.types.Scene.detection_min_size = IntProperty(
         name="minimum detection sizes (px)",
         description="If the width or height of a detection is below this threshold, it will be discarded. This can be useful to decrease noise. Keep the value at 0 if this is not needed.",
@@ -877,7 +907,7 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
     bpy.types.Scene.tracking_min_track_length = IntProperty(
         name="Minimum track length",
         description="Minimum number of tracked frames. If a track has fewer frames, no marker will be created for it and it will not be used for any analysis",
-        default=100)
+        default=25)
 
     # Track Display settings
     bpy.types.Scene.tracking_max_trace_length = IntProperty(
@@ -1176,8 +1206,25 @@ def nonMaximumSupression(detections):
     return max_conf_detection
 
 
+def setInferenceDevive(device):
+    # disables all but the selected computational device (by setting them invisible)
+    physical_devices = tf.config.list_physical_devices(device.split("_")[0])
+    try:
+        tf.config.set_visible_devices(physical_devices[int(device.split("_")[1])], device_type=device.split("_")[0])
+        logical_devices = tf.config.list_logical_devices()
+        # Logical device was not created for first GPU
+    except:
+        # Invalid device or cannot modify virtual devices once initialized.
+        print("WARNING: Unable to switch active compute device")
+        pass
+
+    print("Running inference on: ", logical_devices)
+
+
 ### (un)register module ###
 def register():
+    bpy.utils.register_class(OMNITRAX_PT_ComputePanel)
+
     bpy.utils.register_class(OMNITRAX_OT_DetectionOperator)
     bpy.utils.register_class(OMNITRAX_PT_DetectionPanel)
     bpy.utils.register_class(OMNITRAX_PT_TrackingPanel)
@@ -1192,4 +1239,16 @@ def register():
 
 
 def unregister():
-    bpy.utils.unr
+    bpy.utils.unregister_class(OMNITRAX_PT_ComputePanel)
+
+    bpy.utils.unregister_class(OMNITRAX_OT_DetectionOperator)
+    bpy.utils.unregister_class(OMNITRAX_PT_DetectionPanel)
+    bpy.utils.unregister_class(OMNITRAX_PT_TrackingPanel)
+
+    bpy.utils.unregister_class(EXPORT_OT_Operator)
+    bpy.utils.unregister_class(EXPORT_PT_TrackingPanel)
+
+    bpy.utils.unregister_class(OMNITRAX_OT_PoseEstimationOperator)
+    bpy.utils.unregister_class(OMNITRAX_PT_PoseEstimationPanel)
+
+    bpy.utils.unregister_class(EXPORT_PT_DataPanel)
