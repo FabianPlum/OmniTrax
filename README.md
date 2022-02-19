@@ -45,7 +45,7 @@ This will take quite a while, so have a look at the **Blender Console** to see t
 
 ![](images/install_05.jpg)
 
-There may be a few **warnings** displayed throughout the installation process, however, as long as no errors occur, all should be good. If the installation is successful, a **checkmark** will be displayed next to the Add-on and the console should let you know that "[...] all looks good here!".
+There may be a few **warnings** displayed throughout the installation process, however, as long as no errors occur, all should be good. If the installation is successful, a **check mark** will be displayed next to the Add-on and the console should let you know that "[...] all looks good here!".
 
 ![](images/install_06.jpg)
 
@@ -55,7 +55,7 @@ There may be a few **warnings** displayed throughout the installation process, h
 
 ![](images/use_01.jpg)
 
-2. Time to select your compute device! If you have a **CUDA supported GPU** *(and the CUDA installation went as planned...)*, make sure you **GPU is selected** here, **before** running any of the inference functions, as the compute device cannot be changed at runtime.
+2. Time to select your compute device! If you have a **CUDA supported GPU** *(and the CUDA installation went as planned...)*, make sure your **GPU is selected** here, **before** running any of the inference functions, as the compute device cannot be changed at runtime.
 
 ![](images/use_02.jpg)
 
