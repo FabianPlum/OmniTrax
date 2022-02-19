@@ -842,7 +842,7 @@ class OMNITRAX_PT_DetectionPanel(bpy.types.Panel):
     bpy.types.Scene.detection_activation_threshold = FloatProperty(
         name="Confidence threshold",
         description="Detection confidence threshold. A higher confidence leads to fewer false positives but more missed detections.",
-        default=0.25)
+        default=0.5)
     bpy.types.Scene.detection_nms = FloatProperty(
         name="Non-maximum suppression",
         description="Non-maximum suppression (NMS) refers to the maximum overlap allowed between proposed bounding boxes. E.g., a value of 0.45 corresponds to a maximum overlap of 45% between two compared bounding boxes to be retained simultaneously. In case the overlap is larger, the box with the lower objectness score or classification confidence will be 'suppressed', thus, only the highest confidence prediction is returned.",
