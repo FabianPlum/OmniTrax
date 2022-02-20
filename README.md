@@ -59,7 +59,7 @@ There may be a few **warnings** displayed throughout the installation process, h
 
 ![](images/use_02.jpg)
 
-3. Now it's time to load one of your (YOLO)[https://github.com/AlexeyAB/darknet] networks (or one of our pre-trained YOLO networks, see below). Next, load a video you wish to analyse from your drive by clicking on **Open**.
+3. Now it's time to load one of your [YOLO](https://github.com/AlexeyAB/darknet) networks (or one of our pre-trained YOLO networks, see below). Next, load a video you wish to analyse from your drive by clicking on **Open**.
 
 ![](images/use_03.jpg)
 
