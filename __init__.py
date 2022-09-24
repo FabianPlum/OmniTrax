@@ -368,10 +368,38 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                                      track_colors[mname], 2)
 
                         # store all resulting tracks temporarily and add them to the scene after inference
-                        if x1 != 0 and x2 != 0 and len(
-                                tracker_KF.tracks[i].trace) >= context.scene.tracking_min_track_length:
+                        if x1 != 0 and x2 != 0:
                             # write track to clip markers
-                            all_track_results.append([hind_sight_frame, mname, x1, x2, y1, y2])
+                            if mname in clip.tracking.objects[0].tracks:
+                                # if the corresponding marker exists, update it's position on the current frame
+                                # remember to invert the y axis, because things are never easy or correct by default
+
+                                # constrain x1 and
+                                clip.tracking.objects[0].tracks[mname].markers.insert_frame(hind_sight_frame,
+                                                                                            co=(x2 / clip_width,
+                                                                                                1 - y2 / clip_height))
+                                if context.scene.detection_enforce_constant_size:
+                                    clip.tracking.objects[0].tracks[mname].markers.find_frame(
+                                        hind_sight_frame).pattern_corners = (
+                                        (ROI_size / clip_width, ROI_size / clip_height),
+                                        (ROI_size / clip_width, -ROI_size / clip_height),
+                                        (-ROI_size / clip_width, -ROI_size / clip_height),
+                                        (-ROI_size / clip_width, ROI_size / clip_height))
+                                else:
+                                    clip.tracking.objects[0].tracks[mname].markers.find_frame(
+                                        hind_sight_frame).pattern_corners = (
+                                        ((tracker_KF.tracks[i].bbox_trace[j][0] - x1) / clip_width,
+                                         (tracker_KF.tracks[i].bbox_trace[j][3] - y1) / clip_height),
+                                        ((tracker_KF.tracks[i].bbox_trace[j][1] - x1) / clip_width,
+                                         (tracker_KF.tracks[i].bbox_trace[j][3] - y1) / clip_height),
+                                        ((tracker_KF.tracks[i].bbox_trace[j][1] - x1) / clip_width,
+                                         (tracker_KF.tracks[i].bbox_trace[j][2] - y1) / clip_height),
+                                        ((tracker_KF.tracks[i].bbox_trace[j][0] - x1) / clip_width,
+                                         (tracker_KF.tracks[i].bbox_trace[j][2] - y1) / clip_height))
+                            else:
+                                # add new tracks to the set of markers
+                                bpy.ops.clip.add_marker(location=(x2 / clip_width, 1 - y2 / clip_height))
+                                clip.tracking.tracks.active.name = mname
 
                         cv2.putText(image,
                                     mname,
@@ -387,45 +415,19 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
             frame_counter += 1
 
-        print("adding resulting tracks to scene...")
-        for elem in all_track_results:
-            hind_sight_frame, mname, x1, x2, y1, y2 = elem
-            if mname in clip.tracking.objects[0].tracks:
-                # if the corresponding marker exists, update it's position on the current frame
-                # remember to invert the y axis, because things are never easy or correct by default
-                clip.tracking.objects[0].tracks[mname].markers.insert_frame(hind_sight_frame,
-                                                                            co=(x2 / clip_width,
-                                                                                1 - y2 / clip_height))
-                if context.scene.detection_enforce_constant_size:
-                    clip.tracking.objects[0].tracks[mname].markers.find_frame(
-                        hind_sight_frame).pattern_corners = (
-                        (ROI_size / clip_width, ROI_size / clip_height),
-                        (ROI_size / clip_width, -ROI_size / clip_height),
-                        (-ROI_size / clip_width, -ROI_size / clip_height),
-                        (-ROI_size / clip_width, ROI_size / clip_height))
-                else:
-                    clip.tracking.objects[0].tracks[mname].markers.find_frame(
-                        hind_sight_frame).pattern_corners = (
-                        ((tracker_KF.tracks[i].bbox_trace[j][0] - x1) / clip_width,
-                         (tracker_KF.tracks[i].bbox_trace[j][3] - y1) / clip_height),
-                        ((tracker_KF.tracks[i].bbox_trace[j][1] - x1) / clip_width,
-                         (tracker_KF.tracks[i].bbox_trace[j][3] - y1) / clip_height),
-                        ((tracker_KF.tracks[i].bbox_trace[j][1] - x1) / clip_width,
-                         (tracker_KF.tracks[i].bbox_trace[j][2] - y1) / clip_height),
-                        ((tracker_KF.tracks[i].bbox_trace[j][0] - x1) / clip_width,
-                         (tracker_KF.tracks[i].bbox_trace[j][2] - y1) / clip_height))
-            else:
-                # add new tracks to the set of markers
-                bpy.ops.clip.add_marker(location=(x2 / clip_width, 1 - y2 / clip_height))
-                clip.tracking.tracks.active.name = mname
-        print("Added a total of", len(all_track_results), "marker elements!")
-
         cv2.destroyAllWindows()
         # always reset frame from capture at the end to avoid incorrect skips during access
         cap.set(1, context.scene.frame_start - 1)
         cap.release()
         if context.scene.tracker_save_video:
             video_out.release()
+
+        print("Cleaning short tracks...")
+        for mname in clip.tracking.objects[0].tracks:
+            if len(mname.markers) < context.scene.tracking_min_track_length:
+                mname.select = True
+                bpy.ops.clip.delete_track()
+                print("removed", mname.name, "of length", len(mname.markers))
 
         return {"FINISHED"}
 
