@@ -14,7 +14,6 @@ required_libraries = {"scipy": "scipy",
                       "matplotlib": "matplotlib",
                       "opencv-python": "opencv-python",
                       "scikit-learn": "scikit-learn",
-                      "tensorflow": "tensorflow==2.7.0",
                       "deeplabcut-live": "deeplabcut-live"}
 
 reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
