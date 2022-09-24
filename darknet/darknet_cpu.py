@@ -36,6 +36,7 @@ class DETECTION(Structure):
                 ("sim", c_float),
                 ("track_id", c_int)]
 
+
 class DETNUMPAIR(Structure):
     _fields_ = [("num", c_int),
                 ("dets", POINTER(DETECTION))]
@@ -111,7 +112,9 @@ def print_detections(detections, coordinates=False):
     for label, confidence, bbox in detections:
         x, y, w, h = bbox
         if coordinates:
-            print("{}: {}%    (left_x: {:.0f}   top_y:  {:.0f}   width:   {:.0f}   height:  {:.0f})".format(label, confidence, x, y, w, h))
+            print("{}: {}%    (left_x: {:.0f}   top_y:  {:.0f}   width:   {:.0f}   height:  {:.0f})".format(label,
+                                                                                                            confidence,
+                                                                                                            x, y, w, h))
         else:
             print("{}: {}%".format(label, confidence))
 
@@ -133,6 +136,7 @@ def decode_detection(detections):
         confidence = str(round(confidence * 100, 2))
         decoded.append((str(label), confidence, bbox))
     return decoded
+
 
 # https://www.pyimagesearch.com/2015/02/16/faster-non-maximum-suppression-python/
 # Malisiewicz et al.
@@ -184,6 +188,7 @@ def non_max_suppression_fast(detections, overlap_thresh):
         # return only the bounding boxes that were picked using the
         # integer data type
     return [detections[i] for i in pick]
+
 
 def remove_negatives(detections, class_names, num):
     """
@@ -237,7 +242,10 @@ if os.name == "posix":
 elif os.name == "nt":
     cwd = os.path.dirname(__file__)
     os.environ['PATH'] = cwd + ';' + os.environ['PATH']
-    lib = CDLL("darknet_cpu.dll", RTLD_GLOBAL)
+    try:
+        lib = CDLL("darknet_cpu.dll", RTLD_GLOBAL)
+    except FileNotFoundError:
+        lib = CDLL(cwd + "\\darknet_cpu.dll", RTLD_GLOBAL)
 else:
     print("Unsupported OS")
     exit
@@ -248,7 +256,7 @@ lib.network_height.argtypes = [c_void_p]
 lib.network_height.restype = c_int
 
 copy_image_from_bytes = lib.copy_image_from_bytes
-copy_image_from_bytes.argtypes = [IMAGE,c_char_p]
+copy_image_from_bytes.argtypes = [IMAGE, c_char_p]
 
 predict = lib.network_predict_ptr
 predict.argtypes = [c_void_p, POINTER(c_float)]
@@ -330,5 +338,5 @@ predict_image_letterbox.restype = POINTER(c_float)
 
 network_predict_batch = lib.network_predict_batch
 network_predict_batch.argtypes = [c_void_p, IMAGE, c_int, c_int, c_int,
-                                   c_float, c_float, POINTER(c_int), c_int, c_int]
+                                  c_float, c_float, POINTER(c_int), c_int, c_int]
 network_predict_batch.restype = POINTER(DETNUMPAIR)

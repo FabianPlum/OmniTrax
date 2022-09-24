@@ -237,7 +237,10 @@ if os.name == "posix":
 elif os.name == "nt":
     cwd = os.path.dirname(__file__)
     os.environ['PATH'] = cwd + ';' + os.environ['PATH']
-    lib = CDLL("darknet.dll", RTLD_GLOBAL)
+    try:
+        lib = CDLL("darknet.dll", RTLD_GLOBAL)
+    except FileNotFoundError:
+        lib = CDLL(cwd + "\\darknet.dll", RTLD_GLOBAL)
 else:
     print("Unsupported OS")
     exit
