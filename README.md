@@ -17,12 +17,12 @@ Oh, and pose-estimate as well
 ## Installation Guide
 ### Requirements / Notes
 * **OmniTrax** is currently only supported on **Windows 10 / 11**
-* **YOU MUST** use [**Blender version 2.9.2**](https://download.blender.org/release/Blender2.92/) to match dependencies! I mean, you can try to use a different version too but then you will have to endure the pain of installing all sorts of python packages in Blender yourself... 
+* download and install [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/) to match dependencies. If you are planning on running inference on your CPU instead (which is considerably slower) use [**Blender version 2.9.2**](https://download.blender.org/release/Blender2.92/).
 * As we are using **tensorflow 2.7**, to run inference on your GPU, you will need to install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1](https://developer.nvidia.com/rdp/cudnn-archive). Refer to [this](https://www.tensorflow.org/install/source#gpu) official guide for version matching and installation instructions.
 * When installing the **OmniTrax** package, you need to run **Blender** in **admnistrator mode** (on **Windows**). Otherwise, the additional required python packages may not be installable.
 
 ### Step-by-step installation
-1. Install [**Blender version 2.9.2**](https://download.blender.org/release/Blender2.92/) from the official website. Simply download [blender-2.92.0-windows64.msi](https://download.blender.org/release/Blender2.92/blender-2.92.0-windows64.msi) and follow the installation instructions.
+1. Install [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/) from the official website. Simply download [blender-3.3.1-windows-x64.msi](https://www.blender.org/download/release/Blender3.3/blender-3.3.1-windows-x64.msi/) and follow the installation instructions.
 
 2. Download the latest release of [OmniTrax](https://github.com/FabianPlum/OmniTrax/releases/download/V_0.1.1/omni_trax.zip). **No need to unzip** the file! You can install it straight from the **Blender > Preferences > Add-on** menu in the next step.
 
