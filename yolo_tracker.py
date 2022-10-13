@@ -490,9 +490,9 @@ if __name__ == '__main__':
     ap.add_argument("-trc", "--continue_tracking", type=bool, default=False,
                     help="Continue tracking from prior state (requires prior_tracks input)")
     ap.add_argument('-trpt', '--prior_tracks', action='append',
-                    help='Pass last state of prior tracks as [mname, x, y, mname, x, y ...]')
+                    help='Pass last state of prior tracks as -trpt mname -trpt x -trpt y -trpt mname -trpt x ...')
     ap.add_argument('-trpc', '--prior_classes', action='append',
-                    help='Pass last state of prior classes as [mname, class, mname, class ...]')
+                    help='Pass last state of prior classes as -trpc mname -trpc class -trpc mname -trpc class ')
 
     # output settings
     ap.add_argument("-wv", "--write_video", type=bool, default=False,
