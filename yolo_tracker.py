@@ -10,6 +10,8 @@ import argparse
 import tensorflow as tf
 from operator import itemgetter
 
+np.random.seed(0)
+
 
 def getInferenceDevices():
     physical_devices = tf.config.list_physical_devices()
@@ -96,13 +98,12 @@ class YoloTracker:
 
     def __init__(self, net_cfg, net_weight, net_names, net_data, video_path,
                  detection_activation_threshold=0.5, detection_nms=0.45,
-                 tracker_dist_thresh=100, tracker_max_frames_to_skip=0, tracker_max_trace_length=200,
+                 tracker_dist_thresh=100, tracker_max_frames_to_skip=20, tracker_max_trace_length=200,
                  tracker_track_id_count=0, prior_tracks=[], prior_classes=[],
                  tracker_use_kf=True, tracker_std_acc=5,
                  tracker_x_std_meas=0.25, tracker_y_std_meas=.25, dt=None,
                  frame_start=0, frame_end=-1, continue_tracking=False,
-                 detection_min_size=50, detection_constant_size=100, detection_enforce_constant_size=False,
-                 inference_device=None):
+                 detection_min_size=50, detection_constant_size=100, detection_enforce_constant_size=False):
 
         """
         Check which compute device is selected and set it as active
@@ -150,7 +151,6 @@ class YoloTracker:
         """
         # Variables initialization
         self.track_colors = {}
-        np.random.seed(0)
 
         self.continue_tracking = continue_tracking
 
@@ -193,7 +193,9 @@ class YoloTracker:
             raise ValueError("Invalid data file path `" +
                              os.path.abspath(self.net_data) + "`")
 
-    def run_inference(self, export_video=False, write_csv=False, write_h5=False, write_pkl=False):
+    def run_inference(self, export_video=False, write_csv=False, write_h5=False, write_pkl=False,
+                      inference_device=None):
+
         from darknet import darknet as darknet
         self.network, self.class_names, self.class_colours = darknet.load_network(self.net_cfg,
                                                                                   self.net_data,
@@ -430,7 +432,7 @@ if __name__ == '__main__':
                     help="path to input video (use quotation marks for file paths with spaces!")
     ap.add_argument("-vs", "--frame_start", type=int, default=0,
                     help="First frame to analyze")
-    ap.add_argument("-vs", "--frame_end", type=int, default=-1,
+    ap.add_argument("-ve", "--frame_end", type=int, default=-1,
                     help="Last frame to analyze")
 
     # detector settings [required]
@@ -470,8 +472,6 @@ if __name__ == '__main__':
     ap.add_argument("-trcount", "--tracker_track_id_count", type=int, default=0,
                     help="Begin assigning IDs from this value onward (e.g. when combining multiple " +
                          "independently tracked segments")
-    ap.add_argument("-trthresh", "--tracker_dist_thresh", type=float, default=100,
-                    help="maximum (squared) pixel distance to associate a detection with a track")
 
     # tracker KF settings
     ap.add_argument("-trKF", "--tracker_use_kf", type=bool, default=True,
@@ -506,13 +506,14 @@ if __name__ == '__main__':
 
     args = vars(ap.parse_args())
 
-    path_to_yolo = "C:/Users/Legos/Documents/PhD/Blender/OmniTrax/trained_networks/atta_single_class/"
+    YT = YoloTracker(net_cfg=args["net_cfg"],
+                     net_weight=args["net_weight"],
+                     net_names=args["net_names"],
+                     net_data=args["net_data"],
+                     video_path=args["video_path"])
 
-    YT = YoloTracker(net_cfg=path_to_yolo + "yolov4-big_and_small_ants.cfg",
-                     net_weight=path_to_yolo + "yolov4-big_and_small_ants_1024px_refined_with_2048_px_27000.weights",
-                     net_names=path_to_yolo + "obj.names",
-                     net_data=path_to_yolo + "obj.data",
-                     video_path="C:/Users/Legos/Desktop/yolov4/example_recordings/2019-06-28_19-24-05.mp4")
-
-    output = YT.run_inference(export_video=True)
+    output = YT.run_inference(export_video=args["write_video"],
+                              write_csv=args["write_csv"],
+                              write_h5=args["write_h5"],
+                              write_pkl=args["write_pkl"])
     print(output)
