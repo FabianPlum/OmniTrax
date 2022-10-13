@@ -101,7 +101,7 @@ class YoloTracker:
                  tracker_dist_thresh=100, tracker_max_frames_to_skip=20, tracker_max_trace_length=200,
                  tracker_track_id_count=0, prior_tracks=[], prior_classes=[],
                  tracker_use_kf=True, tracker_std_acc=5,
-                 tracker_x_std_meas=0.25, tracker_y_std_meas=.25, dt=None,
+                 tracker_x_std_meas=0.25, tracker_y_std_meas=0.25, dt=0,
                  frame_start=0, frame_end=-1, continue_tracking=False,
                  detection_min_size=50, detection_constant_size=100, detection_enforce_constant_size=False):
 
@@ -131,8 +131,8 @@ class YoloTracker:
         # get the fps of the clip and set the environment accordingly
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
 
-        if dt is None:
-            self.dt = 1 / self.fps
+        if dt == 0:
+            self.dt = 1.0 / self.fps
         else:
             self.dt = dt
 
@@ -482,7 +482,7 @@ if __name__ == '__main__':
                     help="Kalman Filter standard deviation of the measurement in x-direction")
     ap.add_argument("-trstdy", "--tracker_y_std_meas", type=float, default=0.25,
                     help="Kalman Filter standard deviation of the measurement in y-direction")
-    ap.add_argument("-trdt", "--dt", type=float, default=None,
+    ap.add_argument("-trdt", "--dt", type=float, default=0,
                     help="Kalman Filter sampling time (time for 1 cycle). If not explicitly defined, dt will be "
                          + "1 / input_video_fps")
 
@@ -512,11 +512,14 @@ if __name__ == '__main__':
                      detection_nms=args["detection_nms"], tracker_dist_thresh=args["tracker_dist_thresh"],
                      tracker_max_frames_to_skip=args["tracker_max_frames_to_skip"],
                      tracker_max_trace_length=args["tracker_max_trace_length"],
-                     tracker_track_id_count=args["tracker_track_id_count"], continue_tracking=["continue_tracking"],
+                     tracker_track_id_count=args["tracker_track_id_count"],
+                     continue_tracking=["continue_tracking"],
                      prior_tracks=args["prior_tracks"], prior_classes=args["prior_classes"],
                      tracker_use_kf=args["tracker_use_kf"], tracker_std_acc=args["tracker_std_acc"],
-                     tracker_x_std_meas=args["tracker_x_std_meas"], tracker_y_std_meas=args["tracker_y_std_meas"],
-                     dt=args["tracker_x_std_meas"], frame_start=args["frame_start"], frame_end=args["frame_end"],
+                     tracker_x_std_meas=args["tracker_x_std_meas"],
+                     tracker_y_std_meas=args["tracker_y_std_meas"],
+                     dt=args["dt"], frame_start=args["frame_start"],
+                     frame_end=args["frame_end"],
                      detection_min_size=args["detection_min_size"],
                      detection_constant_size=args["detection_constant_size"],
                      detection_enforce_constant_size=args["detection_enforce_constant_size"])
@@ -525,4 +528,5 @@ if __name__ == '__main__':
                               write_csv=args["write_csv"],
                               write_h5=args["write_h5"],
                               write_pkl=args["write_pkl"])
+
     print(output)
