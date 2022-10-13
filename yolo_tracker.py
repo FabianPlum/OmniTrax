@@ -6,6 +6,7 @@ import numpy as np
 import cv2
 import os
 import time
+import argparse
 import tensorflow as tf
 from operator import itemgetter
 
@@ -422,6 +423,89 @@ class YoloTracker:
 
 
 if __name__ == '__main__':
+    # construct the argument parse and parse the arguments
+    ap = argparse.ArgumentParser()
+    # input video
+    ap.add_argument("-v", "--video_path", required=True,
+                    help="path to input video (use quotation marks for file paths with spaces!")
+    ap.add_argument("-vs", "--frame_start", type=int, default=0,
+                    help="First frame to analyze")
+    ap.add_argument("-vs", "--frame_end", type=int, default=-1,
+                    help="Last frame to analyze")
+
+    # detector settings [required]
+    ap.add_argument("-ncfg", "--net_cfg", required=True,
+                    help="path to yolo (v3 or v4, trained darknet model) config file")
+    ap.add_argument("-nw", "--net_weight", required=True,
+                    help="path to yolo (v3 or v4, trained darknet model) weight file")
+    ap.add_argument("-nn", "--net_names", required=True,
+                    help="path to yolo (v3 or v4, trained darknet model) names file")
+    ap.add_argument("-nd", "--net_data", required=True,
+                    help="path to yolo (v3 or v4, trained darknet model) data file")
+
+    # detector settings [optional]
+    ap.add_argument("-detthresh", "--detection_activation_threshold", type=float, default=0.5,
+                    help="confidence threshold for viable detections (higher > higher precision")
+    ap.add_argument("-detnms", "--detection_nms", type=float, default=0.45,
+                    help="non-maximum suppression overlap (higher > closer proximity, " +
+                         "but may cause overlapping detections")
+    ap.add_argument("-detmin", "--detection_min_size", type=int, default=25,
+                    help="minimum element size to be considered a viable detection (for small objects)")
+    ap.add_argument("-detconst", "--detection_enforce_constant_size", type=bool, default=False,
+                    help="Use square, fixed size bounding boxes, instead of natively returned size and shape")
+    ap.add_argument("-detconstsize", "--detection_constant_size", type=int, default=100,
+                    help="Square bounding box side length when enforcing constant bounding box size")
+
+    # compute device settings
+    ap.add_argument("-device", "--inference_device", type=str, default=None,
+                    help="Select compute device, e.g. CPU_0, GPU_0, GPU_1 ...")
+
+    # tracker settings
+    ap.add_argument("-trthresh", "--tracker_dist_thresh", type=float, default=100,
+                    help="maximum (squared) pixel distance to associate a detection with a track")
+    ap.add_argument("-trskip", "--tracker_max_frames_to_skip", type=int, default=10,
+                    help="Attempt to recover tracker for ## frames, before terminating track")
+    ap.add_argument("-trtrace", "--tracker_max_trace_length", type=int, default=100,
+                    help="Number of simultaneously displayed tracking states (does not affect output)")
+    ap.add_argument("-trcount", "--tracker_track_id_count", type=int, default=0,
+                    help="Begin assigning IDs from this value onward (e.g. when combining multiple " +
+                         "independently tracked segments")
+    ap.add_argument("-trthresh", "--tracker_dist_thresh", type=float, default=100,
+                    help="maximum (squared) pixel distance to associate a detection with a track")
+
+    # tracker KF settings
+    ap.add_argument("-trKF", "--tracker_use_kf", type=bool, default=True,
+                    help="Use Kalman Filter for tracking")
+    ap.add_argument("-trstd", "--tracker_std_acc", type=float, default=5,
+                    help="Kalman Filter process noise magnitude")
+    ap.add_argument("-trstdx", "--tracker_x_std_meas", type=float, default=0.25,
+                    help="Kalman Filter standard deviation of the measurement in x-direction")
+    ap.add_argument("-trstdy", "--tracker_y_std_meas", type=float, default=0.25,
+                    help="Kalman Filter standard deviation of the measurement in y-direction")
+    ap.add_argument("-trdt", "--dt", type=float, default=None,
+                    help="Kalman Filter sampling time (time for 1 cycle). If not explicitly defined, dt will be "
+                         + "1 / input_video_fps")
+
+    # continue tracking settings
+    ap.add_argument("-trc", "--continue_tracking", type=bool, default=False,
+                    help="Continue tracking from prior state (requires prior_tracks input)")
+    ap.add_argument('-trpt', '--prior_tracks', action='append',
+                    help='Pass last state of prior tracks as [mname, x, y, mname, x, y ...]')
+    ap.add_argument('-trpc', '--prior_classes', action='append',
+                    help='Pass last state of prior classes as [mname, class, mname, class ...]')
+
+    # output settings
+    ap.add_argument("-wv", "--write_video", type=bool, default=False,
+                    help="Export .avi video of live-tracking to input video folder")
+    ap.add_argument("-wcsv", "--write_csv", type=bool, default=False,
+                    help="Export .csv file of all final tracks")
+    ap.add_argument("-wh5", "--write_h5", type=bool, default=False,
+                    help="Export h5 file of all final tracks")
+    ap.add_argument("-wpkl", "--write_pkl", type=bool, default=False,
+                    help="Export .pkl file of all final tracks (used in Blender communication)")
+
+    args = vars(ap.parse_args())
+
     path_to_yolo = "C:/Users/Legos/Documents/PhD/Blender/OmniTrax/trained_networks/atta_single_class/"
 
     YT = YoloTracker(net_cfg=path_to_yolo + "yolov4-big_and_small_ants.cfg",
@@ -430,4 +514,5 @@ if __name__ == '__main__':
                      net_data=path_to_yolo + "obj.data",
                      video_path="C:/Users/Legos/Desktop/yolov4/example_recordings/2019-06-28_19-24-05.mp4")
 
-    YT.run_inference(export_video=True)
+    output = YT.run_inference(export_video=True)
+    print(output)
