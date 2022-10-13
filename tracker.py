@@ -9,7 +9,10 @@
 
 # Import python libraries
 import numpy as np
-from omni_trax.kalman_filter_new import KalmanFilter
+try:
+    from omni_trax.kalman_filter_new import KalmanFilter
+except ModuleNotFoundError:
+    from kalman_filter_new import KalmanFilter
 from scipy.optimize import linear_sum_assignment
 
 

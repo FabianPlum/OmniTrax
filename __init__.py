@@ -232,7 +232,6 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                         pass
             except Exception:
                 pass
-        # cap = cv2.VideoCapture(0)
 
         print("Starting the YOLO loop...")
 
