@@ -465,7 +465,7 @@ if __name__ == '__main__':
     # tracker settings
     ap.add_argument("-trthresh", "--tracker_dist_thresh", type=float, default=100,
                     help="maximum (squared) pixel distance to associate a detection with a track")
-    ap.add_argument("-trskip", "--tracker_max_frames_to_skip", type=int, default=10,
+    ap.add_argument("-trskip", "--tracker_max_frames_to_skip", type=int, default=25,
                     help="Attempt to recover tracker for ## frames, before terminating track")
     ap.add_argument("-trtrace", "--tracker_max_trace_length", type=int, default=100,
                     help="Number of simultaneously displayed tracking states (does not affect output)")
@@ -476,7 +476,7 @@ if __name__ == '__main__':
     # tracker KF settings
     ap.add_argument("-trKF", "--tracker_use_kf", type=bool, default=True,
                     help="Use Kalman Filter for tracking")
-    ap.add_argument("-trstd", "--tracker_std_acc", type=float, default=5,
+    ap.add_argument("-trstd", "--tracker_std_acc", type=float, default=10,
                     help="Kalman Filter process noise magnitude")
     ap.add_argument("-trstdx", "--tracker_x_std_meas", type=float, default=0.25,
                     help="Kalman Filter standard deviation of the measurement in x-direction")
@@ -506,11 +506,20 @@ if __name__ == '__main__':
 
     args = vars(ap.parse_args())
 
-    YT = YoloTracker(net_cfg=args["net_cfg"],
-                     net_weight=args["net_weight"],
-                     net_names=args["net_names"],
-                     net_data=args["net_data"],
-                     video_path=args["video_path"])
+    YT = YoloTracker(net_cfg=args["net_cfg"], net_weight=args["net_weight"],
+                     net_names=args["net_names"], net_data=args["net_data"], video_path=args["video_path"],
+                     detection_activation_threshold=args["detection_activation_threshold"],
+                     detection_nms=args["detection_nms"], tracker_dist_thresh=args["tracker_dist_thresh"],
+                     tracker_max_frames_to_skip=args["tracker_max_frames_to_skip"],
+                     tracker_max_trace_length=args["tracker_max_trace_length"],
+                     tracker_track_id_count=args["tracker_track_id_count"], continue_tracking=["continue_tracking"],
+                     prior_tracks=args["prior_tracks"], prior_classes=args["prior_classes"],
+                     tracker_use_kf=args["tracker_use_kf"], tracker_std_acc=args["tracker_std_acc"],
+                     tracker_x_std_meas=args["tracker_x_std_meas"], tracker_y_std_meas=args["tracker_y_std_meas"],
+                     dt=args["tracker_x_std_meas"], frame_start=args["frame_start"], frame_end=args["frame_end"],
+                     detection_min_size=args["detection_min_size"],
+                     detection_constant_size=args["detection_constant_size"],
+                     detection_enforce_constant_size=args["detection_enforce_constant_size"])
 
     output = YT.run_inference(export_video=args["write_video"],
                               write_csv=args["write_csv"],
