@@ -1,2 +1,3 @@
 # python environment specific
 *.pyc
+/__pycache__/*
