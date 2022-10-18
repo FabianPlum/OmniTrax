@@ -7,7 +7,6 @@ import cv2
 import os
 import time
 import argparse
-import tensorflow as tf
 from operator import itemgetter
 
 np.random.seed(0)
@@ -105,25 +104,6 @@ class YoloTracker:
                  frame_start=0, frame_end=-1, continue_tracking=False,
                  detection_min_size=50, detection_constant_size=100, detection_enforce_constant_size=False):
 
-        """
-        Check which compute device is selected and set it as active
-        """
-        """
-        if inference_device is not None:
-            self.devices = [inference_device]
-        else:
-            self.devices = getInferenceDevices()
-        setInferenceDevive(self.devices[-1])
-
-        # load darknet with compiled DLLs for windows for either GPU or CPU inference from respective path
-        if self.devices[-1].split("_")[0] == "GPU":
-            from darknet import darknet as darknet
-        else:
-            from darknet import darknet_cpu as darknet
-        """
-        from darknet import darknet as darknet
-        ###
-
         # now we can load the captured video file and display it
         self.video_path = video_path
         self.cap = cv2.VideoCapture(self.video_path)
@@ -196,7 +176,18 @@ class YoloTracker:
     def run_inference(self, export_video=False, write_csv=False, write_h5=False, write_pkl=False,
                       inference_device=None):
 
-        from darknet import darknet as darknet
+        """
+        Check which compute device is selected and set it as active
+        """
+
+        if inference_device is not None:
+            # load darknet with compiled DLLs for windows for either GPU or CPU inference from respective path
+            if inference_device.split("_")[0] == "CPU":
+                from darknet import darknet_cpu as darknet
+        else:
+            # use GPU inference by default
+            from darknet import darknet as darknet
+
         self.network, self.class_names, self.class_colours = darknet.load_network(self.net_cfg,
                                                                                   self.net_data,
                                                                                   self.net_weight,
