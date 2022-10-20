@@ -92,6 +92,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         # load darknet with compiled DLLs for windows for either GPU or CPU inference from respective path
         if context.scene.compute_device.split("_")[0] == "GPU":
             from omni_trax.darknet import darknet as darknet
+            darknet.set_compute_device(int(context.scene.compute_device.split("_")[1]))
         else:
             from omni_trax.darknet import darknet_cpu as darknet
 

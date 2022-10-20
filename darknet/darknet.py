@@ -237,6 +237,11 @@ def detect_image(network, class_names, image, thresh=.5, hier_thresh=.5, nms=.45
     return sorted(predictions, key=lambda x: x[1])
 
 
+def set_compute_device(gpu=0):
+    set_gpu = lib.cuda_set_device
+    set_gpu(gpu)
+
+
 if os.name == "posix":
     cwd = os.path.dirname(__file__)
     lib = CDLL(cwd + "/libdarknet.so", RTLD_GLOBAL)
