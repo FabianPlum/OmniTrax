@@ -124,7 +124,8 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             network = None
             altNames = None
 
-        video = bpy.path.abspath(bpy.context.edit_movieclip.filepath)
+        clip = context.edit_movieclip
+        video = bpy.path.abspath(clip.filepath)
 
         # enter the number of annotated frames:
         tracked_frames = context.scene.frame_end
@@ -134,6 +135,9 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
         # get the fps of the clip and set the environment accordingly
         fps = cap.get(cv2.CAP_PROP_FPS)
+        video_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        video_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
         try:
             bpy.context.scene.render.fps = fps
             bpy.context.scene.render.fps_base = fps
@@ -155,13 +159,28 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                                  dt=1 / fps)
             tracker_continue = False
         else:
+            # remove previous tracks in tracker_KF and initialise from current state
+            tracker_KF.clear_tracks()
             tracker_continue = True
+            # remove markers from frames past current frame, then get the current state
+            for mname in clip.tracking.objects[0].tracks:
+                mname.select = True
+                marker = mname.markers.find_frame(bpy.context.scene.frame_current)
+                try:
+                    marker_x = float(marker.co.x * video_width)
+                    marker_y = float(marker.co.y * video_height)
+                    print(mname.name, ": ", marker_x, marker_y)
+                    bpy.ops.clip.clear_track_path(action='REMAINED')
+                    mname.select = False
 
-        # clear the tracker trace to ensure existing tracks are not overwritten
-        if tracker_continue:
-            for track in tracker_KF.tracks:
-                track.trace = []
-
+                    # initialise new track from marker state
+                    tracker_KF.initialise_from_prior_state(prior_state=[mname.name.split("_")[-1],
+                                                                        marker_x,
+                                                                        video_height - marker_y,
+                                                                        "",
+                                                                        [0, 0, 0, 0]])
+                except AttributeError:
+                    print(mname.name, "not present at current frame!")
         # and produce an output file
         if context.scene.tracker_save_video:
             video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4] + "_online_tracking.avi"
@@ -235,8 +254,6 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         print("Starting the YOLO loop...")
 
         # Create an image we reuse for each detect
-        video_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        video_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         darknet_image = darknet.make_image(video_width, video_height, 3)
 
         all_detection_centres = []
@@ -247,18 +264,26 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         if context.scene.frame_start == 0:
             context.scene.frame_start = 1
 
-        cap.set(1, context.scene.frame_start - 1)
+        if tracker_continue:
+            # track from current frame when continuing, otherwise begin at the start frame
+            cap.set(1, context.scene.frame_current)
+        else:
+            cap.set(1, context.scene.frame_start - 1)
 
         # build array for all tracks and classes
         track_classes = {}
 
         ROI_size = int(context.scene.detection_constant_size / 2)
-        clip = context.edit_movieclip
 
         executed_from_frame = bpy.context.scene.frame_current
 
         while True:
-            if frame_counter == context.scene.frame_end + 1 - context.scene.frame_start:
+            if tracker_continue:
+                if frame_counter == context.scene.frame_end + 3 - executed_from_frame:
+                    bpy.context.scene.frame_current = context.scene.frame_end
+                    break
+            elif frame_counter == context.scene.frame_end + 3 - context.scene.frame_start:
+                bpy.context.scene.frame_current = context.scene.frame_end
                 break
 
             prev_time = time.time()
@@ -286,7 +311,10 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             bounding_boxes = []
             predicted_classes = []
 
-            bpy.context.scene.frame_current = bpy.context.scene.frame_start + frame_counter + 1
+            if tracker_continue:
+                bpy.context.scene.frame_current = executed_from_frame + frame_counter + 1
+            else:
+                bpy.context.scene.frame_current = bpy.context.scene.frame_start + frame_counter
 
             for label, confidence, bbox in detections:
                 if bbox[2] >= bpy.context.scene.detection_min_size and \
@@ -410,6 +438,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                 video_out.write(image)
             cv2.imshow('Detections on video', image)
             if cv2.waitKey(1) & 0xFF == ord('q'):
+                bpy.context.scene.frame_current -= 2
                 break
 
             frame_counter += 1
@@ -429,6 +458,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                 print("removed", mname.name, "of length", len(mname.markers))
 
         bpy.ops.clip.delete_track()
+
         # remove markers from initial frame, if tracking was stopped early
         if executed_from_frame > bpy.context.scene.frame_current:
             for mname in clip.tracking.objects[0].tracks:
@@ -985,7 +1015,7 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
 
         col.label(text="Run tracking")
         col.prop(context.scene, "tracker_save_video")
-        col.operator("scene.detection_run", text="TRACK")
+        col.operator("scene.detection_run", text="TRACK").restart_tracking = False
         col.operator("scene.detection_run", text="RESTART Tracking").restart_tracking = True
 
 

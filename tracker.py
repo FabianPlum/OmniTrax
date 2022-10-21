@@ -9,6 +9,7 @@
 
 # Import python libraries
 import numpy as np
+
 try:
     from omni_trax.kalman_filter_new import KalmanFilter
 except ModuleNotFoundError:
@@ -26,7 +27,8 @@ class Track(object):
                  dt=0.033, u_x=0, u_y=0,
                  std_acc=5, y_std_meas=0.1, x_std_meas=0.1,
                  predicted_class=None,
-                 bbox=[None, None, None, None]):
+                 bbox=[None, None, None, None],
+                 known_id=-1):
         """Initialize variables used by Track class
         Args:
             prediction: predicted centroids of object to be tracked
@@ -34,7 +36,10 @@ class Track(object):
         Return:
             None
         """
-        self.track_id = trackIdCount  # identification of each track object
+        if known_id != -1:
+            self.track_id = known_id  # use previous ID, when initialising from prior tracked state
+        else:
+            self.track_id = trackIdCount  # identification of each track object
         self.KF = KalmanFilter(dt=dt, u_x=u_x, u_y=u_y,
                                std_acc=std_acc, y_std_meas=y_std_meas, x_std_meas=x_std_meas,
                                initial_state=prediction)  # KF instance to track this object
@@ -83,6 +88,20 @@ class Tracker(object):
         self.std_acc = std_acc
         self.y_std_meas = y_std_meas
         self.x_std_meas = x_std_meas
+
+    def initialise_from_prior_state(self, prior_state):
+        # create new track from the last increment of the prior state, keeping ID's intact
+        track = Track([[prior_state[1]], [prior_state[2]]],
+                      self.trackIdCount, known_id=prior_state[0],
+                      dt=self.dt, u_x=self.u_x, u_y=self.u_y, std_acc=self.std_acc,
+                      y_std_meas=self.y_std_meas, x_std_meas=self.x_std_meas,
+                      predicted_class=prior_state[3],
+                      bbox=prior_state[4])
+        self.trackIdCount += 1
+        self.tracks.append(track)
+
+    def clear_tracks(self):
+        self.tracks = []
 
     def Update(self, detections, predicted_classes=None, bounding_boxes=None):
         """Update tracks vector using following steps:
@@ -170,7 +189,7 @@ class Tracker(object):
                     del self.tracks[id]
                     del assignment[id]
                 else:
-                    print("something fucky is up...")
+                    print("something unexpected assignment error...")
 
         # Now look for un_assigned detects
         un_assigned_detects = []
@@ -244,7 +263,6 @@ class Tracker(object):
 
             else:
                 # No Kalman Filtering, just pure matching
-
                 # only update the the state of matched detections.
                 # unmatched tracks will retain the same state as at t-1
                 if assignment[i] != -1:
