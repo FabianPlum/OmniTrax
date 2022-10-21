@@ -327,7 +327,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             # before we show stuff, let's add some tracking fun
             # SO, if animals are detected then track them
 
-            if len(centres) > 0:
+            if len(centres) > -1:
 
                 # Track object using Kalman Filter
                 tracker_KF.Update(centres,
