@@ -179,7 +179,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         yolo_names = bpy.path.abspath(context.scene.detection_names_path)
 
         # read obj.names file to create custom colours for each class
-        """
+
         class_names = []
         with open(yolo_names, "r") as yn:
             for line in yn:
@@ -188,16 +188,13 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         class_colours = {}  # from green to red, low class to high class (light to heavy)
         class_id = {}
         if len(class_names) == 1:
-            class_colours[class_names[0]] = [120, 0, 120]
+            class_colours[class_names[0]] = [20, 150, 20]
             class_id[class_names[0]] = 0
         else:
             for c, cn in enumerate(class_names):
                 class_colours[cn] = [int((255 / len(class_names)) * (c + 1)), int(255 - (255 / len(class_names)) * c),
                                      0]
                 class_id[cn] = c
-        """
-        # overwrite network dimensions
-        # TODO
 
         configPath = yolo_cfg
         weightPath = yolo_weights
@@ -213,7 +210,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             raise ValueError("Invalid data file path `" +
                              os.path.abspath(metaPath) + "`")
         if network is None:
-            network, class_names, class_colours = darknet.load_network(configPath, metaPath, weightPath, batch_size=1)
+            network, class_names, _ = darknet.load_network(configPath, metaPath, weightPath, batch_size=1)
         if altNames is None:
             try:
                 with open(metaPath) as metaFH:
@@ -240,8 +237,6 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         # Create an image we reuse for each detect
         video_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         video_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        # darknet_image = darknet.make_image(darknet.network_width(netMain),
-        #                                darknet.network_height(netMain),3)
         darknet_image = darknet.make_image(video_width, video_height, 3)
 
         all_detection_centres = []
