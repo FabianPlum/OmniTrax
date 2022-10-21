@@ -872,10 +872,12 @@ class OMNITRAX_PT_DetectionPanel(bpy.types.Panel):
         name="Non-maximum suppression",
         description="Non-maximum suppression (NMS) refers to the maximum overlap allowed between proposed bounding boxes. E.g., a value of 0.45 corresponds to a maximum overlap of 45% between two compared bounding boxes to be retained simultaneously. In case the overlap is larger, the box with the lower objectness score or classification confidence will be 'suppressed', thus, only the highest confidence prediction is returned.",
         default=0.45)
+    """
     bpy.types.Scene.detection_network_size = IntProperty(
         name="Detection network size",
         description="Height and Width of the loaded detection network (MUST be a multiple of 32). Larger network sizes allow for smaller invididuals to be detected at the cost of inference speed.",
         default=640)
+    """
 
     def draw(self, context):
         layout = self.layout
@@ -897,7 +899,7 @@ class OMNITRAX_PT_DetectionPanel(bpy.types.Panel):
         col.label(text="Network settings")
         col.prop(context.scene, "detection_activation_threshold")
         col.prop(context.scene, "detection_nms")
-        col.prop(context.scene, "detection_network_size")
+        # col.prop(context.scene, "detection_network_size")
         col.separator()
 
         col.label(text="Processing settings")
