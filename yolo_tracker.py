@@ -3,42 +3,50 @@ try:
 except ModuleNotFoundError:
     from tracker import Tracker
 import numpy as np
-import cv2
 import os
+import cv2
 import time
 import argparse
 from operator import itemgetter
 
+# TODO
+# add option to switch networks through sub-processes after loading an initial model
+# use a blender background process to ensure python is loaded with all dependencies (get full paths from bpy)
+# ./blender.exe --background --python yolo_tracker.py -- args
+# for advanced argument parsing refer to:
+# https://blender.stackexchange.com/questions/6817/how-to-pass-command-line-arguments-to-a-blender-python-script
+# the below example can be added to __init__.py once the implementation is completed
+
+"""
+class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
+    #Run the detection based tracking pipeline according to the above defined parameters
+    bl_idname = "scene.detection_run"
+    bl_label = "Run Detection"
+
+    restart_tracking: BoolProperty(
+        name="Restart Tracking",
+        description="Re-initialises tracker with new settings. WARNING: Current identities will NOT be retained!",
+        default=False)
+
+    def execute(self, context):
+    
+        # get blender python path
+        py_exec = str(sys.executable)
+        # get omni_trax working directory to access scripts
+        script_file = os.path.realpath(__file__)
+        wd = os.path.dirname(script_file)
+        
+        yolo_tracker_path = os.path.join(wd, "yolo_tracker.py")
+        
+        full_yolo_command = [py_exec, yolo_tracker_path]
+        out = subprocess.run(full_yolo_command)
+
+print(out)
+
+return {"FINISHED"}
+"""
+
 np.random.seed(0)
-
-
-def getInferenceDevices():
-    physical_devices = tf.config.list_physical_devices()
-    print("Found computational devices:\n", physical_devices)
-
-    devices = []
-    for d, device in enumerate(physical_devices):
-        if device.device_type == "GPU":
-            devices.append(("GPU_" + str(d - 1), "GPU_" + str(d - 1), "Use GPU for inference (requires CUDA)"))
-        else:
-            devices.append(("CPU_" + str(d), "CPU", "Use CPU for inference"))
-
-    return devices
-
-
-def setInferenceDevive(device):
-    # disables all but the selected computational device (by setting them invisible)
-    physical_devices = tf.config.list_physical_devices(device.split("_")[0])
-    try:
-        tf.config.set_visible_devices(physical_devices[int(device.split("_")[1])], device_type=device.split("_")[0])
-        logical_devices = tf.config.list_logical_devices()
-        # Logical device was not created for first GPU
-    except:
-        # Invalid device or cannot modify virtual devices once initialized.
-        print("WARNING: Unable to switch active compute device")
-        pass
-
-    print("Running inference on: ", logical_devices)
 
 
 def scale_detections(x, y, network_w, network_h, output_w, output_h):
@@ -187,6 +195,7 @@ class YoloTracker:
         else:
             # use GPU inference by default
             from darknet import darknet as darknet
+            darknet.set_compute_device(int(inference_device.split("_")[1]))
 
         self.network, self.class_names, self.class_colours = darknet.load_network(self.net_cfg,
                                                                                   self.net_data,

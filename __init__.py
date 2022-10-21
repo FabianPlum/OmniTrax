@@ -20,7 +20,8 @@ import yaml
 import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 from operator import itemgetter
-from ctypes import *
+
+import subprocess
 
 # kalman imports
 import copy
@@ -34,7 +35,7 @@ bl_info = {
     "author": "Fabian Plum",
     "description": "Deep learning-based multi animal tracker",
     "blender": (3, 3, 0),
-    "version": (0, 1, 2),
+    "version": (0, 1, 3),
     "location": "",
     "warning": "RUN IN ADMINISTRATOR MODE DURING INSTALLATION!",
     "category": "motion capture"
@@ -267,6 +268,8 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
             prev_time = time.time()
             ret, frame_read = cap.read()
+            if not ret:
+                break
             clip_width = frame_read.shape[1]
             clip_height = frame_read.shape[0]
             frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
