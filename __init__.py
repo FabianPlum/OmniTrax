@@ -795,7 +795,10 @@ class EXPORT_OT_Operator(bpy.types.Operator):
 
             for track in tracks:
                 # get the predicted classes for each track at every frame
-                single_track_classes = track_classes[track.name]
+                try:
+                    single_track_classes = track_classes[track.name]
+                except NameError:
+                    single_track_classes = "default"
 
                 if log:
                     log_file.write("  Track {0} started ...\n".format(track.name))
@@ -815,9 +818,12 @@ class EXPORT_OT_Operator(bpy.types.Operator):
                 success = True
                 i = f_start
                 while i <= f_end:
-                    if i in single_track_classes:
-                        class_pred = single_track_classes[i]
-                    else:
+                    try:
+                        if i in single_track_classes:
+                            class_pred = single_track_classes[i]
+                        else:
+                            class_pred = ""
+                    except TypeError:
                         class_pred = ""
                     marker = track.markers.find_frame(i)
                     if marker:
