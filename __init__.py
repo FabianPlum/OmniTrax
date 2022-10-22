@@ -799,6 +799,8 @@ class EXPORT_OT_Operator(bpy.types.Operator):
                     single_track_classes = track_classes[track.name]
                 except NameError:
                     single_track_classes = "default"
+                except KeyError:
+                    single_track_classes = "default"
 
                 if log:
                     log_file.write("  Track {0} started ...\n".format(track.name))
