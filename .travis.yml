@@ -6,7 +6,7 @@ os: windows
 # safelist
 branches:
   only:
-  - master
+  - main
 
 # Define which python version to build against.
 # As blender comes bundled with it's own python you can use just one version if you like
