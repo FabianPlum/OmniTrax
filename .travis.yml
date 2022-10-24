@@ -1,5 +1,4 @@
-# this is essential to make python work out of the box
-language: python
+# only the blender internal python interpreter is required
 
 os: windows
 
@@ -24,8 +23,9 @@ install:
   # Extract the archive
   - tar -xf blender-3.3.0-windows-x64.zip
 
-  # go back to root directory
-  - cd ..
+  # test launch blender (background)
+  - cd blender-3.3.0-windows-x64
+  - ./blender.exe --background
 
 ################ CONTINUE HERE TOMORROW ################
 
