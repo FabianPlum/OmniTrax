@@ -1,4 +1,5 @@
 # only the blender internal python interpreter is required
+language: shell
 
 os: windows
 
@@ -6,11 +7,6 @@ os: windows
 branches:
   only:
   - main
-
-# Define which python version to build against.
-# As blender comes bundled with it's own python you can use just one version if you like
-python:
-  - "3.10"
 
 install:
   # create temp directory where we store a recent blender version
