@@ -14,7 +14,7 @@ install:
   - cd tmp
 
   # download the blender version you want to test against
-  - wget https://download.blender.org/release/Blender3.3/blender-3.3.0-windows-x64.zip
+  - wget https://download.blender.org/release/Blender3.3/blender-3.3.0-windows-x64.zip --no-check-certificate
 
   # Extract the archive
   - tar -xf blender-3.3.0-windows-x64.zip
