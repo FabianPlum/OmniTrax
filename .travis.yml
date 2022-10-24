@@ -39,5 +39,7 @@ install:
   # go back to root directory
   - cd ..
 
-################ CONTINUE HERE TOMORROW ################
+  # install addon
+  - sudo ln -s ${PWD}/OmniTrax ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
 
+script: ./tmp/blender/blender --background --python OmniTrax/check_packages.py
