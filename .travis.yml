@@ -17,7 +17,7 @@ install:
   - wget https://download.blender.org/release/Blender3.3/blender-3.3.0-windows-x64.zip --no-check-certificate
 
   # Extract the archive
-  - tar -xf blender-3.3.0-windows-x64.zip
+  - 7z e blender-3.3.0-windows-x64.zip
 
   # test launch blender (background)
   - cd blender-3.3.0-windows-x64
