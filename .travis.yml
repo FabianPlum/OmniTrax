@@ -1,0 +1,31 @@
+# this is essential to make python work out of the box
+language: python
+
+os: windows
+
+# safelist
+branches:
+  only:
+  - master
+
+# Define which python version to build against.
+# As blender comes bundled with it's own python you can use just one version if you like
+python:
+  - "3.10"
+
+install:
+  # create temp directory where we store a recent blender version
+  - mkdir tmp
+  - cd tmp
+
+  # download the blender version you want to test against
+  - wget https://download.blender.org/release/Blender3.3/blender-3.3.0-windows-x64.zip
+
+  # Extract the archive
+  - tar -xf blender-3.3.0-windows-x64.zip
+
+  # go back to root directory
+  - cd ..
+
+################ CONTINUE HERE TOMORROW ################
+
