@@ -1,27 +1,43 @@
 # only the blender internal python interpreter is required
-language: shell
-
-os: windows
+language: python
+​
+dist: bionic
 
 # safelist
 branches:
   only:
   - main
 
+python:
+  - "3.10"
+
+before_install:
+  # update apt-gets repository sources
+  - sudo apt-get update -qq
+
+  # install blender from official sources.
+  # This will most propably install an outdated blender version,
+  # but it will resolve all system dependencies blender has to be able to run.
+  - sudo apt-get install blender
+
 install:
   # create temp directory where we store a recent blender version
-  - mkdir tmp
-  - cd tmp
+  - mkdir tmp && cd tmp
 
   # download the blender version you want to test against
-  - wget https://download.blender.org/release/Blender3.3/blender-3.3.0-windows-x64.zip --no-check-certificate
+  - wget http://mirror.cs.umn.edu/blender.org/release/Blender3.3/blender-3.3.0-linux-x64.tar.xz
 
   # Extract the archive
-  - 7z x blender-3.3.0-windows-x64.zip -aoa
+  - tar jxf blender-3.3.0-linux-x64.tar.xz
 
-  # test launch blender (background)
-  - cd blender-3.3.0-windows-x64
-  - ./blender.exe --background
+  # rename the extracted folder to "blender" for easier reference
+  - mv blender-3.3.0-linux-x64 blender
+
+  # remove the archive, we do not need it anymore
+  - rm blender-3.3.0-linux-x64.tar.xz
+
+  # go back to root directory
+  - cd ..
 
 ################ CONTINUE HERE TOMORROW ################
 
