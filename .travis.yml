@@ -28,7 +28,7 @@ install:
   - wget http://mirror.cs.umn.edu/blender.org/release/Blender3.3/blender-3.3.0-linux-x64.tar.xz
 
   # Extract the archive
-  - tar -jxf blender-3.3.0-linux-x64.tar.xz
+  - tar -xJf blender-3.3.0-linux-x64.tar.xz
 
   # rename the extracted folder to "blender" for easier reference
   - mv blender-3.3.0-linux-x64 blender
