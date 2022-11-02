@@ -100,6 +100,9 @@ class Tracker(object):
         self.trackIdCount += 1
         self.tracks.append(track)
 
+    def set_trackIdCount(self, latest_trackid):
+        self.trackIdCount = int(latest_trackid) + 1
+
     def clear_tracks(self):
         self.tracks = []
 

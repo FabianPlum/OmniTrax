@@ -175,6 +175,10 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                                                                         [0, 0, 0, 0]])
                 except AttributeError:
                     print(mname.name, "not present at current frame!")
+
+            # the latest track (the one with the highest ID) informs the tracker from where to continue counting
+            tracker_KF.set_trackIdCount(clip.tracking.objects[0].tracks[-1].name.split("_")[-1])
+
         # and produce an output file
         if context.scene.tracker_save_video:
             video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4] + "_online_tracking.avi"
