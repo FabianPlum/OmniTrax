@@ -40,6 +40,7 @@ install:
   - cd ..
 
   # install addon
-  - sudo ln -s ${PWD}/OmniTrax ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
+  # - sudo ln -s ${PWD}/OmniTrax ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
+  - ls
 
 script: ./tmp/blender/blender --background --python OmniTrax/check_packages.py
