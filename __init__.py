@@ -140,26 +140,30 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             bpy.context.scene.render.fps_base = int(fps)
 
         # Create Object Tracker
-        if "tracker_KF" not in globals() or self.restart_tracking:
-            print("INITIALISED TRACKER!")
-            tracker_KF = Tracker(dist_thresh=context.scene.tracking_dist_thresh,
-                                 max_frames_to_skip=context.scene.tracking_max_frames_to_skip,
-                                 max_trace_length=context.scene.tracking_max_trace_length,
-                                 trackIdCount=context.scene.tracking_trackIdCount,
-                                 use_kf=context.scene.tracker_use_KF,
-                                 std_acc=context.scene.tracker_std_acc,
-                                 x_std_meas=context.scene.tracker_x_std_meas,
-                                 y_std_meas=context.scene.tracker_y_std_meas,
-                                 dt=1 / fps)
+        tracker_KF = Tracker(dist_thresh=context.scene.tracking_dist_thresh,
+                             max_frames_to_skip=context.scene.tracking_max_frames_to_skip,
+                             max_trace_length=context.scene.tracking_max_trace_length,
+                             trackIdCount=context.scene.tracking_trackIdCount,
+                             use_kf=context.scene.tracker_use_KF,
+                             std_acc=context.scene.tracker_std_acc,
+                             x_std_meas=context.scene.tracker_x_std_meas,
+                             y_std_meas=context.scene.tracker_y_std_meas,
+                             dt=1 / fps)
+
+        if self.restart_tracking:
             tracker_continue = False
         else:
             # remove previous tracks in tracker_KF and initialise from current state
             tracker_KF.clear_tracks()
             tracker_continue = True
             # remove markers from frames past current frame, then get the current state
+            # check for the latest ID and begin counting new tracks from there
+            latest_id = 0
             for mname in clip.tracking.objects[0].tracks:
                 mname.select = True
                 marker = mname.markers.find_frame(bpy.context.scene.frame_current)
+                track_id_temp = mname.name.split("_")[-1]
+                latest_id = max(latest_id, int(track_id_temp))
                 try:
                     marker_x = float(marker.co.x * video_width)
                     marker_y = float(marker.co.y * video_height)
@@ -168,7 +172,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                     mname.select = False
 
                     # initialise new track from marker state
-                    tracker_KF.initialise_from_prior_state(prior_state=[mname.name.split("_")[-1],
+                    tracker_KF.initialise_from_prior_state(prior_state=[track_id_temp,
                                                                         marker_x,
                                                                         video_height - marker_y,
                                                                         "",
@@ -177,7 +181,10 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                     print(mname.name, "not present at current frame!")
 
             # the latest track (the one with the highest ID) informs the tracker from where to continue counting
-            tracker_KF.set_trackIdCount(clip.tracking.objects[0].tracks[-1].name.split("_")[-1])
+            print("Beginning counting from ID", latest_id)
+            tracker_KF.set_trackIdCount(latest_id)
+
+        print("INITIALISED TRACKER!")
 
         # and produce an output file
         if context.scene.tracker_save_video:
