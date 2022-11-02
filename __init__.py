@@ -6,29 +6,23 @@ from bpy.props import FloatProperty as FloatProperty
 from bpy.props import EnumProperty as EnumProperty
 
 # check for installed packages and if they are missing, install them now
+# after the initial installation, dependency checks will be disabled
+# in setup_state.txt set setup_completed to False to trigger a system check / reinstall when enabling omni_trax
 from omni_trax import check_packages
 
 import numpy as np
 import cv2
-import csv
 import os
-import math
 import time
-import random
-import sys
 import yaml
-import matplotlib.pyplot as plt
-from sklearn.utils import shuffle
-from operator import itemgetter
+import tensorflow as tf
 
 import subprocess
+from omni_trax.omni_trax_utils import scale_detections, convertBack, cvDrawBoxes, setInferenceDevive
 
 # kalman imports
 import copy
 from omni_trax.tracker import Tracker
-
-# testing using specific compute devices (disabling GPU)
-import tensorflow as tf
 
 bl_info = {
     "name": "omni_trax",
@@ -1210,75 +1204,6 @@ class EXPORT_PT_DataPanel(bpy.types.Panel):
         row = col.row(align=True)
         row.operator("scene.export_marker", text="Selected").selected_only = True
         row.operator("scene.export_marker", text="All")
-
-
-### Various Detection Processing functions ###
-
-def scale_detections(x, y, network_w, network_h, output_w, output_h):
-    scaled_x = x * (output_w / network_w)
-    scaled_y = (network_h - y) * (output_h / network_h)  # y is inverted
-    return [scaled_x, scaled_y]
-
-
-def convertBack(x, y, w, h):
-    xmin = int(round(x - (w / 2)))
-    xmax = int(round(x + (w / 2)))
-    ymin = int(round(y - (h / 2)))
-    ymax = int(round(y + (h / 2)))
-    return xmin, ymin, xmax, ymax
-
-
-def cvDrawBoxes(detections, img, min_size=20, constant_size=False, class_colours=None):
-    for label, confidence, bbox in detections:
-
-        x, y, w, h = bbox[0], \
-                     bbox[1], \
-                     bbox[2], \
-                     bbox[3]
-
-        if w >= min_size and h >= min_size:
-
-            if constant_size:
-                w, h = constant_size, constant_size
-
-            xmin, ymin, xmax, ymax = convertBack(
-                float(x), float(y), float(w), float(h))
-            pt1 = (xmin, ymin)
-            pt2 = (xmax, ymax)
-            cl_colour = class_colours[label]
-            cv2.rectangle(img, pt1, pt2, (cl_colour[0], cl_colour[1], cl_colour[2]), 1)
-            cv2.putText(img, label + " [" + confidence + "]",
-                        (pt1[0], pt1[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.3,
-                        cl_colour, 1)
-    return img
-
-
-def nonMaximumSupression(detections):
-    """
-    :param detections: detections returned from darknet
-    :return: only detection of highest confidence. Return None, if no individual was detected
-    """
-    if len(detections) != 0:
-        det_sorted = sorted(detections, key=itemgetter(2))
-        max_conf_detection = det_sorted[0][0]
-    else:
-        max_conf_detection = 'No Detect'
-    return max_conf_detection
-
-
-def setInferenceDevive(device):
-    # disables all but the selected computational device (by setting them invisible)
-    physical_devices = tf.config.list_physical_devices(device.split("_")[0])
-    try:
-        tf.config.set_visible_devices(physical_devices[int(device.split("_")[1])], device_type=device.split("_")[0])
-        logical_devices = tf.config.list_logical_devices()
-        # Logical device was not created for first GPU
-    except:
-        # Invalid device or cannot modify virtual devices once initialized.
-        print("WARNING: Unable to switch active compute device")
-        pass
-
-    print("Running inference on: ", logical_devices)
 
 
 ### (un)register module ###
