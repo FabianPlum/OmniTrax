@@ -38,8 +38,8 @@ bl_info = {
 
 class OMNITRAX_PT_ComputePanel(bpy.types.Panel):
     bl_label = "Computational Device"
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
+    bl_space_type = "CLIP_EDITOR"
+    bl_region_type = "TOOLS"
     bl_category = "OmniTrax"
 
     physical_devices = tf.config.list_physical_devices()
@@ -168,7 +168,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                     marker_x = float(marker.co.x * video_width)
                     marker_y = float(marker.co.y * video_height)
                     print(mname.name, ": ", marker_x, marker_y)
-                    bpy.ops.clip.clear_track_path(action='REMAINED')
+                    bpy.ops.clip.clear_track_path(action="REMAINED")
                     mname.select = False
 
                     # initialise new track from marker state
@@ -189,7 +189,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         # and produce an output file
         if context.scene.tracker_save_video:
             video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4] + "_online_tracking.avi"
-            video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps,
+            video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc("M", "J", "P", "G"), fps,
                                         (int(cap.get(3)), int(cap.get(4))))
 
         # check the number of frames of the imported video file
@@ -441,8 +441,8 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                                     track_colors[mname], 2)
             if context.scene.tracker_save_video:
                 video_out.write(image)
-            cv2.imshow('Detections on video', image)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            cv2.imshow("Live tracking", image)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 bpy.context.scene.frame_current -= 2
                 break
 
@@ -490,20 +490,6 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         global pose_joint_header
         global pose_joint_names
 
-        # TODO import skeleton rather than hard-coding relationships
-        skeleton = [[0, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13],  # r_1
-                    [0, 14], [14, 15], [15, 16], [16, 17], [17, 18], [18, 19], [19, 20],  # r_2
-                    [0, 21], [21, 22], [22, 23], [23, 24], [24, 25], [25, 26], [26, 27],  # r_3
-                    [0, 32], [32, 33], [33, 34], [34, 35], [35, 36], [36, 37], [37, 38],  # l_1
-                    [0, 39], [39, 40], [40, 41], [41, 42], [42, 43], [43, 44], [44, 45],  # l_2
-                    [0, 46], [46, 47], [47, 48], [48, 49], [49, 50], [50, 51], [51, 52],  # l_3
-                    # use only legs to retrieve angles relevant for locomotion
-                    [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],  # head & thorax
-                    [7, 14], [14, 21], [21, 1],  # l_co to b_a
-                    [32, 39], [39, 46], [46, 1]]  # r_co to b_a
-
-        include_points = list(range(0, 53))
-
         if "dlc_proc" not in globals():
             from dlclive import DLCLive, Processor
             try:
@@ -513,20 +499,48 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 dlc_live = DLCLive(model_path, processor=dlc_proc, pcutoff=context.scene.pose_pcutoff)
 
                 # create a list of join names from those defined in the pose_cfg.yaml file
-                pose_cfg = os.path.join(model_path, "pose_cfg.yaml")
-                with open(pose_cfg, 'r') as stream:
+                dlc_pose_cfg = os.path.join(model_path, "pose_cfg.yaml")
+                with open(dlc_pose_cfg, "r") as stream:
                     pose_cfg_yaml = yaml.safe_load(stream)
 
-                pose_joint_names = pose_cfg_yaml["all_joints_names"][0:53]
-                pose_joint_header = ','.join(str(e) + "_x," +
+                pose_joint_names = pose_cfg_yaml["all_joints_names"]
+                pose_joint_header = ",".join(str(e) + "_x," +
                                              str(e) + "_y," +
                                              str(e) + "_prob" for e in pose_joint_names)
+
+                print(pose_joint_names)
 
             except:
                 print("Failed to load trained network... Check your model path!")
                 return {"FINISHED"}
         else:
             print("Initialised DLC Network found!")
+
+        # next, try to load skeleton relationships from the config file
+        try:
+            model_path = bpy.path.abspath(context.scene.pose_network_path)
+            dlc_config_path = os.path.join(model_path, "config.yaml")
+            with open(dlc_config_path, "r") as stream:
+                config_yaml = yaml.safe_load(stream)
+                print(config_yaml["skeleton"])
+
+                # now, match the skeleton elements to their IDs to draw them as overlays
+                skeleton = []
+                try:
+                    for bone in config_yaml["skeleton"]:
+                        skeleton.append([pose_joint_names.index(bone[0]),
+                                         pose_joint_names.index(bone[1])])
+
+                    print(skeleton)
+                except ValueError:
+                    print("Your config skeleton and pose joint names do not match!"
+                          "\n could not create overlay skeleton!")
+                    skeleton = []
+
+        except FileNotFoundError:
+            print("No config.yaml file found!\n"
+                  "Place your config file in the exported model folder to overlay the skeleton!\n")
+            skeleton = []
 
         try:
             clip = context.edit_movieclip
@@ -561,7 +575,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
             if context.scene.pose_save_video:
                 video_output = bpy.path.abspath(bpy.context.edit_movieclip.filepath)[
                                :-4] + "_POSE_" + track.name + ".mp4"
-                video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc(*'mp4v'), fps,
+                video_out = cv2.VideoWriter(video_output, cv2.VideoWriter_fourcc(*"mp4v"), fps,
                                             (int(context.scene.pose_constant_size),
                                              int(context.scene.pose_constant_size)))
 
@@ -662,25 +676,29 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                             pose = dlc_live.get_pose(dlc_input_img)
                             thresh = context.scene.pose_pcutoff
 
-                            track_pose[str(frame_id)] = pose[:53].flatten()
+                            track_pose[str(frame_id)] = pose.flatten()
+
+                            print(pose.shape)
 
                             for p, point in enumerate(pose):
-                                if p in include_points:
-                                    if point[2] >= thresh:
-                                        dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])),
-                                                                   context.scene.pose_point_size,
-                                                                   (int(255 * p / 49), int(255 - 255 * p / 49), 200),
-                                                                   -1)
+                                if point[2] >= thresh:
+                                    dlc_input_img = cv2.circle(dlc_input_img, (int(point[0]), int(point[1])),
+                                                               context.scene.pose_point_size,
+                                                               (int(255 * p / len(pose_joint_names)),
+                                                                int(255 - 255 * p / len(pose_joint_names)), 200),
+                                                               -1)
 
-                                        if context.scene.pose_show_labels:
-                                            dlc_input_img = cv2.putText(dlc_input_img, pose_joint_names[p],
-                                                                        (int(point[0]), int(point[1])),
-                                                                        cv2.FONT_HERSHEY_SIMPLEX,
-                                                                        1,
-                                                                        (int(255 * p / 49), int(255 - 255 * p / 49),
-                                                                         200),
-                                                                        1)
+                                    if context.scene.pose_show_labels:
+                                        dlc_input_img = cv2.putText(dlc_input_img, pose_joint_names[p],
+                                                                    (int(point[0]), int(point[1])),
+                                                                    cv2.FONT_HERSHEY_SIMPLEX,
+                                                                    1,
+                                                                    (int(255 * p / len(pose_joint_names)),
+                                                                     int(255 - 255 * p / len(pose_joint_names)),
+                                                                     200),
+                                                                    1)
 
+                            """
                             joint_angles = np.empty(42)
                             joint_angles_conf = np.empty(42)  # report confidence on each joint angle
                             main_body_axis = [pose[0][0] - pose[6][0], pose[0][1] - pose[6][1]]  # b_t to b_a
@@ -713,9 +731,18 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                                    np.average(joint_angles[36:38], weights=joint_angles_conf[36:38])])
 
                             track_pose[str(frame_id)] = np.concatenate((track_pose[str(frame_id)], leg_angles))
+                            """
+                            for b, bone in enumerate(skeleton):
+                                if pose[bone[0]][2] >= thresh and pose[bone[1]][2] >= thresh:
+                                    if context.scene.pose_plot_skeleton:
+                                        dlc_input_img = cv2.line(dlc_input_img,
+                                                                 (int(pose[bone[0]][0]), int(pose[bone[0]][1])),
+                                                                 (int(pose[bone[1]][0]), int(pose[bone[1]][1])),
+                                                                 (120, 220, 120),
+                                                                 context.scene.pose_skeleton_bone_width)
 
                             cv2.imshow("DLC Pose Estimation", dlc_input_img)
-                            if cv2.waitKey(1) & 0xFF == ord('q'):
+                            if cv2.waitKey(1) & 0xFF == ord("q"):
                                 break
                             if context.scene.pose_save_video:
                                 video_out.write(dlc_input_img)
@@ -731,7 +758,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 # write header line
                 pose_output_file.write("frame," + pose_joint_header + ",r1_deg,r2_deg,r3_deg,l1_deg,l2_deg,l3_deg\n")
                 for key, value in track_pose.items():
-                    line = key + ',' + ','.join(str(e) for e in value.flatten())
+                    line = key + "," + ",".join(str(e) for e in value.flatten())
                     pose_output_file.write(line + "\n")
                 pose_output_file.close()
 
@@ -811,7 +838,7 @@ class EXPORT_OT_Operator(bpy.types.Operator):
                     log_file.write("  Track {0} started ...\n".format(track.name))
 
                 if not subdirs:
-                    export_file = open(path + "{0}_{1}.csv".format(clip.name.split(".")[0], track.name), 'w')
+                    export_file = open(path + "{0}_{1}.csv".format(clip.name.split(".")[0], track.name), "w")
                 else:
                     subpath = path + "\\{0}\\".format(clip.name[:-3])
                     try:
@@ -819,7 +846,7 @@ class EXPORT_OT_Operator(bpy.types.Operator):
                             os.makedirs(subpath)
                     except:
                         log_file.write(str(subpath), "already exists.")
-                    export_file = open(subpath + "{0}_{1}.csv".format(clip.name.split(".")[0], track.name), 'w')
+                    export_file = open(subpath + "{0}_{1}.csv".format(clip.name.split(".")[0], track.name), "w")
 
                 export_file.write("frame;x;y;class\n")
                 success = True
@@ -856,40 +883,40 @@ class EXPORT_OT_Operator(bpy.types.Operator):
             log_file.write("Export finished ({0:.4f} s)".format(time.time() - time_start))
             log_file.close()
 
-        self.report({'INFO'}, "Export done ({0:.4f} s)".format(time.time() - time_start))
+        self.report({"INFO"}, "Export done ({0:.4f} s)".format(time.time() - time_start))
 
         if len(movieclips) == 0:
-            self.report({'INFO'}, "No clip opened...")
+            self.report({"INFO"}, "No clip opened...")
 
         return {"FINISHED"}
 
 
 class OMNITRAX_PT_DetectionPanel(bpy.types.Panel):
     bl_label = "Detection (YOLO)"
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
+    bl_space_type = "CLIP_EDITOR"
+    bl_region_type = "TOOLS"
     bl_category = "OmniTrax"
 
     bpy.types.Scene.detection_config_path = StringProperty(
         name="Config path",
         description="Path to your YOLO network config file",
         default="",  # bpy.data.filepath.rpartition("\\")[0],
-        subtype='FILE_PATH')
+        subtype="FILE_PATH")
     bpy.types.Scene.detection_weights_path = StringProperty(
         name="Weights path",
         description="Path to your YOLO network weights file",
         default="",  # bpy.data.filepath.rpartition("\\")[0],
-        subtype='FILE_PATH')
+        subtype="FILE_PATH")
     bpy.types.Scene.detection_data_path = StringProperty(
         name="Data path",
         description="Path to your YOLO network data file",
         default="",  # bpy.data.filepath.rpartition("\\")[0],
-        subtype='FILE_PATH')
+        subtype="FILE_PATH")
     bpy.types.Scene.detection_names_path = StringProperty(
         name="Names path",
         description="Path to your YOLO network names file",
         default="",  # bpy.data.filepath.rpartition("\\")[0],
-        subtype='FILE_PATH')
+        subtype="FILE_PATH")
     bpy.types.Scene.detection_enforce_constant_size = BoolProperty(
         name="constant detection sizes",
         description="Check to enforce constant detection sizes. This DOES NOT affect the actual inference, only the resulting regions of interest.",
@@ -953,8 +980,8 @@ class OMNITRAX_PT_DetectionPanel(bpy.types.Panel):
 
 class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
     bl_label = "Tracking"
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
+    bl_space_type = "CLIP_EDITOR"
+    bl_region_type = "TOOLS"
     bl_category = "OmniTrax"
 
     # keep parameters simple for now
@@ -1034,8 +1061,8 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
 
 class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
     bl_label = "Pose Estimation (DLC)"
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
+    bl_space_type = "CLIP_EDITOR"
+    bl_region_type = "TOOLS"
     bl_category = "OmniTrax"
 
     bpy.types.Scene.pose_network_path = StringProperty(
@@ -1043,7 +1070,7 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         description="Path to your trained and exported DLC network," +
                     "where your pose_cfg.yaml and snapshot files are stored",
         default="",
-        subtype='FILE_PATH')
+        subtype="FILE_PATH")
     bpy.types.Scene.pose_enforce_constant_size = BoolProperty(
         name="constant (input) detection sizes",
         description="Check to enforce constant detection sizes. This affects the following POSE inference," +
@@ -1114,11 +1141,11 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
 
 
 class EXPORT_PT_TrackingPanel(bpy.types.Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
+    bl_space_type = "CLIP_EDITOR"
+    bl_region_type = "TOOLS"
     bl_label = "Manual Tracking"
     bl_category = "OmniTrax"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
@@ -1135,17 +1162,17 @@ class EXPORT_PT_TrackingPanel(bpy.types.Panel):
         row = layout.row(align=True)
         row.label(text="Track:")
 
-        props = row.operator("clip.track_markers", text="", icon='FRAME_PREV')
+        props = row.operator("clip.track_markers", text="", icon="FRAME_PREV")
         props.backwards = True
         props.sequence = False
         props = row.operator("clip.track_markers", text="",
-                             icon='PLAY_REVERSE')
+                             icon="PLAY_REVERSE")
         props.backwards = True
         props.sequence = True
-        props = row.operator("clip.track_markers", text="", icon='PLAY')
+        props = row.operator("clip.track_markers", text="", icon="PLAY")
         props.backwards = False
         props.sequence = True
-        props = row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
+        props = row.operator("clip.track_markers", text="", icon="FRAME_NEXT")
         props.backwards = False
         props.sequence = False
 
@@ -1154,21 +1181,21 @@ class EXPORT_PT_TrackingPanel(bpy.types.Panel):
         row.label(text="Clear:")
         row.scale_x = 2.0
 
-        props = row.operator("clip.clear_track_path", text="", icon='BACK')
-        props.action = 'UPTO'
+        props = row.operator("clip.clear_track_path", text="", icon="BACK")
+        props.action = "UPTO"
 
-        props = row.operator("clip.clear_track_path", text="", icon='FORWARD')
-        props.action = 'REMAINED'
+        props = row.operator("clip.clear_track_path", text="", icon="FORWARD")
+        props.action = "REMAINED"
 
         col = layout.column()
         row = col.row(align=True)
         row.label(text="Refine:")
         row.scale_x = 2.0
 
-        props = row.operator("clip.refine_markers", text="", icon='LOOP_BACK')
+        props = row.operator("clip.refine_markers", text="", icon="LOOP_BACK")
         props.backwards = True
 
-        props = row.operator("clip.refine_markers", text="", icon='LOOP_FORWARDS')
+        props = row.operator("clip.refine_markers", text="", icon="LOOP_FORWARDS")
         props.backwards = False
 
         col = layout.column(align=True)
@@ -1179,16 +1206,16 @@ class EXPORT_PT_TrackingPanel(bpy.types.Panel):
 
 class EXPORT_PT_DataPanel(bpy.types.Panel):
     bl_label = "Export"
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
+    bl_space_type = "CLIP_EDITOR"
+    bl_region_type = "TOOLS"
     bl_category = "OmniTrax"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {"DEFAULT_CLOSED"}
 
     bpy.types.Scene.exp_path = StringProperty(
         name="Export Path",
         description="Path where data will be exported to",
         default="\\export",
-        subtype='DIR_PATH')
+        subtype="DIR_PATH")
     bpy.types.Scene.exp_subdirs = BoolProperty(
         name="Export Subdirectories",
         description="Markers will be exported to subdirectories",
