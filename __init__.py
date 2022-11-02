@@ -508,8 +508,6 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                              str(e) + "_y," +
                                              str(e) + "_prob" for e in pose_joint_names)
 
-                print(pose_joint_names)
-
             except:
                 print("Failed to load trained network... Check your model path!")
                 return {"FINISHED"}
@@ -522,7 +520,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
             dlc_config_path = os.path.join(model_path, "config.yaml")
             with open(dlc_config_path, "r") as stream:
                 config_yaml = yaml.safe_load(stream)
-                print(config_yaml["skeleton"])
+                print("skeleton configuration:\n", config_yaml["skeleton"])
 
                 # now, match the skeleton elements to their IDs to draw them as overlays
                 skeleton = []
@@ -531,7 +529,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                         skeleton.append([pose_joint_names.index(bone[0]),
                                          pose_joint_names.index(bone[1])])
 
-                    print(skeleton)
+                    print("skeleton links:\n", skeleton)
                 except ValueError:
                     print("Your config skeleton and pose joint names do not match!"
                           "\n could not create overlay skeleton!")
@@ -677,8 +675,6 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                             thresh = context.scene.pose_pcutoff
 
                             track_pose[str(frame_id)] = pose.flatten()
-
-                            print(pose.shape)
 
                             for p, point in enumerate(pose):
                                 if point[2] >= thresh:
