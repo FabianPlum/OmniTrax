@@ -694,6 +694,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                                                                      200),
                                                                     1)
 
+                            # TODO add robust joint angle calculation (for various species)
                             """
                             joint_angles = np.empty(42)
                             joint_angles_conf = np.empty(42)  # report confidence on each joint angle
@@ -752,7 +753,9 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 pose_output_file = open(bpy.path.abspath(bpy.context.edit_movieclip.filepath)[
                                         :-4] + "_POSE_" + track.name + ".csv", "w")
                 # write header line
-                pose_output_file.write("frame," + pose_joint_header + ",r1_deg,r2_deg,r3_deg,l1_deg,l2_deg,l3_deg\n")
+                #pose_output_file.write("frame," + pose_joint_header + ",r1_deg,r2_deg,r3_deg,l1_deg,l2_deg,l3_deg\n")
+                # TODO add robust joint angle calculation
+                pose_output_file.write("frame," + pose_joint_header + "\n")
                 for key, value in track_pose.items():
                     line = key + "," + ",".join(str(e) for e in value.flatten())
                     pose_output_file.write(line + "\n")
