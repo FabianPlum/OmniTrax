@@ -2,6 +2,10 @@ import sys
 import unittest
 
 try:
+    # install required packages
+    import check_packages
+
+
     class TestMain(unittest.TestCase):
 
         def test_addValues(self):
