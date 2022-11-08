@@ -42,15 +42,18 @@ class OMNITRAX_PT_ComputePanel(bpy.types.Panel):
     bl_region_type = "TOOLS"
     bl_category = "OmniTrax"
 
-    physical_devices = tf.config.list_physical_devices()
-    print("Found computational devices:\n", physical_devices)
+    try:
+        physical_devices = tf.config.list_physical_devices()
+        print("Found computational devices:\n", physical_devices)
 
-    devices = []
-    for d, device in enumerate(physical_devices):
-        if device.device_type == "GPU":
-            devices.append(("GPU_" + str(d - 1), "GPU_" + str(d - 1), "Use GPU for inference (requires CUDA)"))
-        else:
-            devices.append(("CPU_" + str(d), "CPU", "Use CPU for inference"))
+        devices = []
+        for d, device in enumerate(physical_devices):
+            if device.device_type == "GPU":
+                devices.append(("GPU_" + str(d - 1), "GPU_" + str(d - 1), "Use GPU for inference (requires CUDA)"))
+            else:
+                devices.append(("CPU_" + str(d), "CPU", "Use CPU for inference"))
+    except:
+        print("INFO: Did not find suitable inference devices.")
 
     bpy.types.Scene.compute_device = EnumProperty(
         name="",
@@ -103,7 +106,6 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         """
 
         global network
-        # global metaMain
         global altNames
         global class_names
         global class_colours
