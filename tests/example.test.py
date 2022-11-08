@@ -2,6 +2,8 @@ import sys
 import unittest
 
 try:
+    import omni_trax
+
     class TestMain(unittest.TestCase):
 
         def test_addValues(self):
