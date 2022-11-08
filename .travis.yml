@@ -37,14 +37,14 @@ install:
   # go back to root directory and set up the addon
   - cd ..
   - ls ${PWD}/tmp/blender
-  - mkdir ${PWD}/tmp/blender/3.3.0/scripts/addons/omni_trax
-  - cp ${PWD}/__init__.py ${PWD}/tmp/blender/3.3.0/scripts/addons/omni_trax
-  - cp ${PWD}/check_packages.py ${PWD}/tmp/blender/3.3.0/scripts/addons/omni_trax
-  - cp ${PWD}/kalman_filter_new.py ${PWD}/tmp/blender/3.3.0/scripts/addons/omni_trax
-  - cp ${PWD}/omni_trax_utils.py ${PWD}/tmp/blender/3.3.0/scripts/addons/omni_trax
-  - cp ${PWD}/setup_state.py ${PWD}/tmp/blender/3.3.0/scripts/addons/omni_trax
-  - cp ${PWD}/check_packages.py ${PWD}/tmp/blender/3.3.0/scripts/addons/omni_trax
-  - cp ${PWD}/tracker.py ${PWD}/tmp/blender/3.3.0/scripts/addons/omni_trax
-  - ls ${PWD}/tmp/blender/3.3.0/scripts/addons/omni_trax
+  - mkdir ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
+  - cp ${PWD}/__init__.py ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
+  - cp ${PWD}/check_packages.py ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
+  - cp ${PWD}/kalman_filter_new.py ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
+  - cp ${PWD}/omni_trax_utils.py ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
+  - cp ${PWD}/setup_state.py ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
+  - cp ${PWD}/check_packages.py ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
+  - cp ${PWD}/tracker.py ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
+  - ls ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
 
 script: python testrunner.py ./tmp/blender/blender
