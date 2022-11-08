@@ -2,9 +2,7 @@
     File name         : tracker.py
     File Description  : Tracker Using Kalman Filter & Hungarian Algorithm
     Author            : Fabian Plum (adapted from Srini Ananthakrishnan)
-    Date created      : 07/14/2017
-    Date last modified: 01/12/2021
-    Python Version    : 3.7
+    Python Version    : 3.10
 '''
 
 # Import python libraries
@@ -18,9 +16,8 @@ from scipy.optimize import linear_sum_assignment
 
 
 class Track(object):
-    """Track class for every object to be tracked
-    Attributes:
-        None
+    """
+    Track class for every object to be tracked
     """
 
     def __init__(self, prediction, trackIdCount,
@@ -57,7 +54,7 @@ class Track(object):
 
 
 class Tracker(object):
-    """Tracker class that updates track vectors of object tracked
+    """Tracker class that updates track vectors of tracked object
     Attributes:
         None
     """
