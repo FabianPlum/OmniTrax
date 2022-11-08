@@ -41,6 +41,11 @@ if not setup_complete:
     try:
         reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
     except:
+        subprocess.call([py_exec, "-m", "ensurepip", "--user"])
+
+    try:
+        reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
+    except:
         reqs = subprocess.check_output([sys.executable, '-m', 'pip3', 'freeze'])
 
     installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
