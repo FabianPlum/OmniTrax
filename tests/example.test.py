@@ -2,8 +2,7 @@ import sys
 import unittest
 
 try:
-    # install required packages
-    import check_packages
+    from omni_trax_utils import scale_detections, convertBack
 
 
     class TestMain(unittest.TestCase):
