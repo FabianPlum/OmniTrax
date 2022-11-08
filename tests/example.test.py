@@ -11,7 +11,7 @@ try:
                 sum += val
             target = 6
 
-            self.assertEqual(result, target)
+            self.assertEqual(sum, target)
 
 
     # we have to manually invoke the test runner here, as we cannot use the CLI
