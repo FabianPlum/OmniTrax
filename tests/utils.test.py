@@ -2,7 +2,7 @@ import sys
 import unittest
 
 try:
-    import omni_trax
+    from omni_trax.omni_trax_utils import *
 
 
     class TestUtils(unittest.TestCase):
