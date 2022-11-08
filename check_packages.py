@@ -41,7 +41,7 @@ if not setup_complete:
     try:
         reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
     except:
-        subprocess.call([py_exec, "-m", "ensurepip", "--user"])
+        subprocess.call([py_exec, "-m", "ensurepip"])
 
     try:
         reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
