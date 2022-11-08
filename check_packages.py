@@ -79,37 +79,40 @@ if not setup_complete:
 
     # Cool. Here goes nothing
 
-    OVERWRITE_DLC_DISPLAY = False
-    dlclive_display = Path.joinpath(Path(py_exec[:-14]), "lib", "dlclive", "display.py")
+    try:
+        OVERWRITE_DLC_DISPLAY = False
+        dlclive_display = Path.joinpath(Path(py_exec[:-14]), "lib", "dlclive", "display.py")
 
-    orig_tk_import = "from tkinter import Tk, Label\n"
-    orig_PIL_import = "from PIL import Image, ImageTk, ImageDraw\n"
+        orig_tk_import = "from tkinter import Tk, Label\n"
+        orig_PIL_import = "from PIL import Image, ImageTk, ImageDraw\n"
 
-    updated_tk_import = "# " + orig_tk_import
-    updated_PIL_import = "# " + orig_PIL_import
+        updated_tk_import = "# " + orig_tk_import
+        updated_PIL_import = "# " + orig_PIL_import
 
-    dlclive_display_file = open(str(dlclive_display), "r")
-    updated_file_content = ""
+        dlclive_display_file = open(str(dlclive_display), "r")
+        updated_file_content = ""
 
-    for line in dlclive_display_file:
-        if line == orig_tk_import:
-            line = updated_tk_import
-            OVERWRITE_DLC_DISPLAY = True
-        if line == orig_PIL_import:
-            line = updated_PIL_import
-            OVERWRITE_DLC_DISPLAY = True
+        for line in dlclive_display_file:
+            if line == orig_tk_import:
+                line = updated_tk_import
+                OVERWRITE_DLC_DISPLAY = True
+            if line == orig_PIL_import:
+                line = updated_PIL_import
+                OVERWRITE_DLC_DISPLAY = True
 
-        updated_file_content += line
+            updated_file_content += line
 
-    dlclive_display_file.close()
-
-    if OVERWRITE_DLC_DISPLAY:
-        dlclive_display_file = open(str(dlclive_display), "w")
-        dlclive_display_file.write(updated_file_content)
-        print("\nINFO: /dlclive/display.py has been updated to suppress tkinter import!!!")
         dlclive_display_file.close()
 
-    setup_state_f_contents.append("overwritten_orig_dlclive=True")
+        if OVERWRITE_DLC_DISPLAY:
+            dlclive_display_file = open(str(dlclive_display), "w")
+            dlclive_display_file.write(updated_file_content)
+            print("\nINFO: /dlclive/display.py has been updated to suppress tkinter import!!!")
+            dlclive_display_file.close()
+
+        setup_state_f_contents.append("overwritten_orig_dlclive=True")
+    except FileNotFoundError:
+        print("INFO: Did not suppress DLC imports - indicating unit testing")
     setup_state_f_contents.append("setup_complete=True")
 
     with open(os.path.join(directory, "setup_state.txt"), 'w') as f:
