@@ -4,15 +4,14 @@ import sys
 
 blenderExecutable = 'blender'
 
-# allow override of blender executable (important for CI!)
+# allow override of blender executable (important for TravisCI!)
 if len(sys.argv) > 1:
     blenderExecutable = sys.argv[1]
 
 # run all tests before aborting build
 testfailed = False
 
-# iterate over each *.test.blend file in the "tests" directory
-# and open up blender with the .test.blend file and the corresponding .test.py python script
+# iterate over each *.test.py file in the "tests" directory
 for file in glob.glob('tests/*.test.py'):
     print('#' * 100)
     print('Running {} tests...'.format(file))
