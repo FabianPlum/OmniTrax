@@ -38,7 +38,11 @@ if not setup_complete:
                           "scikit-learn": "scikit-learn",
                           "deeplabcut-live": "deeplabcut-live"}
 
-    reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
+    try:
+        reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
+    except:
+        reqs = subprocess.check_output([sys.executable, '-m', 'pip3', 'freeze'])
+
     installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
 
     print("\nInstalled packages:", installed_packages, "\n")
