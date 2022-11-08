@@ -97,7 +97,7 @@ backup = backup/
 * [single class termite detector (trained on synthetic data)](https://drive.google.com/drive/folders/1U9jzOpjCcu6wDfTEH3uQqGKPxW_QzHGz?usp=sharing)
 
 **[DLC](https://github.com/DeepLabCut/DeepLabCut) Networks**
-* [ResNet101 (single) ant pose-estimator (trained on synthetic data)](https://drive.google.com/file/d/1VnGXy_KyPHUIbFMx5n_ncN6z0H6qg5uB/view?usp=sharing)
+* [ResNet101 (single) ant pose-estimator (trained on synthetic data)](https://drive.google.com/file/d/1IH9R9PgJMYteigsrMi-bZnz4IMcydtWU/view?usp=sharing)
 
 
 ***
