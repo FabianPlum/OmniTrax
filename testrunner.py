@@ -18,7 +18,7 @@ for file in glob.glob('tests/*.test.py'):
     print('Running {} tests...'.format(file))
     print('#' * 100)
     code = subprocess.call([blenderExecutable, '--factory-startup',
-                            '-noaudio', '--python', file,
+                            '-noaudio', '--background', '--python', file,
                             '--python-exit-code', '1'])
     print('#' * 100)
     print("Exited with: ", code)
