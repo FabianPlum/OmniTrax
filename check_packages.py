@@ -2,6 +2,7 @@ import subprocess
 import sys
 from pathlib import Path
 import os
+import platform
 
 script_file = os.path.realpath(__file__)
 directory = os.path.dirname(script_file)
@@ -41,7 +42,7 @@ if not setup_complete:
     try:
         reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
     except:
-        subprocess.call([py_exec, "-m", "ensurepip"])
+        subprocess.call([py_exec, "-m", "ensurepip", "--user"])
 
     try:
         reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
@@ -64,8 +65,12 @@ if not setup_complete:
                 subprocess.call([py_exec, "-m", "pip", "install", "--upgrade", "pip"])
                 first_pkg = False
 
-            subprocess.call(
-                [py_exec, "-m", "pip", "install", f"--target={py_exec[:-14]}" + "lib", required_libraries[library]])
+            if platform.system() != "Linux":
+                subprocess.call(
+                    [py_exec, "-m", "pip", "install", f"--target={py_exec[:-14]}" + "lib", required_libraries[library]])
+            else:
+                subprocess.call(
+                    [py_exec, "-m", "pip", "install", required_libraries[library]])
 
         setup_state_f_contents.append(library + "=True")
 
