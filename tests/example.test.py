@@ -2,9 +2,6 @@ import sys
 import unittest
 
 try:
-    from omni_trax_utils import scale_detections, convertBack
-
-
     class TestMain(unittest.TestCase):
 
         def test_addValues(self):
