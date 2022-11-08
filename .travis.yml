@@ -16,8 +16,6 @@ before_install:
   - sudo apt-get update -qq
 
   # install blender from official sources.
-  # This will most propably install an outdated blender version,
-  # but it will resolve all system dependencies blender has to be able to run.
   - sudo apt-get install blender
 
 install:
@@ -39,8 +37,4 @@ install:
   # go back to root directory
   - cd ..
 
-  # install addon
-  # - sudo ln -s ${PWD}/OmniTrax ${PWD}/tmp/blender/3.3/scripts/addons/omni_trax
-  - ls
-
-script: ./tmp/blender/blender --background --python OmniTrax/check_packages.py
+script: python testrunner.py ./tmp/blender/blender
