@@ -1,4 +1,4 @@
-# adapted from:  https://machinelearningspace.com/2d-object-tracking-using-kalman-filter/
+# adapted from:  https://machinelearningspace.com/object-tracking-python/
 import numpy as np
 
 
@@ -6,8 +6,7 @@ class KalmanFilter(object):
     """Kalman Filter class keeps track of the estimated state of
     the system and the variance or uncertainty of the estimate.
     Predict and Correct methods implement the functionality
-    Reference: https://en.wikipedia.org/wiki/Kalman_filter
-    Attributes: None
+    Code adapted from https://machinelearningspace.com/object-tracking-python/
     """
 
     def __init__(self, dt, u_x, u_y, std_acc, x_std_meas, y_std_meas, initial_state):
@@ -18,6 +17,7 @@ class KalmanFilter(object):
         :param std_acc: process noise magnitude
         :param x_std_meas: standard deviation of the measurement in x-direction
         :param y_std_meas: standard deviation of the measurement in y-direction
+        :param initial_state: initial location [x,y] of track
         """
 
         # Define sampling time
@@ -59,7 +59,8 @@ class KalmanFilter(object):
         self.P = np.eye(self.A.shape[1])
 
     def predict(self):
-        # Refer to :Eq.(9) and Eq.(10)  in https://machinelearningspace.com/object-tracking-simple-implementation-of-kalman-filter-in-python/?preview_id=1364&preview_nonce=52f6f1262e&preview=true&_thumbnail_id=1795
+        # Refer to :Eq.(9) and Eq.(10)
+        # in https://machinelearningspace.com/object-tracking-python/
         # Update time state
         # x_k =Ax_(k-1) + Bu_(k-1)     Eq.(9)
         self.x = np.dot(self.A, self.x) + np.dot(self.B, self.u)
@@ -70,7 +71,7 @@ class KalmanFilter(object):
 
     def update(self, z, flag):
         # Refer to :Eq.(11), Eq.(12) and Eq.(13)  in
-        # https://machinelearningspace.com/object-tracking-simple-implementation-of-kalman-filter-in-python/?preview_id=1364&preview_nonce=52f6f1262e&preview=true&_thumbnail_id=1795
+        # https://machinelearningspace.com/object-tracking-python/
         # S = H*P*H'+R
         if not flag:
             # use prediction of previous
