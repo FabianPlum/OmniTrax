@@ -4,6 +4,7 @@ import sys
 
 blenderExecutable = 'blender'
 
+# testrunner structure built based on https://github.com/dfki-ric/phobos
 # allow override of blender executable (important for TravisCI!)
 if len(sys.argv) > 1:
     blenderExecutable = sys.argv[1]
