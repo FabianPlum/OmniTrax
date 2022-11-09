@@ -6,15 +6,38 @@ import math
 import time
 import tensorflow as tf
 
+
 ### Various Detection Processing functions ###
 
 def scale_detections(x, y, network_w, network_h, output_w, output_h):
+    """
+    scaling detections from their original darknet output to the blender XY convention
+
+    :param x: x coordinate (darknet pixel space)
+    :param y: y coordinate (darknet pixel space)
+    :param network_w: darknet network width
+    :param network_h: darknet network height
+    :param output_w: video width
+    :param output_h: video height
+
+    :return: array of scaled detections
+    """
     scaled_x = x * (output_w / network_w)
     scaled_y = (network_h - y) * (output_h / network_h)  # y is inverted
     return [scaled_x, scaled_y]
 
 
 def convertBack(x, y, w, h):
+    """
+    Get bounding box shape for OpenCV plotting functions from darknet detections
+
+    :param x: x coordinate (darknet pixel space)
+    :param y: y coordinate (darknet pixel space)
+    :param w: width of darknet detection
+    :param h: height of darknet detection
+
+    :return: converted bounding box (for OpenCV display)
+    """
     xmin = int(round(x - (w / 2)))
     xmax = int(round(x + (w / 2)))
     ymin = int(round(y - (h / 2)))
@@ -23,6 +46,17 @@ def convertBack(x, y, w, h):
 
 
 def cvDrawBoxes(detections, img, min_size=20, constant_size=False, class_colours=None):
+    """
+    draw detection bounding boxes on input image
+
+    :param detections: darknet detection format (x,y,w,h)
+    :param img: input (colour) image [H,W,C]
+    :param min_size: minimum detection width and height for display
+    :param constant_size: enforcing constant (square) bounding boxes at this pixel size
+    :param class_colours: RBG colours for each class
+
+    :return: image with superimposed detections
+    """
     for label, confidence, bbox in detections:
 
         x, y, w, h = bbox[0], \
@@ -46,7 +80,13 @@ def cvDrawBoxes(detections, img, min_size=20, constant_size=False, class_colours
                         cl_colour, 1)
     return img
 
+
 def setInferenceDevive(device):
+    """
+    Set the (CUDA) inference device for the project
+
+    :param device: e.g. "CPU_0" or "GPU_0"
+    """
     # disables all but the selected computational device (by setting them invisible)
     physical_devices = tf.config.list_physical_devices(device.split("_")[0])
     try:
@@ -97,7 +137,6 @@ def import_tracks(path, numFrames, export=False):
                     next(csv_reader, None)  # skip the headers
 
                     for row in csv_reader:
-                        # tracks.insert())
                         tracks[int(row[0]) - 1, imported * 2 + 1] = int(row[1])
                         tracks[int(row[0]) - 1, imported * 2 + 2] = int(row[2])
                         line_count += 1
@@ -119,7 +158,7 @@ def display_video(cap, tracks, show=(0, math.inf), scale=1.0, target_size=100):
     Function displays imported footage with tracking results as overlay
 
     :param cap: Imported video file
-    :param tracks: all imported tracks as a single array, created with import_tracks
+    :param tracks: all imported tracks as a single array, created with import_tracks()
     :param show: tuple of desired displayed frames
     :param scale: single float to up- or downscale resolution of display
     """
@@ -210,7 +249,7 @@ def get_exact_frame(frame_no, num_frames_max, file, display=False, num_frames=1)
 
     :param frame_no: integer value of desired frame
     :param num_frames_max: total number of frames within footage (could be extracted but to minimise the number of times
-                         the function is executed passed directly into the function
+                           the function is executed passed directly into the function
     :param file: video (as cap from OpenCV) from which the frame(s) is/are to be extracted
     :param display: display frame(s), if desired
     :param num_frames: number of frames to be extracted (1 by default to only return a single frame) If greater than 1,
@@ -218,11 +257,8 @@ def get_exact_frame(frame_no, num_frames_max, file, display=False, num_frames=1)
 
     :return: array of frames or single frame
     """
-    # print("Attempting to extract", num_frames, "images from file...")
-
     if frame_no - num_frames < 0:
         num_frames = frame_no
-        # print("less than desired number of frames available! Extracting", num_frames, "instead!")
 
     all_frames = []
 
@@ -315,7 +351,7 @@ def extractPatches(frame_no, frames, tracks, patch_size=128, BW=True):
                 target_centre = np.asarray([tracks[frame_no + (img - len(frames) + num_empty_img), track],
                                             tracks[frame_no + (img - len(frames) + num_empty_img), track + 1]])
 
-                # invert y axis, to fit openCV convention ( lower left -> (x=0,y=0) )
+                # invert y-axis, to fit OpenCV convention ( lower left -> (x=0,y=0) )
                 target_centre[1] = frames[0].shape[0] - target_centre[1]
                 # define the starting and ending point of the bounding box rectangle, defined by "target_size"
                 px_start = target_centre - np.asarray([math.floor(patch_size / 2), math.floor(patch_size / 2)])
@@ -363,17 +399,18 @@ def extractPatches(frame_no, frames, tracks, patch_size=128, BW=True):
     return stacks, stacks_label, stacks_pos, detections, detections_label, detections_pos
 
 
-def display_patches(stacks, stack_labels):
-    # simple function to show extracted patches
-    for i in range(len(stacks)):
-        # Display the resulting frame
-        cv2.imshow("First frame of each active stack: " + str(stack_labels[i]), stacks[i][0])
-        # Set wait key
-        cv2.waitKey(1)
-        time.sleep(0.1)
-
-
 def sortByDistance(detections, stack_pos, detections_pos, labels, verbose=False):
+    """
+    Sort detections by their distance to track stacks
+
+    :param detections: darknet detection format (x,y,w,h)
+    :param stack_pos: x,y positions of stack
+    :param detections_pos: x,y positions of detections
+    :param labels: labels in the order of detections
+    :param verbose: print sorting results
+
+    :return: sorted detections, labels, and detection position from closest to furthest from the stack position
+    """
     all_dist = []
     # find last valid position (non-zero element) in active stack
     valid_positions = [i for i, element in enumerate(stack_pos[:, 0]) if element != 0]
