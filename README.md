@@ -89,11 +89,11 @@ names = C:/Users/Legos/Downloads/atta_single_class/obj.names
 backup = backup/
 ```
 
-4. Now, configure the **Detector** and **Tracker** to your liking. When you are done, click on **Track** to watch the magic happen! 
+4. Now, configure the **Detector** and **Tracker** to your liking. When you are done, click on **RESTART Track** (or **TRACK** to continue tracking from a later point in the video). Click on the video (which will open in a separate window) and press **q** to terminate the tracking process early.  
 
 ![](images/use_04.gif)
  
-*NOTE: The ideal settings will always depend on your footage, especially on the relative animal size and movement speed. I will release a more detailed user guide soon.* 
+*NOTE: The ideal settings will always depend on your footage, especially on the relative animal size and movement speed. Remember, **GIGO** (Garbage In Garbage Out) so ensuring your recordings are evenly-lit, free from noise, flickering, and motion blur, will go a long way to improve inference quality.*
 
 ## Download trained networks and config files here:
 
