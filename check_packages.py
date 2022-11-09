@@ -10,6 +10,7 @@ directory = os.path.dirname(script_file)
 print("\nINFO: Checking requirements for omni_trax addon...\n")
 
 # only run the following checks upon initial installation
+# setup_state.txt keeps track of the installation state
 try:
     with open(os.path.join(directory, "setup_state.txt")) as f:
         lines = f.readlines()
@@ -74,10 +75,8 @@ if not setup_complete:
 
         setup_state_f_contents.append(library + "=True")
 
-    # Okay, this next part is hacky AF, but, for now, it seems like the only way to load DLC-Live...
-    # We need to suppress loading tkinter... So let's overwrite the "display.py" file within DLC-live.
-
-    # Cool. Here goes nothing
+    # We need to suppress loading tkinter as the package is incompatible with (some versions of) Blender python
+    # We therefore overwrite the "display.py" file within lib/dlclive
 
     try:
         OVERWRITE_DLC_DISPLAY = False
