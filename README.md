@@ -1,7 +1,7 @@
 [![latest-release](https://img.shields.io/github/tag/FabianPlum/OmniTrax.svg?label=version&style=flat)](https://github.com/FabianPlum/OmniTrax/releases)
 [![license](https://img.shields.io/github/license/FabianPlum/OmniTrax.svg?style=flat)](https://github.com/FabianPlum/OmniTrax)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
-[![Build Status](https://travis-ci.org/FabianPlum/OmniTrax.svg?branch=main)](https://travis-ci.org/FabianPlum/OmniTrax)
+[![Build Status](https://app.travis-ci.com/FabianPlum/OmniTrax.svg?branch=main)](https://app.travis-ci.com/github/FabianPlum/OmniTrax)
 
 # OmniTrax
 It will track many things. Eventually. In Blender.
