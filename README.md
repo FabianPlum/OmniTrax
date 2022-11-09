@@ -4,13 +4,17 @@
 [![Build Status](https://app.travis-ci.com/FabianPlum/OmniTrax.svg?branch=main)](https://app.travis-ci.com/github/FabianPlum/OmniTrax)
 
 # OmniTrax
-It will track many things. Eventually. In Blender.
+Deep learning-based multi animal tracking and pose estimation Blender Add-on.
 
 ![](images/preview_tracking.gif)
 
-Oh, and pose-estimate as well
+_automated multi animal tracking example_
+
+Leveraging openly available or custom-trained YOLO and DeepLabCut networks, this Blender Add-on enables straight forward user interaction to automatically evaluate or annotate large video files containing hundreds of animals, requiring minimal prior experience. Estimated tracks can be edited, iteratively refined, and exported. We additionally provide basic evaluation python scripts to visualise and plot trajectories.
 
 ![](images/single_ant_1080p_POSE_track_0.gif) ![](images/single_ant_1080p_POSE_track_0_skeleton.gif)
+
+_Pose estimation and skeleton overlay example_
 
 ## Updates:
 * 09/11/2022 - Added [**release** version 0.2.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.0) with improved DLC-live pose estimation for single and multi-animal applications.
@@ -31,21 +35,23 @@ Oh, and pose-estimate as well
 ### Step-by-step installation
 1. Install [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/) from the official website. Simply download [blender-3.3.1-windows-x64.msi](https://www.blender.org/download/release/Blender3.3/blender-3.3.1-windows-x64.msi/) and follow the installation instructions.
 
-2. Download the latest release of [OmniTrax](https://github.com/FabianPlum/OmniTrax/releases/download/V_0.1.1/omni_trax.zip). **No need to unzip** the file! You can install it straight from the **Blender > Preferences > Add-on** menu in the next step.
+2. Install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1](https://developer.nvidia.com/rdp/cudnn-archive). Refer to [this](https://www.tensorflow.org/install/source#gpu) official guide for version matching and installation instructions.
 
-3. Open **Blender** in administrator mode. You only need to do this once, during the installation of **OmniTrax**. Once everything is up and running you can open **Blender** normally in the future. 
+3. Download the latest release [![latest-release](https://img.shields.io/github/tag/FabianPlum/OmniTrax.svg?label=version&style=flat)](https://github.com/FabianPlum/OmniTrax/releases) of [OmniTrax](https://github.com/FabianPlum/OmniTrax/releases/download/V_0.2.0/omni_trax.zip). **No need to unzip** the file! You can install it straight from the **Blender > Preferences > Add-on** menu in the next step.
+
+4. Open **Blender** in administrator mode. You only need to do this once, during the installation of **OmniTrax**. Once everything is up and running you can open **Blender** normally in the future. 
 
 ![](images/install_01.jpg)
 
-4. Open the Blender system console to see the installation progress and display information.
+5. Open the Blender system console to see the installation progress and display information.
 
 ![](images/install_02.jpg)
 
-5. Next, open **(1) Edit** > **(2) Preferences...** and under **Add-ons** click on **(3) Install...**. Then, locate the downloaded **(4) omni_trax.zip** file, select it, and click on **(5) Install Add-on**.
+6. Next, open **(1) Edit** > **(2) Preferences...** and under **Add-ons** click on **(3) Install...**. Then, locate the downloaded **(4) omni_trax.zip** file, select it, and click on **(5) Install Add-on**.
 
 ![](images/install_03.jpg)
 
-6. The **omni_trax** Add-on should now be listed. Enabling the Add-on will start the installation process of all required python dependencies. 
+7. The **omni_trax** Add-on should now be listed. Enabling the Add-on will start the installation process of all required python dependencies. 
 
 ![](images/install_04.jpg)
 
@@ -53,7 +59,7 @@ This will take quite a while, so have a look at the **Blender Console** to see t
 
 ![](images/install_05.jpg)
 
-There may be a few **warnings** displayed throughout the installation process, however, as long as no errors occur, all should be good. If the installation is successful, a **check mark** will be displayed next to the Add-on and the console should let you know that "[...] all looks good here!".
+There may be a few **warnings** displayed throughout the installation process, however, as long as no errors occur, all should be good. If the installation is successful, a **check mark** will be displayed next to the Add-on and the console should let you know that "[...] all looks good here!". Once the installation is completed, you can launch blender with regular user-privileges.
 
 ![](images/install_06.jpg)
 
