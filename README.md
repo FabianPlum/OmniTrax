@@ -3,7 +3,8 @@
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![Build Status](https://app.travis-ci.com/FabianPlum/OmniTrax.svg?branch=main)](https://app.travis-ci.com/github/FabianPlum/OmniTrax)
 
-# <img src=images/omnitrax_logo.svg height="100">
+# <img src=images/omnitrax_logo.svg#gh-dark-mode-only height="100">
+# <img src=images/omnitrax_logo_light.svg#gh-light-mode-only height="100">
 Deep learning-based multi animal tracking and pose estimation Blender Add-on.
 
 &nbsp;<br>
