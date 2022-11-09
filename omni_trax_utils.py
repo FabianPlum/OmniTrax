@@ -12,14 +12,12 @@ import tensorflow as tf
 def scale_detections(x, y, network_w, network_h, output_w, output_h):
     """
     scaling detections from their original darknet output to the blender XY convention
-
     :param x: x coordinate (darknet pixel space)
     :param y: y coordinate (darknet pixel space)
     :param network_w: darknet network width
     :param network_h: darknet network height
     :param output_w: video width
     :param output_h: video height
-
     :return: array of scaled detections
     """
     scaled_x = x * (output_w / network_w)
@@ -30,12 +28,10 @@ def scale_detections(x, y, network_w, network_h, output_w, output_h):
 def convertBack(x, y, w, h):
     """
     Get bounding box shape for OpenCV plotting functions from darknet detections
-
     :param x: x coordinate (darknet pixel space)
     :param y: y coordinate (darknet pixel space)
     :param w: width of darknet detection
     :param h: height of darknet detection
-
     :return: converted bounding box (for OpenCV display)
     """
     xmin = int(round(x - (w / 2)))
@@ -48,13 +44,11 @@ def convertBack(x, y, w, h):
 def cvDrawBoxes(detections, img, min_size=20, constant_size=False, class_colours=None):
     """
     draw detection bounding boxes on input image
-
     :param detections: darknet detection format (x,y,w,h)
     :param img: input (colour) image [H,W,C]
     :param min_size: minimum detection width and height for display
     :param constant_size: enforcing constant (square) bounding boxes at this pixel size
     :param class_colours: RBG colours for each class
-
     :return: image with superimposed detections
     """
     for label, confidence, bbox in detections:
@@ -84,7 +78,6 @@ def cvDrawBoxes(detections, img, min_size=20, constant_size=False, class_colours
 def setInferenceDevive(device):
     """
     Set the (CUDA) inference device for the project
-
     :param device: e.g. "CPU_0" or "GPU_0"
     """
     # disables all but the selected computational device (by setting them invisible)
@@ -105,11 +98,9 @@ def import_tracks(path, numFrames, export=False):
     """
     Import all tracked paths (using blender motionExport.py) from specified folder and join them to a single array.
     Optionally, allows for export of created array containing all tracks into single .csv file
-
     :param path: location of exported .csv tracks
     :param numFrames: number of total analysed frames
     :param export: boolean, writes .csv file of all combined tracks if True
-
     :return: array of all imported tracks, row: frames, columns X / Y coordinates of individual track.
              The first column consists of the frame numbers for easier readability if exported as a single file.
     """
@@ -156,7 +147,6 @@ def import_tracks(path, numFrames, export=False):
 def display_video(cap, tracks, show=(0, math.inf), scale=1.0, target_size=100):
     """
     Function displays imported footage with tracking results as overlay
-
     :param cap: Imported video file
     :param tracks: all imported tracks as a single array, created with import_tracks()
     :param show: tuple of desired displayed frames
@@ -246,7 +236,6 @@ def display_video(cap, tracks, show=(0, math.inf), scale=1.0, target_size=100):
 def get_exact_frame(frame_no, num_frames_max, file, display=False, num_frames=1):
     """
     extracts specific frame from video footage and displays it, if desired
-
     :param frame_no: integer value of desired frame
     :param num_frames_max: total number of frames within footage (could be extracted but to minimise the number of times
                            the function is executed passed directly into the function
@@ -254,7 +243,6 @@ def get_exact_frame(frame_no, num_frames_max, file, display=False, num_frames=1)
     :param display: display frame(s), if desired
     :param num_frames: number of frames to be extracted (1 by default to only return a single frame) If greater than 1,
                       the PREVIOUS number of frames leading to the specified one will be extracted as well.
-
     :return: array of frames or single frame
     """
     if frame_no - num_frames < 0:
@@ -301,13 +289,11 @@ def get_exact_frame(frame_no, num_frames_max, file, display=False, num_frames=1)
 def extractPatches(frame_no, frames, tracks, patch_size=128, BW=True):
     """
     extracts images patches for stacks and detections during TRAINING
-
     :param frame_no: desired frame of NEW detections
     :param frames: list of frames
     :param tracks: array of all labelled tracks imported
     :param patch_size: resolution (width / height in px) of extracted patches
     :param BW: Boolean, if True returns the patches in black and white
-
     :return: stacks of previous tracks and detections of new instances
     """
     stacks = []
@@ -402,13 +388,11 @@ def extractPatches(frame_no, frames, tracks, patch_size=128, BW=True):
 def sortByDistance(detections, stack_pos, detections_pos, labels, verbose=False):
     """
     Sort detections by their distance to track stacks
-
     :param detections: darknet detection format (x,y,w,h)
     :param stack_pos: x,y positions of stack
     :param detections_pos: x,y positions of detections
     :param labels: labels in the order of detections
     :param verbose: print sorting results
-
     :return: sorted detections, labels, and detection position from closest to furthest from the stack position
     """
     all_dist = []

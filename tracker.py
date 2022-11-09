@@ -1,11 +1,3 @@
-'''
-    File name         : tracker.py
-    File Description  : Tracker Using Kalman Filter & Hungarian Algorithm
-    Author            : Fabian Plum (adapted from Srini Ananthakrishnan)
-    Python Version    : 3.10
-'''
-
-# Import python libraries
 import numpy as np
 
 try:
@@ -17,7 +9,8 @@ from scipy.optimize import linear_sum_assignment
 
 class Track(object):
     """
-    Track class for every object to be tracked
+    Individual Track class (instances created from Tracker)
+    Including Kalman-Filter based buffer-and-recover tracking
     """
 
     def __init__(self, prediction, trackIdCount,
@@ -26,12 +19,19 @@ class Track(object):
                  predicted_class=None,
                  bbox=[None, None, None, None],
                  known_id=-1):
-        """Initialize variables used by Track class
-        Args:
-            prediction: predicted centroids of object to be tracked
-            trackIdCount: identification of each track object
-        Return:
-            None
+        """
+        Initialise individual track
+        :param prediction: [x,y] coordinates of input (detection)
+        :param trackIdCount: current track number to assign unique names
+        :param dt: time interval between two consecutive updates
+        :param u_x: acceleration in x-direction
+        :param u_y: acceleration in y-direction
+        :param std_acc: process noise magnitude
+        :param x_std_meas: standard deviation of the measurement in x-direction
+        :param y_std_meas: standard deviation of the measurement in y-direction
+        :param prediction: initial location [x,y] of track
+        :param bbox: bounding box of detection
+        :param known_id: assigned ID, when initialising from a prior tracker state
         """
         if known_id != -1:
             self.track_id = known_id  # use previous ID, when initialising from prior tracked state
@@ -54,24 +54,28 @@ class Track(object):
 
 
 class Tracker(object):
-    """Tracker class that updates track vectors of tracked object
-    Attributes:
-        None
+    """
+    Multi object tracking class implementing the Hungarian Matching algorithm and adding customisable
+    Kalman-Filter based buffer-and-recover tracking
     """
 
     def __init__(self, dist_thresh, max_frames_to_skip, max_trace_length,
                  trackIdCount, use_kf=False, dt=0.033, u_x=0, u_y=0,
                  std_acc=5, y_std_meas=0.1, x_std_meas=0.1):
-        """Initialize variable used by Tracker class
-        Args:
-            dist_thresh: distance threshold. When exceeds the threshold,
-                         track will be deleted and new track is created
-            max_frames_to_skip: maximum allowed frames to be skipped for
-                                the track object undetected
-            max_trace_length: trace path history length
-            trackIdCount: identification of each track object
-        Return:
-            None
+        """
+        Initialise Tracker Class
+        :param dist_thresh: maximum squared distance between a track and a detection to be considered for matching
+        :param max_frames_to_skip: number of frames to buffer (attempt to reassign a track) before termination
+        :param max_trace_length: number of detections stored in track (relevant for display only, as valid tracks are
+                                 written to tracked clip as markers
+        :param trackIdCount: begin counting tracks from initial value (0 by default)
+        :param use_kf: boolean, use Kalman Filter tracking
+        :param dt: sampling time (time for 1 cycle)
+        :param u_x: acceleration in x-direction
+        :param u_y: acceleration in y-direction
+        :param std_acc: process noise magnitude
+        :param x_std_meas: standard deviation of the measurement in x-direction
+        :param y_std_meas: standard deviation of the measurement in y-direction
         """
         self.dist_thresh = dist_thresh
         self.max_frames_to_skip = max_frames_to_skip
@@ -87,6 +91,10 @@ class Tracker(object):
         self.x_std_meas = x_std_meas
 
     def initialise_from_prior_state(self, prior_state):
+        """
+        Initialise Tracker from prior tracked state
+        :param prior_state: [id,x,y] of prior track
+        """
         # create new track from the last increment of the prior state, keeping ID's intact
         track = Track([[prior_state[1]], [prior_state[2]]],
                       self.trackIdCount, known_id=prior_state[0],
@@ -98,32 +106,38 @@ class Tracker(object):
         self.tracks.append(track)
 
     def set_trackIdCount(self, latest_trackid):
+        """
+        Overwrite trackIDCount to start counting tracks from value other than 0
+        (Useful, when starting prior tracked state to not overwrite previous tracks that share the same name)
+        :param latest_trackid: integer, desired starting value for counting track IDs
+        """
         self.trackIdCount = int(latest_trackid) + 1
 
     def clear_tracks(self):
+        """
+        Clear all existing tracks, while leaving the Tracker settings intact
+        """
         self.tracks = []
 
     def Update(self, detections, predicted_classes=None, bounding_boxes=None):
-        """Update tracks vector using following steps:
-            - Create tracks if no tracks vector found
-            - Calculate cost using sum of square distance
-              between predicted vs detected centroids
-            - Using Hungarian Algorithm assign the correct
-              detected measurements to predicted tracks
-              https://en.wikipedia.org/wiki/Hungarian_algorithm
+        """
+        Update tracks vector using following steps:
+            - Create tracks from detections if no tracks exist
+            - Calculate assignment cost (squared distance between tracks vs detections)
+            - Using Hungarian Algorithm match detections and tracks based on their assignment cost
             - Identify tracks with no assignment, if any
-            - If tracks are not detected for a long time, remove them
-            - Now look for un_assigned detects
-            - Start new tracks
+                - When tracks are not reassigned to a detection for > max_frames_to_skip, remove them
+                - Start new tracks from unassigned detections
             - Update KalmanFilter state, lastResults and tracks trace
-        Args:
-            detections: detected centroids of object to be tracked
-        Return:
-            None
+        :param detections: list of darknet detection centres from current frame
+        :param predicted_classes: predicted classes from darknet detections
+                                  (in the same order as theirs respective detections)
+        :param bounding_boxes: predicted bounding from darknet detections
+                               (in the same order as theirs respective detections)
         """
 
         # Create tracks if no tracks vector was found
-        if (len(self.tracks) == 0):
+        if len(self.tracks) == 0:
             for i in range(len(detections)):
                 track = Track(detections[i], self.trackIdCount,
                               dt=self.dt, u_x=self.u_x, u_y=self.u_y, std_acc=self.std_acc,
@@ -263,7 +277,7 @@ class Tracker(object):
 
             else:
                 # No Kalman Filtering, just pure matching
-                # only update the the state of matched detections.
+                # only update the state of matched detections.
                 # unmatched tracks will retain the same state as at t-1
                 if assignment[i] != -1:
                     self.tracks[i].skipped_frames = 0
