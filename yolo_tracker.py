@@ -8,6 +8,7 @@ import cv2
 import time
 import argparse
 from operator import itemgetter
+from omni_trax_utils import scale_detections, convertBack, cvDrawBoxes
 
 # TODO
 # add option to switch networks through sub-processes after loading an initial model
@@ -17,88 +18,7 @@ from operator import itemgetter
 # https://blender.stackexchange.com/questions/6817/how-to-pass-command-line-arguments-to-a-blender-python-script
 # the below example can be added to __init__.py once the implementation is completed
 
-"""
-class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
-    #Run the detection based tracking pipeline according to the above defined parameters
-    bl_idname = "scene.detection_run"
-    bl_label = "Run Detection"
-
-    restart_tracking: BoolProperty(
-        name="Restart Tracking",
-        description="Re-initialises tracker with new settings. WARNING: Current identities will NOT be retained!",
-        default=False)
-
-    def execute(self, context):
-    
-        # get blender python path
-        py_exec = str(sys.executable)
-        # get omni_trax working directory to access scripts
-        script_file = os.path.realpath(__file__)
-        wd = os.path.dirname(script_file)
-        
-        yolo_tracker_path = os.path.join(wd, "yolo_tracker.py")
-        
-        full_yolo_command = [py_exec, yolo_tracker_path]
-        out = subprocess.run(full_yolo_command)
-
-print(out)
-
-return {"FINISHED"}
-"""
-
 np.random.seed(0)
-
-
-def scale_detections(x, y, network_w, network_h, output_w, output_h):
-    scaled_x = x * (output_w / network_w)
-    scaled_y = (network_h - y) * (output_h / network_h)  # y is inverted
-    return [scaled_x, scaled_y]
-
-
-def convertBack(x, y, w, h):
-    xmin = int(round(x - (w / 2)))
-    xmax = int(round(x + (w / 2)))
-    ymin = int(round(y - (h / 2)))
-    ymax = int(round(y + (h / 2)))
-    return xmin, ymin, xmax, ymax
-
-
-def cvDrawBoxes(detections, img, min_size=20, constant_size=False, class_colours=None):
-    for label, confidence, bbox in detections:
-
-        x, y, w, h = bbox[0], \
-                     bbox[1], \
-                     bbox[2], \
-                     bbox[3]
-
-        if w >= min_size and h >= min_size:
-
-            if constant_size:
-                w, h = constant_size, constant_size
-
-            xmin, ymin, xmax, ymax = convertBack(
-                float(x), float(y), float(w), float(h))
-            pt1 = (xmin, ymin)
-            pt2 = (xmax, ymax)
-            cl_colour = class_colours[label]
-            cv2.rectangle(img, pt1, pt2, (cl_colour[0], cl_colour[1], cl_colour[2]), 1)
-            cv2.putText(img, label + " [" + confidence + "]",
-                        (pt1[0], pt1[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.3,
-                        cl_colour, 1)
-    return img
-
-
-def nonMaximumSupression(detections):
-    """
-    :param detections: detections returned from darknet
-    :return: only detection of highest confidence. Return None, if no individual was detected
-    """
-    if len(detections) != 0:
-        det_sorted = sorted(detections, key=itemgetter(2))
-        max_conf_detection = det_sorted[0][0]
-    else:
-        max_conf_detection = 'No Detect'
-    return max_conf_detection
 
 
 class YoloTracker:
@@ -364,42 +284,9 @@ class YoloTracker:
                             cv2.line(image, (int(x1), int(y1)), (int(x2), int(y2)),
                                      self.track_colors[mname], 2)
 
-                        if x2 != 0 and y2 != 0 and x2 <= clip_width and y2 <= clip_height:
-                            # TODO
-                            # add filtered export options
-                            """
-                            if mname not in clip.tracking.objects[0].tracks:
-                                # add new tracks to the set of markers
-                                bpy.ops.clip.add_marker(location=(x2 / clip_width, 1 - y2 / clip_height))
-                                clip.tracking.tracks.active.name = mname
-                                # return {"FINISHED"}
-
-                            # write track to clip markers
-                            # update marker positions on the current frame
-                            # remember to invert the y axis, because things are never easy or correct by default
-                            # constrain x1 and
-                            clip.tracking.objects[0].tracks[mname].markers.insert_frame(hind_sight_frame,
-                                                                                        co=(x2 / clip_width,
-                                                                                            1 - y2 / clip_height))
-                            if context.scene.detection_enforce_constant_size:
-                                clip.tracking.objects[0].tracks[mname].markers.find_frame(
-                                    hind_sight_frame).pattern_corners = (
-                                    (ROI_size / clip_width, ROI_size / clip_height),
-                                    (ROI_size / clip_width, -ROI_size / clip_height),
-                                    (-ROI_size / clip_width, -ROI_size / clip_height),
-                                    (-ROI_size / clip_width, ROI_size / clip_height))
-                            else:
-                                clip.tracking.objects[0].tracks[mname].markers.find_frame(
-                                    hind_sight_frame).pattern_corners = (
-                                    ((tracker_KF.tracks[i].bbox_trace[-1][0] - x2) / clip_width,
-                                     (tracker_KF.tracks[i].bbox_trace[-1][3] - y2) / clip_height),
-                                    ((tracker_KF.tracks[i].bbox_trace[-1][1] - x2) / clip_width,
-                                     (tracker_KF.tracks[i].bbox_trace[-1][3] - y2) / clip_height),
-                                    ((tracker_KF.tracks[i].bbox_trace[-1][1] - x2) / clip_width,
-                                     (tracker_KF.tracks[i].bbox_trace[-1][2] - y2) / clip_height),
-                                    ((tracker_KF.tracks[i].bbox_trace[-1][0] - x2) / clip_width,
-                                     (tracker_KF.tracks[i].bbox_trace[-1][2] - y2) / clip_height))
-                            """
+                        # TODO
+                        # add filtered export options
+                        # if x2 != 0 and y2 != 0 and x2 <= clip_width and y2 <= clip_height: ...
 
                         cv2.putText(image,
                                     mname,
