@@ -16,7 +16,7 @@ Leveraging openly available or custom-trained YOLO and DeepLabCut networks, this
 
 _Pose estimation and skeleton overlay example_
 
-[![Final video of fixing issues in your code in VS Code](images/omnitrax_demo_screen.jpg)](https://youtu.be/YXxM4QRaCDU)
+[![OmniTrax : Multi-Animal Tracking Demo](images/omnitrax_demo_screen.jpg)](https://youtu.be/YXxM4QRaCDU)
 
 ## Updates:
 * 09/11/2022 - Added [**release** version 0.2.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.0) with improved DLC-live pose estimation for single and multi-animal applications.
