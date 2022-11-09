@@ -7,7 +7,7 @@ from bpy.props import EnumProperty as EnumProperty
 
 # check for installed packages and if they are missing, install them now
 # after the initial installation, dependency checks will be disabled
-# in setup_state.txt set setup_completed to False to trigger a system check / reinstall when enabling omni_trax
+# in setup_state.txt set setup_completed to "False" to trigger a system check / reinstall when enabling omni_trax
 from omni_trax import check_packages
 
 import numpy as np
@@ -17,11 +17,9 @@ import time
 import yaml
 import tensorflow as tf
 
-import subprocess
 from omni_trax.omni_trax_utils import scale_detections, convertBack, cvDrawBoxes, setInferenceDevive
 
 # kalman imports
-import copy
 from omni_trax.tracker import Tracker
 
 bl_info = {
