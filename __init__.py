@@ -37,6 +37,9 @@ bl_info = {
 
 
 class OMNITRAX_PT_ComputePanel(bpy.types.Panel):
+    """
+    Select (CUDA) computation device to run inference
+    """
     bl_label = "Computational Device"
     bl_space_type = "CLIP_EDITOR"
     bl_region_type = "TOOLS"
@@ -72,7 +75,11 @@ class OMNITRAX_PT_ComputePanel(bpy.types.Panel):
 
 
 class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
-    """Run the detection based tracking pipeline according to the above defined parameters"""
+    """
+    Run the (yolo) detection based buffer-and-recover tracking pipeline
+    RESTART Track: Begin tracking from defined Start-Frame, overwrite prior tracks if present
+    TRACK: Resume tracking from previous state
+    """
     bl_idname = "scene.detection_run"
     bl_label = "Run Detection"
 
@@ -477,7 +484,11 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
 
 class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
-    """Run Pose estimation on the tracked animals"""
+    """
+    Run Pose estimation on the tracked animals
+    ESTIMATE POSES: Run pose estimation on tracked ROIs (defaulting to full frame, when no tracks are present)
+    ESTIMATE POSES [full frame]: Run (single subject) pose estimation on full resolution original video footage
+    """
     bl_idname = "scene.pose_estimation_run"
     bl_label = "Run Pose Estimation (using tracks as inputs)"
 
@@ -867,7 +878,9 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
 
 
 class EXPORT_OT_Operator(bpy.types.Operator):
-    """Export the motion tracking data according to the settings."""
+    """
+    Export the motion tracking data according to the settings.
+    """
     bl_idname = "scene.export_marker"
     bl_label = "Export Tracking Markers"
 
@@ -1027,12 +1040,6 @@ class OMNITRAX_PT_DetectionPanel(bpy.types.Panel):
         name="Non-maximum suppression",
         description="Non-maximum suppression (NMS) refers to the maximum overlap allowed between proposed bounding boxes. E.g., a value of 0.45 corresponds to a maximum overlap of 45% between two compared bounding boxes to be retained simultaneously. In case the overlap is larger, the box with the lower objectness score or classification confidence will be 'suppressed', thus, only the highest confidence prediction is returned.",
         default=0.45)
-    """
-    bpy.types.Scene.detection_network_size = IntProperty(
-        name="Detection network size",
-        description="Height and Width of the loaded detection network (MUST be a multiple of 32). Larger network sizes allow for smaller invididuals to be detected at the cost of inference speed.",
-        default=640)
-    """
 
     def draw(self, context):
         layout = self.layout
@@ -1073,9 +1080,6 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
     bl_space_type = "CLIP_EDITOR"
     bl_region_type = "TOOLS"
     bl_category = "OmniTrax"
-
-    # keep parameters simple for now
-    # dist_thresh=100, max_frames_to_skip=10, max_trace_length=50, trackIdCount=0
 
     # Buffer and Recover settings
     bpy.types.Scene.tracking_dist_thresh = IntProperty(
@@ -1220,9 +1224,6 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         col.prop(context.scene, "pose_skeleton_bone_width")
         col.prop(context.scene, "pose_show_labels")
         col.separator()
-
-        # col.label(text="Analysis and plotting:")
-        # col.separator()
 
         col.label(text="Run Pose Estimation")
         col.prop(context.scene, "pose_save_video")
