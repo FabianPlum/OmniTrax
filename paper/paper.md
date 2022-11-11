@@ -30,7 +30,7 @@ but that does not have to be the case.
 
 `OmniTrax` is a deep learning-based buffer and recover tracking Add-on for the
 popular open-source software Blender [@Blender]. Combining recent advancements
-in deep-learning based detection [@Yolov3; @Yolov4] with computationally inexpensive
+in deep-learning based detection [@YOLOv3; @YOLOv4] with computationally inexpensive
 buffer and recover tracking approaches, `OmniTrax` provides an intuitive high-throughput 
 tracking solution for arbitrarily large groups of subjects. `OmniTrax` is being used
 in ongoing research projects to monitor the path choices of thousands of freely moving 
