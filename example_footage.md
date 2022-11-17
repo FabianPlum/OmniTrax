@@ -1,11 +1,11 @@
 # Example footage
 
 A list of videos to test your installation of OmniTrax
-Download the corresponding trained networks referenced in the [../README.md](README.md) file for the respective species.
+Download the corresponding trained networks referenced in the [README.md](README.md) file for the respective species.
 
 ## Multi-animal Tracking
 
-![](../images/preview_tracking.gif)
+# <img src=images/preview_tracking.gif height="350">
 
 
 ### Ants
@@ -22,11 +22,11 @@ Download the corresponding trained networks referenced in the [../README.md](REA
 
 ## Pose-Estimation
 
-![](../images/multi_ants_online_tracking_&_pose_estimation.gif)
+# <img src=images/multi_ants_online_tracking_&_pose_estimation.gif height="350">
 
 
-As all of this is designed to work with large numbers of individuals, you can of-course run pose-estimation on lower resolution footage of individuals. 
-Just ensure the resolution of the videos is sufficient. As a rule of thumb: *If you can't see their tarsi, the networks can't either.*
+As all of this is designed to work with large numbers of individuals, you can run pose-estimation on lower resolution footage of individuals as well. 
+Just ensure the resolution of the videos is sufficient to clearly make out relevant landmarks. As a rule of thumb: *If you can't see their tarsi, the networks can't either.*
 
 ### Ants
 * [1080p DSLR recording (**multi-animal pose-estimation**)](https://drive.google.com/file/d/1izoE7bLScQODYloV5B6bwzWtJ4jcqp1K/view?usp=sharing)
