@@ -1,4 +1,8 @@
-# Example footage
+<img src=../images/omnitrax_logo.svg#gh-dark-mode-only height="60">
+<img src=../images/omnitrax_logo_light.svg#gh-light-mode-only height="60">
+
+**OmniTrax - example footage**
+***
 
 A list of videos to test your installation of OmniTrax
 Download the corresponding trained networks referenced in the [README.md](README.md) file for the respective species.
