@@ -10,15 +10,26 @@ Download the corresponding trained networks referenced in the [README.md](README
 
 ### Ants
 
+#### Laboratory
+
 * [checkered background, uncluttered scene](https://drive.google.com/file/d/1I0vla-CyTYpNIKNRJIzegxJ44WGyQ291/view?usp=share_link)
 * [foraging trail, laboratory, evenly lit](https://drive.google.com/file/d/1f417gbG7nt3xMIfKZgmr-3gPEUm_DPoJ/view?usp=share_link)
 * [foraging trail, laboratory, under exposed](https://drive.google.com/file/d/1pa4hD-64JroByLavQZCvigMs7RGVxyvs/view?usp=share_link)
 * [foraging trail, laboratory, textured background](https://drive.google.com/file/d/1n-SRw7hswtMpaaXoGLuu_i1SFPgCBKoh/view?usp=share_link)
 * [foraging trail, laboratory, close up, out-of-focuse](https://drive.google.com/file/d/1esvN2C4Egto_kZFWg5qGsETVphaa3aSi/view?usp=share_link)
+* [large arena, laboratory, high density](https://drive.google.com/file/d/1rn4WUGyh8gotdC_UuVHIhqlqVn6sOhob/view?usp=share_link)
+
+#### Field
+
+* [foraging trail, field, close up, sparse, night 1](https://drive.google.com/file/d/10d2YuEpx62UOU8oQ1179XVxuKZOCbUZ5/view?usp=share_link)
+* [foraging trail, field, close up, sparse, night 2](https://drive.google.com/file/d/1X5fNkaEkALo1lgAu4HsKgzyZSAEapIq_/view?usp=share_link)
+
 
 ### Termites
 
-*coming soon*
+#### Field
+
+* [fdesert termites, field, DSLR, 4k, rock](https://drive.google.com/file/d/109u6MyJFlLaiHaf08OavPWS8I6KvmPee/view?usp=share_link)
 
 ## Pose-Estimation
 
