@@ -5,7 +5,7 @@ Download the corresponding trained networks referenced in the [README.md](README
 
 ## Multi-animal Tracking
 
-# <img src=images/preview_tracking.gif height="350">
+# <img src=../images/preview_tracking.gif width="700">
 
 
 ### Ants
@@ -33,7 +33,7 @@ Download the corresponding trained networks referenced in the [README.md](README
 
 ## Pose-Estimation
 
-# <img src=images/multi_ants_online_tracking_&_pose_estimation.gif height="350">
+# <img src=../images/multi_ants_online_tracking_&_pose_estimation.gif width="700">
 
 
 As all of this is designed to work with large numbers of individuals, you can run pose-estimation on lower resolution footage of individuals as well. 
