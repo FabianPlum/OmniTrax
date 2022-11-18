@@ -11,13 +11,13 @@ Deep learning-based multi animal tracking and pose estimation Blender Add-on.
 
 ![](images/preview_tracking.gif)
 
-_automated multi animal tracking example_
+_automated multi animal tracking example (trained on [synthetic data](https://github.com/FabianPlum/FARTS))_
 
 Leveraging openly available or custom-trained YOLO and DeepLabCut networks, this Blender Add-on enables straight forward user interaction to automatically evaluate or annotate large video files containing hundreds of animals, requiring minimal prior experience. Estimated tracks can be edited, iteratively refined, and exported. We additionally provide basic evaluation python scripts to visualise and plot trajectories.
 
 ![](images/single_ant_1080p_POSE_track_0.gif) ![](images/single_ant_1080p_POSE_track_0_skeleton.gif)
 
-_Pose estimation and skeleton overlay example_
+_Pose estimation and skeleton overlay example (trained on [synthetic data](https://github.com/FabianPlum/FARTS))_
 
 [![OmniTrax : Multi-Animal Tracking Demo](images/omnitrax_demo_screen.jpg)](https://youtu.be/YXxM4QRaCDU)
 
@@ -70,7 +70,9 @@ There may be a few **warnings** displayed throughout the installation process, h
 
 ### A quick test drive (Detection & Tracking)
 
-0. If you don't already have suitbale videos at hand, grab some from the list of [example footage](example_footage.md)
+_For a more detailed guide, refer top the **[Tracking](docs/tutorial-tracking.md)** and **[Pose-Estimation](docs/tutorial-pose-estimation.md)** documents._
+
+0. If you don't already have suitbale videos at hand, grab some from the list of [example footage](docs/example_footage.md)
 
 1. Let's create a new **Workspace** from the **VFX  >  Motion_Tracking** tab.
 
@@ -102,20 +104,11 @@ backup = backup/
  
 *NOTE: The ideal settings will always depend on your footage, especially on the relative animal size and movement speed. Remember, **GIGO** (Garbage In Garbage Out) so ensuring your recordings are evenly-lit, free from noise, flickering, and motion blur, will go a long way to improve inference quality.*
 
-## Download trained networks and config files here:
+## Trained networks and config files 
+We provide a number of trained YOLOv4 and DeepLabCut networks to get started with OmniTrax: [trained_networks](docs/trained_networks.md)
 
-**[YOLO](https://github.com/AlexeyAB/darknet) Networks**
-
-* [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)
-* [3 class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1wQcfLlDUvnWthyzbvyVy9oqyTZ2F-JFo?usp=sharing)
-* [single class termite detector (trained on synthetic data)](https://drive.google.com/drive/folders/1U9jzOpjCcu6wDfTEH3uQqGKPxW_QzHGz?usp=sharing)
-
-**[DLC](https://github.com/DeepLabCut/DeepLabCut) Networks**
-* [ResNet50 ant pose-estimator (trained on mixed synthetic/real data, 10:1 ratio)](https://drive.google.com/drive/folders/1or1TF3tvi1iIzldEAia3G2RNKY5J7Qz4?usp=sharing)
-* [ResNet101 ant pose-estimator (trained on mixed synthetic/real data, 10:1 ratio)](https://drive.google.com/drive/folders/1FY3lAkAisOG_RIUBuaynz1OjBkzjH5LL?usp=sharing)
-* [ResNet152 ant pose-estimator (trained on mixed synthetic/real data, 10:1 ratio)](https://drive.google.com/drive/folders/1or1TF3tvi1iIzldEAia3G2RNKY5J7Qz4?usp=sharing)
-* [ResNet101 (single) ant pose-estimator (trained on synthetic data)](https://drive.google.com/file/d/1IH9R9PgJMYteigsrMi-bZnz4IMcydtWU/view?usp=sharing)
-
+## Example Video Footage
+Additionally, you can download a few of our video examples to get started with OmniTrax: [example_footage](docs/example_footage.md)
 
 ***
 ## License
