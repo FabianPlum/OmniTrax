@@ -11,13 +11,13 @@ Deep learning-based multi animal tracking and pose estimation Blender Add-on.
 
 ![](images/preview_tracking.gif)
 
-_automated multi animal tracking example_
+_automated multi animal tracking example (trained on [synthetic data](https://github.com/FabianPlum/FARTS))_
 
 Leveraging openly available or custom-trained YOLO and DeepLabCut networks, this Blender Add-on enables straight forward user interaction to automatically evaluate or annotate large video files containing hundreds of animals, requiring minimal prior experience. Estimated tracks can be edited, iteratively refined, and exported. We additionally provide basic evaluation python scripts to visualise and plot trajectories.
 
 ![](images/single_ant_1080p_POSE_track_0.gif) ![](images/single_ant_1080p_POSE_track_0_skeleton.gif)
 
-_Pose estimation and skeleton overlay example_
+_Pose estimation and skeleton overlay example (trained on [synthetic data](https://github.com/FabianPlum/FARTS))_
 
 [![OmniTrax : Multi-Animal Tracking Demo](images/omnitrax_demo_screen.jpg)](https://youtu.be/YXxM4QRaCDU)
 
