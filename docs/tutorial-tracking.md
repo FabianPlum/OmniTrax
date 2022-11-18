@@ -8,11 +8,16 @@
 We recommend keeping the Blender **System Console** open while using **OmniTrax** to monitor the tracking progression and make spotting potential issues easier.
 Simply cick on **Window** > **Toggle System Console** to open it in a separate window (repeat the process to close in again)
 
-## 1. Open [Blender](https://www.blender.org/download/lts/3-3/)
+## 1. Open [Blender](https://www.blender.org/download/lts/3-3/) and start a new project
 Let's create a new **Workspace** from the **VFX  >  Motion_Tracking** tab.
 If you don't already have suitbale videos at hand, grab some from the list of [example footage](docs/example_footage.md)
 
 <img src=../images/use_01.jpg height="200">
+
+### System Console
+We recommend keeping the Blender **System Console** open while using **OmniTrax** to monitor the tracking progression and make spotting potential issues easier.
+Simply cick on **Window** > **Toggle System Console** to open it in a separate window (repeat the process to close in again)
+
 
 ## 2. Select your compute device
 If you have a **CUDA supported GPU** *(and the CUDA installation went as planned...)*, make sure your **GPU is selected** here, **before** running any of the inference functions, as the compute device cannot be changed at runtime.
