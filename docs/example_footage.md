@@ -29,7 +29,7 @@ Download the corresponding trained networks referenced in the [README.md](README
 
 #### Field
 
-* [fdesert termites, field, DSLR, 4k, rock](https://drive.google.com/file/d/109u6MyJFlLaiHaf08OavPWS8I6KvmPee/view?usp=share_link)
+* [desert termites, field, DSLR, 4k, rock](https://drive.google.com/file/d/109u6MyJFlLaiHaf08OavPWS8I6KvmPee/view?usp=share_link)
 
 ## Pose-Estimation
 
