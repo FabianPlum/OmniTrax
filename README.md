@@ -117,7 +117,7 @@ backup = backup/
 * [ResNet101 ant pose-estimator (trained on mixed synthetic/real data, 10:1 ratio)](https://drive.google.com/drive/folders/1FY3lAkAisOG_RIUBuaynz1OjBkzjH5LL?usp=sharing)
 * [ResNet152 ant pose-estimator (trained on mixed synthetic/real data, 10:1 ratio)](https://drive.google.com/drive/folders/1or1TF3tvi1iIzldEAia3G2RNKY5J7Qz4?usp=sharing)
 * [ResNet101 (single) ant pose-estimator (trained on synthetic data)](https://drive.google.com/file/d/1IH9R9PgJMYteigsrMi-bZnz4IMcydtWU/view?usp=sharing)
-
+* [ResNet101 (single) stick-insect pose-estimator [full-frame] (trained on synthetic data, refined with real samples)](https://drive.google.com/drive/folders/1-DHkegHiTkWbO7YboXxDC5tU4Aa71-9z?usp=share_link)
 
 ***
 ## License
