@@ -72,12 +72,12 @@ motion blur, will go a long way to improve inference quality.*
 ## 9. Visualising & Analysing Exported Tracks
 
 ![](../images/example_ant_tracked.gif)
-_tracking output of OmniTrax for the first 1000 frames of [example_ant_recording.mp4](..images/example_ant_recording.mp4)
-,
-using
-a [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)_
+
+_tracking output of OmniTrax for the first 1000 frames of [example_ant_recording.mp4](..images/example_ant_recording.mp4), using
+the [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)_
 
 ![](../example_scripts/_heatmap_of_ground_truth_tracks.svg)
+
 _generated heatmap from the [tracked outputs](../example_scripts/example_ant_recording)_
 
 ***
