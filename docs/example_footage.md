@@ -5,7 +5,7 @@
 ***
 
 A list of videos to test your installation of OmniTrax
-Download the corresponding trained networks referenced in the [README.md](README.md) file for the respective species.
+Download the corresponding trained networks referenced in the [README.md](../README.md) file for the respective species.
 
 ## Multi-animal Tracking
 
