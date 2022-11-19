@@ -1,8 +1,11 @@
 # python environment specific
 *.pyc
+/.idea
 /__pycache__/*
 /example_scripts/__pycache__/*
 /example_scripts/.ipynb_checkpoints/*
+/trained_models/*
+/trained_models
 
 # installation specific
 setup_state.txt
