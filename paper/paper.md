@@ -1,23 +1,21 @@
 ---
 title: 'OmniTrax: A deep learning-based multi-animal tracking add-on for Blender'
 tags:
-
-- Python
-- Blender
-- multi-object tracking
-- pose-estimation
-- deep learning
-  authors:
-- name: Fabian Plum
-  orcid: 0000-0003-1012-6646
-  affiliation: 1
+  - Python
+  - Blender
+  - multi-object tracking
+  - pose-estimation
+  - deep learning
+authors:
+  - name: Fabian Plum
+    orcid: 0000-0003-1012-6646
+    affiliation: 1
 
 affiliations:
-
-- name: Imperial College London, Department of Bioengineering, United Kingdom
-  index: 1
-  date: 19 November 2022
-  bibliography: paper.bib
+  - name: Imperial College London, Department of Bioengineering, United Kingdom
+    index: 1
+    date: 19 November 2022
+    bibliography: paper.bib
 
 ---
 
