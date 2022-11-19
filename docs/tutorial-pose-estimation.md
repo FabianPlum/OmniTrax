@@ -22,11 +22,9 @@ as well as [DeepLabCut](https://github.com/DeepLabCut/DeepLabCut) documentation.
 
 # Tutorial : Pose-Estimation
 
-This tutorial is divided into two separate sections : [Single-animal pose-estimation](#Single-animal pose-estimation)
-& [Multi-animal pose-estimation](#Multi-animal pose-estimation). **OmniTrax** is primarily tailored to performing
-analysis
-of large groups of animals in discontinuous settings, utilising a two-step approach of (**1**) tracking all individuals
-and
+This tutorial is divided into two separate sections : **Single-animal pose-estimation**
+& **Multi-animal pose-estimation**. **OmniTrax** is primarily tailored to performing analysis
+of large groups of animals in discontinuous settings, utilising a two-step approach of (**1**) tracking all individuals and
 (**2**) performing pose-estimation on each returned ROI (region of interest).
 
 To benefit from **OmniTrax** maximally, both, a [trained detector](https://github.com/AlexeyAB/darknet) and
@@ -68,8 +66,6 @@ and make spotting potential issues easier.
 
 Simply cick on **Window** > **Toggle System Console** to open it in a separate window (repeat the process to close in
 again)
-
-<a name="Single-animal pose-estimation"></a>
 
 ## Single-animal pose-estimation
 
@@ -116,8 +112,6 @@ dimensions of the loaded video.
 When you have completed configuring the pose-estimation process click on **ESTIMATE POSES [full frame]**.
 
 ![](../images/VID_20220201_160304_50%25_POSE_fullframe.gif)
-
-<a name="Multi-animal pose-estimation"></a>
 
 ## Multi-animal pose-estimation
 
