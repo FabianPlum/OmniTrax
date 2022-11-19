@@ -174,10 +174,10 @@ _For a more detailed explanation refer to [blenderMotionExport](https://github.c
 
 When the tracking process is completed you can export the resulting tracks as **.csv** files for further analysis and 
 visualisation. The original export script was written by [Amudtogal](https://github.com/Amudtogal) and its current version
-adapted for the [blenderMotionExport](https://github.com/FabianPlum/blenderMotionExport) add-on.
+adapted for the [blenderMotionExport](https://github.com/FabianPlum/blenderMotionExport) add-on, integrated in **OmniTrax**.
 
 * **Export Path** : Location on your drive where you want to write the exported tracks (.csv files).
-* **Export Subdirectories** If enabled, a separate folder will be created in the **Export Path** for every tracked video
+* **Export Subdirectories** : If enabled, a separate folder will be created in the **Export Path** for every tracked video
     in your project.
 * **Write Logfile** : Save the output log as a separate file in the **Export Path**
 * **Start / End Frame** : Define the range between you want to export tracks
