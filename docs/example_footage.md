@@ -9,7 +9,7 @@ Download the corresponding trained networks referenced in the [README.md](../REA
 
 ## Multi-animal Tracking
 
-# <img src=../images/preview_tracking.gif width="700">
+<img src=../images/preview_tracking.gif width="700">
 
 
 ### Ants
