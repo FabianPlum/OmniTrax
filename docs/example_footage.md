@@ -40,12 +40,12 @@ Download the corresponding trained networks referenced in the [README.md](../REA
 # <img src=../images/multi_ants_online_tracking_&_pose_estimation.gif width="700">
 
 
-As all of this is designed to work with large numbers of individuals, you can run pose-estimation on lower resolution footage of individuals as well. 
-Just ensure the resolution of the videos is sufficient to clearly make out relevant landmarks. As a rule of thumb: *If you can't see their tarsi, the networks can't either.*
+As **OmniTrax** is designed to work with large numbers of individuals, you can run pose-estimation on lower resolution ROIs of individuals as well. 
+Ensure the resolution of the videos is sufficient to clearly make out relevant landmarks. As a rule of thumb: *If you can't see their tarsi, the networks can't either.*
 
 ### Ants
 * [1080p DSLR recording (**multi-animal pose-estimation**)](https://drive.google.com/file/d/1izoE7bLScQODYloV5B6bwzWtJ4jcqp1K/view?usp=sharing)
 * [1080p DSLR recording (**single-animal pose-estimation**)](https://drive.google.com/file/d/1XzZmgkBUKeA3Q1YeYGMbwQoqsYtYgcjF/view?usp=sharing)
 
 ### Stick insects
-* [handheld stick insect recordings (**Fullframe**) ](https://drive.google.com/drive/folders/14wBXFhV1KI4nD_TZXTrZssXqdOsWuDwk?usp=sharing)
+* [handheld stick insect recordings (**Fullframe**)](https://drive.google.com/drive/folders/14wBXFhV1KI4nD_TZXTrZssXqdOsWuDwk?usp=sharing)
