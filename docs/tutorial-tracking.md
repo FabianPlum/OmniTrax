@@ -4,7 +4,7 @@
 **OmniTrax - Tutorial : Tracking**
 ***
 
-**OmniTrax** is a deep learning-based interactive multi-animal tracking tool. It combines Buffer-and-Recover tracking with 
+**OmniTrax** is a deep learning-based interactive multi-animal tracking and pose-estimation tool. It combines Buffer-and-Recover tracking with 
 **Blender**'s internal **Motion Tracking** pipeline to streamline the annotation and analysis process of large video files with 
 thousands of individuals. Integrating [DeepLabCut-Live](https://github.com/DeepLabCut/DeepLabCut-live) into this pipeline makes 
 it possible to additionally run marker-less pose-estimation on arbitrary numbers of animals, leveraging the existing 
@@ -135,13 +135,60 @@ motion blur, will go a long way to improve inference quality.*
 
 ## 7. Manual Tracking _(OPTIONAL)_
 
-TODO
+In some cases you may want to make changes to the automatically generated tracks, refine or remove them, add additional
+tracks, or combine fragmented tracklets. To this end we leverage the **Blender**-internal **Motion Tracking** pipeline 
+and expose some of its key functions here.
+
+* **Marker Add / Delete** : Add additional tracks, or delete existing ones. Added tracks are automatically considered
+    when continuing the automated tracking process from the current frame. (Click on **TRACK** to continue tracking)
+* **Track << < / > >>** : Track selected markers, using the **Blender**-internal contrast-based tracker to advance the process
+    by either individual frames (**<<** / **>>**), or continuously (**< / >**), until interrupted by the user.
+* **Clear <- / ->** : Clear (selected) tracks before (**<-**) or after (**->**) the current time step.
+* **Refine <- / ->** : Use the **Blender**-internal tracker to refine the selected marker positions by running the tracker from
+    the track's reference frame to the current frame.
+* **Merge - Join Tracks** : Join two separate tracks at the current frame. This function can be used to combine fragmented 
+    tracklets into coherent tracks.
+
+### Important **shortcuts**:
+
+_The following shortcuts are applicable in any **Blender Panel**_
+
+Any performed action is confirmed by clicking the **LEFT Mouse Button**.
+* **G** : Move – move a selected object/marker _(e.g. move tracking marker)_
+* **S** : Scale – scale a selected object/marker up or down. _(e.g. change tracking marker size)_
+* **R** : Rotate – rotate a selected object/marker.
+
+You can also add constraints to the above commands to specify their effect. 
+
+*After* pressing any of the keys above you can additionally use:
+
+* **X** / **Y** / **Z** : (press once) Restrict the axis in which you are performing the action.
+* **CTRL** : (hold) change in discrete increments
+* **SHIFT** : (hold) change in finer increments
+* **CTRL** + **Z** : undo your last steps. By default, you can go back **32 steps**, 
+but you can increase that number under **Edit/Preferences…/System** menu, if needed.
+
+_For a more detailed explanation refer to [blenderMotionExport](https://github.com/FabianPlum/blenderMotionExport)._
 
 ## 8. Exporting Tracks
 
-TODO
+When the tracking process is completed you can export the resulting tracks as **.csv** files for further analysis and 
+visualisation. The original export script was written by [Amudtogal](https://github.com/Amudtogal) and its current version
+adapted for the [blenderMotionExport](https://github.com/FabianPlum/blenderMotionExport) add-on.
+
+* **Export Path** : Location on your drive where you want to write the exported tracks (.csv files).
+* **Export Subdirectories** If enabled, a separate folder will be created in the **Export Path** for every tracked video
+    in your project.
+* **Write Logfile** : Save the output log as a separate file in the **Export Path**
+* **Start / End Frame** : Define the range between you want to export tracks
+* **Export Selected / All** : Export either only the selected tracks, or all tracks for all tracked videos.
 
 ## 9. Visualising & Analysing Exported Tracks
+
+We provide a [jupyter notebook](../example_scripts/Tracking_Dataset_Processing.ipynb) to demonstrate how the created 
+tracks can be processed, analysed, and visualised. The interactive notebook is designed to compare the annotated tracks
+of multiple humans to form ground truth tracks for machine learning applications or evaluate the outputs of automated
+annotation approaches.
 
 ![](../images/example_ant_tracked.gif)
 
@@ -150,7 +197,8 @@ the [single class ant detector (trained on synthetic data)](https://drive.google
 
 ![](../example_scripts/_heatmap_of_ground_truth_tracks.svg)
 
-_generated heatmap from the [tracked outputs](../example_scripts/example_ant_recording)_
+_generated heatmap from the [tracked outputs](../example_scripts/example_ant_recording)_ of 
+ [example_ant_recording.mp4](..images/example_ant_recording.mp4)
 
 ***
 
