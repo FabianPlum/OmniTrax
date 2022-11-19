@@ -87,7 +87,7 @@ again)
 
 To run pose-estimation inference of individual animals across the **full frame**, you only need to specify the path to 
 your exported trained model, as you will not need to supply sub-ROIs. You can therefore disregard the options for 
-**constant (input) detection sizes** as well as the **Pose (input) frame size (px) which will default to the original
+**constant (input) detection sizes** as well as the **Pose (input) frame size (px)** which will default to the original
 dimensions of the loaded video.
 
 * **DLC network path** : Path to your trained and exported DLC network where your pose_cfg.yaml and snapshot files are stored.
