@@ -1,9 +1,1 @@
-scipy=True
-pandas=True
-PyYAML=True
-matplotlib=True
-opencv-python=True
-scikit-learn=True
-deeplabcut-live=True
-overwritten_orig_dlclive=True
-setup_complete=True
+setup_complete=False
