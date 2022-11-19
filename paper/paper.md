@@ -14,8 +14,8 @@ authors:
 affiliations:
   - name: Imperial College London, Department of Bioengineering, United Kingdom
     index: 1
-    date: 19 November 2022
-    bibliography: paper.bib
+date: 19 November 2022
+bibliography: paper.bib
 
 ---
 
