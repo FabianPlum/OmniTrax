@@ -28,7 +28,7 @@ and one of our [custom trained YOLOv4 networks](https://drive.google.com/drive/f
 
 Remember to occasionally save your project as you go along.
 
-<img src=../images/use_01.jpg height="200">
+<img src=../images/use_01.jpg width="500">
 
 ### NOTE: System Console
 
@@ -43,7 +43,7 @@ If you have a **CUDA supported GPU** *(and the [CUDA installation](CUDA_installa
 make sure your **GPU is selected** here, **before** running any of the inference functions, as the computational device 
 cannot be changed at runtime.
 
-<img src=../images/use_02.jpg height="200">
+<img src=../images/use_02.jpg width="350">
 
 ## 3. Load trained [YOLO](https://github.com/AlexeyAB/darknet) network
 
@@ -51,7 +51,7 @@ In this example, we are going to use one of [our YOLO networks](example_footage.
 image samples](https://github.com/FabianPlum/FARTS). Next, load a video you wish to analyse from your drive by clicking on **Open**.
 We are going to use the file [_example_ant_recording.mp4_](../images/example_ant_recording.mp4).
 
-<img src=../images/use_03.jpg height="200">
+<img src=../images/use_03.jpg width="750">
 
 **ATTENTION:** Double check the *"names="* filepath in the **obj.data** file points to the **absolute** location of
 the **obj.names** file. Otherwise, **Blender** may crash when running tracking without telling you why.
