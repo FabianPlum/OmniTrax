@@ -72,7 +72,7 @@ There may be a few **warnings** displayed throughout the installation process, h
 
 ### A quick test drive (Detection & Tracking)
 
-_For a more detailed guide, refer top the **[Tracking](docs/tutorial-tracking.md)** and **[Pose-Estimation](docs/tutorial-pose-estimation.md)** documents._
+_For a more detailed guide, refer to the **[Tracking](docs/tutorial-tracking.md)** and **[Pose-Estimation](docs/tutorial-pose-estimation.md)** documents._
 
 0. If you don't already have suitbale videos at hand, grab some from the list of [example footage](docs/example_footage.md)
 
@@ -105,6 +105,11 @@ backup = backup/
 ![](images/use_04.gif)
  
 *NOTE: The ideal settings will always depend on your footage, especially on the relative animal size and movement speed. Remember, **GIGO** (Garbage In Garbage Out) so ensuring your recordings are evenly-lit, free from noise, flickering, and motion blur, will go a long way to improve inference quality.*
+
+## User guides
+* [CUDA installation instructions](docs/CUDA_installation_guide.md)
+* Tutorial : [Multi-Animal Tracking](docs/tutorial-tracking.md)
+* Tutorial : [Single- & Multi-Animal Pose-Estimation](docs/tutorial-pose-estimation.md)
 
 ## Trained networks and config files 
 We provide a number of trained YOLOv4 and DeepLabCut networks to get started with OmniTrax: [trained_networks](docs/trained_networks.md)
