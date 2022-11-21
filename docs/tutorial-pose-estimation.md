@@ -167,6 +167,17 @@ inference on each extracted ROI defined in the **tracking** step.
 ![](../images/multi_ants_online_tracking_&_pose_estimation.gif)
 
 ***
+## Other examples
+
+Of course, as long as you have a suitable trained model, use one from our list of [trained networks](trained_networks.md),
+or the [emerging model zoos](https://www.mackenziemathislab.org/dlc-modelzoo), you can run 
+pose-estimation on just about any footage.
+
+![](../images/Human_Tracking.gif)
+![](../images/Human_POSE_fullframe.gif)
+
+_[Full frame] pose-estimation, using the converted **full_human** model which you can download from our list of
+[trained networks](trained_networks.md)._
 
 ## License
 
