@@ -19,8 +19,14 @@ class YOLOader(object):
         """
         self.cfg = cfg
         self.weights = weights
-        self.data = data
-        self.names = names
+        if data == "":
+            self.data = None
+        else:
+            self.data = data
+        if names == "":
+            self.names = None
+        else:
+            self.names = names
 
     def create_names(self):
         """
@@ -33,9 +39,9 @@ class YOLOader(object):
                 if line[:7] == "classes":
                     num_classes = int(line.split("=")[1].split("\n")[0])
 
-        self.names = Path(self.cfg).parent.joinpath(str(Path(self.cfg).name)[:-4] + ".names")
+        self.names = str(Path(self.cfg).parent.joinpath(str(Path(self.cfg).name)[:-4] + ".names"))
 
-        with open(self.names, 'w') as f:
+        with open(self.names, 'w', encoding="utf-8") as f:
             for class_name in range(num_classes):
                 f.write(str(class_name) + "\n")
 
@@ -52,9 +58,9 @@ class YOLOader(object):
                 if line[:7] == "classes":
                     num_classes = int(line.split("=")[1].split("\n")[0])
 
-        self.data = Path(self.cfg).parent.joinpath(str(Path(self.cfg).name)[:-4] + ".data")
+        self.data = str(Path(self.cfg).parent.joinpath(str(Path(self.cfg).name)[:-4] + ".data"))
 
-        with open(self.data, 'w') as f:
+        with open(self.data, 'w', encoding="utf-8") as f:
             f.write("classes = " + str(num_classes) + "\n")
             f.write("train = data/train.txt\n")
             f.write("test = data/test.txt\n")
@@ -63,7 +69,7 @@ class YOLOader(object):
 
         print("Created new .data file for the loaded network.")
 
-    def update_cfg(self, nw_width, nw_height):
+    def update_cfg(self, nw_width, nw_height, encoding="utf-8"):
         """
         Updates the cfg file and creates a copy of it in the same directory as the original. The function updates the
         network width and height according to the passed arguments (must be multiples of 32) and ensures the number of
@@ -76,26 +82,35 @@ class YOLOader(object):
         nw_width_rounded = int(max(32 * round(nw_width / 32), 32))
         nw_height_rounded = int(max(32 * round(nw_height / 32), 32))
 
+        correct_w, correct_h = False, False
         with open(self.cfg) as f:
             lines = f.readlines()
-
-        self.cfg = Path(self.cfg).parent.joinpath(str(Path(self.cfg).name)[:-4] + "_width_" + str(nw_width_rounded)
-                                                  + "_height_" + str(nw_height_rounded) + ".cfg")
-
-        with open(self.cfg, 'w') as f:
             for line in lines:
-                if line.split("=")[0] == "batch":
-                    f.write("batch=1\n")
-                elif line.split("=")[0] == "subdivisions":
-                    f.write("subdivisions=1\n")
-                elif line.split("=")[0] == "width":
-                    f.write("width=" + str(nw_width_rounded) + "\n")
-                elif line.split("=")[0] == "height":
-                    f.write("height=" + str(nw_height_rounded) + "\n")
-                else:
-                    f.write(line)
+                if line.split("=")[0] == "width":
+                    if int(line.split("=")[1].split("\n")[0]) == nw_width_rounded:
+                        correct_w = True
+                if line.split("=")[0] == "height":
+                    if int(line.split("=")[1].split("\n")[0]) == nw_height_rounded:
+                        correct_h = True
 
-        print("Updated .cfg file with network width", nw_width_rounded, "and height", nw_height_rounded)
+        if not correct_w and not correct_h:
+            self.cfg = str(Path(self.cfg).parent.joinpath(str(Path(self.cfg).name)[:-4] +
+                                                          "_width_" + str(nw_width_rounded) +
+                                                          "_height_" + str(nw_height_rounded) + ".cfg"))
+            with open(self.cfg, 'w', encoding="utf-8") as f:
+                for line in lines:
+                    if line.split("=")[0] == "batch":
+                        f.write("batch=1\n")
+                    elif line.split("=")[0] == "subdivisions":
+                        f.write("subdivisions=1\n")
+                    elif line.split("=")[0] == "width":
+                        f.write("width=" + str(nw_width_rounded) + "\n")
+                    elif line.split("=")[0] == "height":
+                        f.write("height=" + str(nw_height_rounded) + "\n")
+                    else:
+                        f.write(line)
+
+            print("Updated .cfg file with network width", nw_width_rounded, "and height", nw_height_rounded)
 
 
 if __name__ == "__main__":

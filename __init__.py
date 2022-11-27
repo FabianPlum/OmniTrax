@@ -22,6 +22,9 @@ from omni_trax.omni_trax_utils import scale_detections, convertBack, cvDrawBoxes
 # kalman imports
 from omni_trax.tracker import Tracker
 
+# YOLO handler
+from omni_trax.YOLOader import YOLOader
+
 bl_info = {
     "name": "omni_trax",
     "author": "Fabian Plum",
@@ -209,10 +212,28 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         yolo_data = bpy.path.abspath(context.scene.detection_data_path)
         yolo_names = bpy.path.abspath(context.scene.detection_names_path)
 
+        yolo_paths = YOLOader(cfg=yolo_cfg,
+                              weights=yolo_weights,
+                              data=yolo_data,
+                              names=yolo_names)
+
+        yolo_paths.update_cfg(nw_width=bpy.context.scene.detection_network_width,
+                              nw_height=bpy.context.scene.detection_network_height)
+
+        if yolo_paths.names is None:
+            yolo_paths.create_names()
+
+        if yolo_paths.data is None:
+            yolo_paths.create_data()
+
+        context.scene.detection_config_path = yolo_paths.cfg
+        context.scene.detection_data_path = yolo_paths.data
+        context.scene.detection_names_path = yolo_paths.names
+
         # read obj.names file to create custom colours for each class
 
         class_names = []
-        with open(yolo_names, "r") as yn:
+        with open(yolo_paths.names, "r") as yn:
             for line in yn:
                 class_names.append(line.strip())
 
@@ -227,24 +248,23 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                                      0]
                 class_id[cn] = c
 
-        configPath = yolo_cfg
-        weightPath = yolo_weights
-        metaPath = yolo_data
-
-        if not os.path.exists(configPath):
+        if not os.path.exists(yolo_paths.cfg):
             raise ValueError("Invalid config path `" +
-                             os.path.abspath(configPath) + "`")
-        if not os.path.exists(weightPath):
+                             os.path.abspath(yolo_paths.cfg) + "`")
+        if not os.path.exists(yolo_paths.weights):
             raise ValueError("Invalid weight path `" +
-                             os.path.abspath(weightPath) + "`")
-        if not os.path.exists(metaPath):
+                             os.path.abspath(yolo_paths.weights) + "`")
+        if not os.path.exists(yolo_paths.data):
             raise ValueError("Invalid data file path `" +
-                             os.path.abspath(metaPath) + "`")
+                             os.path.abspath(yolo_paths.data) + "`")
         if network is None:
-            network, class_names, _ = darknet.load_network(configPath, metaPath, weightPath, batch_size=1)
+            network, class_names, _ = darknet.load_network(yolo_paths.cfg,
+                                                           yolo_paths.data,
+                                                           yolo_paths.weights,
+                                                           batch_size=1)
         if altNames is None:
             try:
-                with open(metaPath) as metaFH:
+                with open(yolo_paths.data) as metaFH:
                     metaContents = metaFH.read()
                     import re
                     match = re.search("names *= *(.*)$", metaContents,
