@@ -27,7 +27,7 @@ bl_info = {
     "author": "Fabian Plum",
     "description": "Deep learning-based multi animal tracker",
     "blender": (3, 3, 0),
-    "version": (0, 2, 0),
+    "version": (0, 2, 1),
     "location": "",
     "warning": "RUN IN ADMINISTRATOR MODE DURING INSTALLATION!",
     "category": "motion capture"
@@ -1030,6 +1030,20 @@ class OMNITRAX_PT_DetectionPanel(bpy.types.Panel):
         name="minimum detection sizes (px)",
         description="If the width or height of a detection is below this threshold, it will be discarded. This can be useful to decrease noise. Keep the value at 0 if this is not needed.",
         default=15)
+    bpy.types.Scene.detection_network_width = FloatProperty(
+        name="Network width",
+        description="YOLO network input width. Larger network inputs allow for smaller detected subjects but will increase inference time and memory usage. [MUST BE MULTIPLE OF 32]",
+        default=480,
+        step=3200,  # step size given in 1/100
+        min=32,
+        precision=0)  # set to 0 emulate integer property (which currently does not support steps)
+    bpy.types.Scene.detection_network_height = FloatProperty(
+        name="Network height",
+        description="YOLO network input height. Larger network inputs allow for smaller detected subjects but will increase inference time and memory usage. [MUST BE MULTIPLE OF 32]",
+        default=480,
+        step=3200,  # step size given in 1/100
+        min=32,
+        precision=0)  # set to 0 emulate integer property (which currently does not support steps)
     bpy.types.Scene.detection_activation_threshold = FloatProperty(
         name="Confidence threshold",
         description="Detection confidence threshold. A higher confidence leads to fewer false positives but more missed detections.",
@@ -1059,7 +1073,8 @@ class OMNITRAX_PT_DetectionPanel(bpy.types.Panel):
         col.label(text="Network settings")
         col.prop(context.scene, "detection_activation_threshold")
         col.prop(context.scene, "detection_nms")
-        # col.prop(context.scene, "detection_network_size")
+        col.prop(context.scene, "detection_network_width")
+        col.prop(context.scene, "detection_network_height")
         col.separator()
 
         col.label(text="Processing settings")
