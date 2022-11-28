@@ -553,6 +553,8 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
 
             except:
                 print("Failed to load trained network... Check your model path!")
+                # remove dlc processor to attempt to re-initialise the network after user applies corrections
+                del dlc_proc
                 return {"FINISHED"}
         else:
             print("Initialised DLC Network found!")
