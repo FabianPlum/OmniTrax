@@ -24,6 +24,7 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 [![OmniTrax : Multi-Animal Tracking Demo](images/omnitrax_demo_screen.jpg)](https://youtu.be/YXxM4QRaCDU)
 
 ## Updates:
+* 28/11/2022 - Added [**release** version 0.2.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.1) with updated YOLO and DLC-live model handling to accomodate for different file structures.
 * 09/11/2022 - Added [**release** version 0.2.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.0) with improved DLC-live pose estimation for single and multi-animal applications.
 * 02/11/2022 - Added [**release** version 0.1.3](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.1.3) which includes improved tracking from previous states, faster and more robust track transfer, building skeletons from DLC config files, improved package installation and start-up checks, a few bug fixes, and GPU compatibility with the latest release of [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/)!   For CPU-only inference, continue to use **Blender 2.9.2**.
 * 06/10/2022 - Added [**release** version 0.1.2](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.1.2) with GPU support for latest [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/)! For CPU-only inference, continue to use **Blender 2.9.2**.
