@@ -4,11 +4,12 @@
 **OmniTrax - Tutorial : Tracking**
 ***
 
-**OmniTrax** is a deep learning-based interactive multi-animal tracking and pose-estimation tool. It combines Buffer-and-Recover tracking with 
-**Blender**'s internal **Motion Tracking** pipeline to streamline the annotation and analysis process of large video files with 
-thousands of individuals. Integrating [DeepLabCut-Live](https://github.com/DeepLabCut/DeepLabCut-live) into this pipeline makes 
+**OmniTrax** is a deep learning-driven multi-animal tracking and pose-estimation tool. 
+It combines detection-based buffer-and-recover tracking with **Blender**'s internal **Motion Tracking** pipeline to 
+streamline the annotation and analysis process of large video files with hundreds of individuals. 
+Integrating [DeepLabCut-Live](https://github.com/DeepLabCut/DeepLabCut-live) into this pipeline makes 
 it possible to additionally run marker-less pose-estimation on arbitrary numbers of animals, leveraging the existing 
-[DLC-Model-Zoo](https://www.mackenziemathislab.org/dlc-modelzoo), as well as our own custom [trained networks](trained_networks.md). 
+[DLC-Model-Zoo](https://www.mackenziemathislab.org/dlc-modelzoo), as well as custom [trained networks](trained_networks.md). 
 
 Alongside **OmniTrax** we offer a selection of [example video](example_footage.md) footage and [trained networks](trained_networks.md). 
 To curate your own datasets, as well as train further custom networks, refer to the official [YOLO](https://github.com/AlexeyAB/darknet) 
@@ -16,7 +17,7 @@ as well as [DeepLabCut](https://github.com/DeepLabCut/DeepLabCut) documentation.
 
 # Tutorial : Tracking
 
-_This tutorial assumes that you have successfully [installed **OmniTrax**](../README.md) and have enabled the **OmniTrax Add-on**_
+_This tutorial assumes that you have successfully [installed **OmniTrax**](../README.md) and have enabled the **OmniTrax Add-on**_.
 
 ## 1. Open [Blender](https://www.blender.org/download/lts/3-3/) and start a new project
 
@@ -82,9 +83,13 @@ of your chosen video footage.
       E.g., a value of 0.45 corresponds to a maximum overlap of 45% between two compared bounding boxes to be retained simultaneously. 
       In case the overlap is larger, the box with the lower objectness score (or classification confidence) will be _suppressed_, thus, 
       only the highest confidence prediction is returned for the given area.
+  * **Network width / height** : YOLO network input width. Larger network inputs allow for smaller detected subjects but
+      will increase inference time and memory usage. This value must be a **multiple of 32**.
 * **Processing settings** :
   * **Constant detection sizes** : If enabled, enforces constant detection sizes. 
-      This **does not** affect the actual inference, only the resulting bounding boxes.
+      This **does not** affect the actual inference, only the resulting bounding boxes. Ensure these fixed-size bounding 
+      boxes include the entire animal(s), in case you are planning on using them as ROIs for 
+      multi-animal [pose-estimation](tutorial-pose-estimation.md).
   * **Constant detection sizes (px)** : Constant detection size in pixels. 
       All resulting bounding boxes will be rescaled to this value in both width and height.
   * **minimum detection sizes (px)** : If the width or height of a detection is below this threshold, it will be discarded. 
@@ -96,7 +101,7 @@ of your chosen video footage.
 We employ a detection-based buffer-and-recover Tracker, using a [Kalman-Filter](https://en.wikipedia.org/wiki/Kalman_filter) to 
 extrapolate and refine the motion of tracks and the [Hungarian Algorithm](https://en.wikipedia.org/wiki/Hungarian_algorithm) to match 
 existing tracks with new detections for each frame. The resulting tracker implementation automatically starts as well as terminates 
-arbitrary numbers of tracks and updates their state for every processed frame.
+virtually arbitrary numbers of tracks and updates their state for every processed frame.
 
 * **Buffer and Recover settings** :
   * **Distance threshold** : Maximum squared pixel distance between a track and a detection to be considered for matching. 
@@ -106,7 +111,7 @@ arbitrary numbers of tracks and updates their state for every processed frame.
   * **Minimum track length** : Minimum number of tracked frames. If a track has fewer detections/frames associated with it, 
       no marker will be created for it, and no track marker will be returned.
 * **Track Display settings** :
-  * **Maximum trace lenght** : Maximum distance number of frames included in displayed track trace. This will only affect the
+  * **Maximum trace length** : Maximum number of frames included in displayed track trace. This will only affect the
       displayed preview, not the returned track markers.
   * **Initial tracks** : Begin counting tracks from this value. This property is useful when matching specific naming conventions
       or when continuing tracking from a later point in the video to avoid ambiguity. (Keep at 0 by default)

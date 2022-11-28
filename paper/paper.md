@@ -28,8 +28,8 @@ recent advancements in deep-learning based detection [@YOLOv3; @YOLOv4] and comp
 tracking approaches. Combining automated tracking with the Blender-internal motion tracking pipeline allows to streamline 
 the annotation and analysis process of large video files with hundreds of freely moving individuals. Additionally, 
 `OmniTrax` integrates DeepLabCut-Live [@Kane2020dlclive] to enable running marker-less pose-estimation on arbitrary 
-numbers of animals, leveraging the existing DeepLabCut Model Zoo [@Mathisetal2018] as well as custom-trained 
-detector and pose-estimator networks to facilitate large-scale behavioural studies of social animals. 
+numbers of animals. We leverage the existing DeepLabCut Model Zoo [@Mathisetal2018] as well as custom-trained 
+detector and pose-estimator networks to facilitate large-scale behavioural studies of social animals.
 
 ![OmniTrax user-interface.\label{fig:demo}](../images/omnitrax_demo_screen.jpg)
 
@@ -43,11 +43,11 @@ subtraction and blob-detector based approaches, common in multi-animal tracking,
 allows for buffer-and-recover tracking in changing environments. A key advantage of integrating such a
 pipeline into Blender is the seamless transition between automated tracking and iterative user-refinement. Additionally, 
 Blender offers a number of video editing and compositing functions which make it possible to perform any required 
-pre-processing, such as cropping, masking, or exposure adjustments, prior to running inference on the video footage within 
+pre-processing. This includes cropping, masking, or exposure adjustment, prior to running inference on video footage within 
 the same environment, without relying on external software packages.
 
 `OmniTrax` offers marker-less pose-estimation through DeepLabCut-Live [@Kane2020dlclive] which enables 
-extracting kinematic parameters from arbitrarily large groups of individuals. We are using `OmniTrax` in ongoing research 
+extracting kinematic parameters from virtually arbitrarily large groups of individuals. We are using `OmniTrax` in ongoing research 
 monitoring foraging activities of various species of leafcutter ants, tracking the movements of thousands of 
 individuals to extract path choice and changes to gait patterns.
 

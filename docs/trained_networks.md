@@ -14,7 +14,8 @@
 * [80 Class model trained on COCO](https://drive.google.com/drive/folders/1eXAowtyBsqGEjvmQE1YlSeHJ6AGBwpUs?usp=share_link)
 
 You can also use any pre-trained network from the official [YOLO-model Zoo](https://github.com/AlexeyAB/darknet/wiki/YOLOv4-model-zoo).
-Just make sure to include the respective **.obj** as well as **.names** and update the respective folder paths.
+Include the respective **.obj** as well as **.names** files and update the respective folder paths to correctly display 
+class names.
 
 **[DLC](https://github.com/DeepLabCut/DeepLabCut) Networks**
 * [ResNet50 ant pose-estimator (trained on mixed synthetic/real data, 10:1 ratio)](https://drive.google.com/drive/folders/1or1TF3tvi1iIzldEAia3G2RNKY5J7Qz4?usp=sharing)

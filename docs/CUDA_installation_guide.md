@@ -53,7 +53,7 @@ Unless you really know what you are doing, choosing the express installation opt
 
 <img src=CUDA_installation_images/CUDA_08.PNG width="500">
 
-If you installation does not work as expected, you may need to install Visual Studio for your system. However, in most
+If your installation does not work as expected, you may need to install Visual Studio for your system. However, in most
 cases this is not strictly necessary.
 
 <img src=CUDA_installation_images/CUDA_09.PNG width="500">
@@ -74,7 +74,7 @@ Unpack the **cuDNN**_###.zip and check its contents:
 
 <img src=CUDA_installation_images/CUDA_12.PNG width="600">
 
-Simply drag these contents into your **CUDA/v11.2** directory, which by default is located in 
+Simply drag these contents into your **CUDA/v11.2** directory, which, by default, is located in 
 *C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.2*
 
 <img src=CUDA_installation_images/CUDA_13.PNG width="700">
@@ -83,6 +83,6 @@ Simply drag these contents into your **CUDA/v11.2** directory, which by default 
 
 ### Check your installation
 Restart your system before continuing the **OmniTrax** installation. If all has gone according to plan, you should now
-be able to select your **GPU**(s) as compute devices within **OmniTrax**.
+be able to select your **GPU**(s) as (a) compute device(s) within **OmniTrax**.
 
 <img src=CUDA_installation_images/CUDA_14.PNG width="400">
