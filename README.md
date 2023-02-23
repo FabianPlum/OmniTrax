@@ -75,7 +75,7 @@ There may be a few **warnings** displayed throughout the installation process, h
 
 _For a more detailed guide, refer to the **[Tracking](docs/tutorial-tracking.md)** and **[Pose-Estimation](docs/tutorial-pose-estimation.md)** documents._
 
-0. If you don't already have suitbale videos at hand, grab some from the list of [example footage](docs/example_footage.md)
+0. If you don't already have suitable videos at hand, grab some from the list of [example footage](docs/example_footage.md)
 
 1. Let's create a new **Workspace** from the **VFX  >  Motion_Tracking** tab.
 
