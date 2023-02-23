@@ -52,7 +52,7 @@ monitoring foraging activities of various species of leafcutter ants, tracking t
 individuals to extract path choice and changes to gait patterns.
 
 Through a library of neural networks trained on hand-annotated as well as synthetically generated samples of a number of 
-digitised study organisms [@Plum2021,[@Plum2023]], we provide range of out-of-the-box inference solutions and encourage the community 
+digitised study organisms [@Plum2021, @Plumetal2023], we provide range of out-of-the-box inference solutions and encourage the community 
 to contribute to this emerging collection. Pre-trained detection and pose-estimation networks can be used within `OmniTrax` 
 to accelerate the annotation and analysis process of large video data sets. The ease of use and focus on extendability 
 of `OmniTrax` will aid researchers in performing complex behavioural studies of social animals under laboratory as well 
