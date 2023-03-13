@@ -9,6 +9,7 @@
 **[YOLO](https://github.com/AlexeyAB/darknet) Networks**
 
 * [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)
+* [single class ant detector (trained on mixed synthetic and real video data from a top-down laboratory recording of leafcutter ants)](https://drive.google.com/drive/folders/11QXseJwISdodSnXJV6fwM97XfT2aXx2y?usp=sharing)
 * [3 class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1wQcfLlDUvnWthyzbvyVy9oqyTZ2F-JFo?usp=sharing)
 * [single class termite detector (trained on synthetic data)](https://drive.google.com/drive/folders/1U9jzOpjCcu6wDfTEH3uQqGKPxW_QzHGz?usp=sharing)
 * [80 Class model trained on COCO](https://drive.google.com/drive/folders/1eXAowtyBsqGEjvmQE1YlSeHJ6AGBwpUs?usp=share_link)
