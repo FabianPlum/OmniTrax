@@ -142,6 +142,45 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         video_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         video_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+        # if defined, extract the mask and apply it to the imported footage
+        try:
+            masks = []
+
+            for m, mask in enumerate(bpy.data.masks["Mask"].layers["MaskLayer"].splines):
+                print(mask)
+                mask_individual = []
+                for point in bpy.data.masks["Mask"].layers["MaskLayer"].splines[m].points:
+                    print(point.co[0], point.co[1])
+                    mask_individual.append([point.co[0], point.co[1]])
+                masks.append(mask_individual)
+
+            print("\n", masks)
+
+            img_mask = np.zeros((video_height, video_width, 1), np.uint8)
+            for mask in masks:
+                contours = np.array(
+                    [[max(min(int(max((video_height - video_width), 0) / 2 +
+                                  x * video_width), video_width), 0),
+                      max(min(int(max((video_width - video_height), 0) / 2 +
+                                  video_height - y * video_height * (video_width / video_height)), video_height), 0)]
+                     for [x, y] in mask])
+                print(contours)
+                cv2.fillPoly(img_mask, pts=[contours], color=(1, 1, 1))
+
+            # binarise mask
+            ret_mask, img_mask = cv2.threshold(img_mask, 0, 1, cv2.THRESH_BINARY)
+
+            # DEBUG
+            # cv2.imshow("image mask", img_mask)
+            # cv2.waitKey(0)
+
+        except Exception as e:
+            print(e)
+            print("No mask found!")
+            img_mask = None
+
+            return {"FINISHED"}
+
         try:
             bpy.context.scene.render.fps = fps
             bpy.context.scene.render.fps_base = fps
@@ -322,9 +361,15 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             ret, frame_read = cap.read()
             if not ret:
                 break
+
             clip_width = frame_read.shape[1]
             clip_height = frame_read.shape[0]
             frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
+
+            # apply mask, if defined
+            if img_mask is not None:
+                frame_rgb = cv2.bitwise_and(frame_rgb, frame_rgb, mask=img_mask)
+
             frame_resized = cv2.resize(frame_rgb,
                                        (video_width,
                                         video_height),
