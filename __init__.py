@@ -1466,13 +1466,19 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
         max=100)
 
     sample_formats = [("JPG", ".jpg", "Use JPG as the sample output format"),
-                      ("PNG", ".png", "Use JPG as the sample output format")]
+                      ("PNG", ".png", "Use PNG as the sample output format")]
 
     bpy.types.Scene.exp_ase_sample_format = EnumProperty(
         name="Sample format",
         description="Set the sample output format",
         items=sample_formats,
         default=sample_formats[0][0])
+
+    bpy.types.Scene.exp_ase_path = StringProperty(
+        name="Sample Export Path",
+        description="Path to which all samples will be exported to",
+        default="\\export",
+        subtype="DIR_PATH")
 
     def draw(self, context):
         layout = self.layout
@@ -1495,8 +1501,9 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
         col.prop(context.scene, "exp_ase_compression")
         col.prop(context.scene, "exp_ase_sample_format")
         col.separator()
-        col.label(text="Export samples:")
-        col.operator("scene.export_marker", text="All")
+        col.label(text="Sample export path:")
+        col.prop(context.scene, "exp_ase_path", text="")
+        col.operator("scene.advanced_sample_export", text="Export samples")
 
 
 ### (un)register module ###
@@ -1529,7 +1536,7 @@ def unregister():
     bpy.utils.unregister_class(EXPORT_PT_TrackingPanel)
 
     bpy.utils.unregister_class(EXPORT_PT_DataPanel)
-    
+
     bpy.utils.unregister_class(OMNITRAX_OT_PoseEstimationOperator)
     bpy.utils.unregister_class(OMNITRAX_PT_PoseEstimationPanel)
 
