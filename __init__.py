@@ -1416,6 +1416,89 @@ class EXPORT_PT_DataPanel(bpy.types.Panel):
         row.operator("scene.export_marker", text="All")
 
 
+class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
+    bl_label = "Advanced Sample Export"
+    bl_space_type = "CLIP_EDITOR"
+    bl_region_type = "TOOLS"
+    bl_category = "OmniTrax"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    # Input dimensions
+    bpy.types.Scene.exp_ase_fixed_input_bounding_box_size = BoolProperty(
+        name="Fixed input bounding box size",
+        description="Use constant sized bounding boxes, overwriting the original marker shape and dimensions",
+        default=True)
+    bpy.types.Scene.exp_ase_input_x = IntProperty(
+        name="input X (px)",
+        description="Constant sized bounding box X dimension in pixels.",
+        default=128)
+    bpy.types.Scene.exp_ase_input_y = IntProperty(
+        name="input Y (px)",
+        description="Constant sized bounding box Y dimension in pixels.",
+        default=128)
+
+    # Output dimensions
+    bpy.types.Scene.exp_ase_fixed_output_bounding_box_size = BoolProperty(
+        name="Fixed output patch size",
+        description="Fixed dimensions of exported samples. Unless 'padding' is enabled, this option may change the "
+                    "aspect ratio of the extracted samples.",
+        default=True)
+    bpy.types.Scene.exp_ase_output_x = IntProperty(
+        name="output X (px)",
+        description="X dimension of exported samples.",
+        default=128)
+    bpy.types.Scene.exp_ase_output_y = IntProperty(
+        name="output Y (px)",
+        description="Y dimension of exported samples.",
+        default=128)
+
+    # Optional settings
+    bpy.types.Scene.exp_ase_use_padding = BoolProperty(
+        name="Use padding",
+        description="If enabled, the aspect ratio of extracted samples is preserved, "
+                    "regardless of input and output dimensions",
+        default=True)
+    bpy.types.Scene.exp_ase_compression = IntProperty(
+        name="Sample compression",
+        description="Compression setting for exported samples. 0 = no compression, 100 = maximal lossy compression",
+        default=0,
+        min=0,
+        max=100)
+
+    sample_formats = [("JPG", ".jpg", "Use JPG as the sample output format"),
+                      ("PNG", ".png", "Use JPG as the sample output format")]
+
+    bpy.types.Scene.exp_ase_sample_format = EnumProperty(
+        name="Sample format",
+        description="Set the sample output format",
+        items=sample_formats,
+        default=sample_formats[0][0])
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.label(text="Export image samples from tracks")
+        col.separator()
+        col.label(text="Input settings")
+        col.prop(context.scene, "exp_ase_fixed_input_bounding_box_size")
+        col.prop(context.scene, "exp_ase_input_x")
+        col.prop(context.scene, "exp_ase_input_y")
+        col.separator()
+        col.label(text="Output settings")
+        col.prop(context.scene, "exp_ase_fixed_output_bounding_box_size")
+        col.prop(context.scene, "exp_ase_output_x")
+        col.prop(context.scene, "exp_ase_output_y")
+        col.separator()
+        col.label(text="Optional settings")
+        col.prop(context.scene, "exp_ase_use_padding")
+        col.prop(context.scene, "exp_ase_compression")
+        col.prop(context.scene, "exp_ase_sample_format")
+        col.separator()
+        col.label(text="Export samples:")
+        col.operator("scene.export_marker", text="All")
+
+
 ### (un)register module ###
 def register():
     bpy.utils.register_class(OMNITRAX_PT_ComputePanel)
@@ -1427,10 +1510,12 @@ def register():
     bpy.utils.register_class(EXPORT_OT_Operator)
     bpy.utils.register_class(EXPORT_PT_TrackingPanel)
 
+    bpy.utils.register_class(EXPORT_PT_DataPanel)
+
     bpy.utils.register_class(OMNITRAX_OT_PoseEstimationOperator)
     bpy.utils.register_class(OMNITRAX_PT_PoseEstimationPanel)
 
-    bpy.utils.register_class(EXPORT_PT_DataPanel)
+    bpy.utils.register_class(EXPORT_PT_AdvancedSampleExportPanel)
 
 
 def unregister():
@@ -1443,7 +1528,9 @@ def unregister():
     bpy.utils.unregister_class(EXPORT_OT_Operator)
     bpy.utils.unregister_class(EXPORT_PT_TrackingPanel)
 
+    bpy.utils.unregister_class(EXPORT_PT_DataPanel)
+    
     bpy.utils.unregister_class(OMNITRAX_OT_PoseEstimationOperator)
     bpy.utils.unregister_class(OMNITRAX_PT_PoseEstimationPanel)
 
-    bpy.utils.unregister_class(EXPORT_PT_DataPanel)
+    bpy.utils.unregister_class(EXPORT_PT_AdvancedSampleExportPanel)
