@@ -1059,6 +1059,151 @@ class EXPORT_OT_Operator(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class EXPORT_OT_AdvancedSampleExportOperator(bpy.types.Operator):
+    """
+    Run Pose estimation on the tracked animals
+    ESTIMATE POSES: Run pose estimation on tracked ROIs (defaulting to full frame, when no tracks are present)
+    ESTIMATE POSES [full frame]: Run (single subject) pose estimation on full resolution original video footage
+    """
+    bl_idname = "scene.advanced_sample_export"
+    bl_label = "Export track patches as individual image samples"
+
+    def execute(self, context):
+        print("\nRUNNING ADVANCED SAMPLE EXTRACTION\n")
+
+        try:
+            clip = context.edit_movieclip
+            clip_path = bpy.path.abspath(bpy.context.edit_movieclip.filepath)
+
+            clip_width = clip.size[0]
+            clip_height = clip.size[1]
+        except:
+            print("You need to load and track a video, before extracting any samples!\n")
+            return {"FINISHED"}
+
+        first_frame = context.scene.frame_start
+        last_frames = context.scene.frame_end
+
+        # now we can load the captured video file and display it
+        cap = cv2.VideoCapture(clip_path)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+
+        print("Extracting samples from", clip_path, "...")
+
+        # export all tracked frames from all tracks
+        for track in clip.tracking.objects[0].tracks:
+
+            for frame_id in range(first_frame, last_frames):
+
+                marker = track.markers.find_frame(frame_id)
+                try:
+                    if marker:
+                        marker_x = round(marker.co.x * clip_width)
+                        marker_y = round(marker.co.y * clip_height)
+                        print("Frame:", frame_id, " : ",
+                              "X", marker_x, ",",
+                              "Y", marker_y)
+
+                        cap.set(1, frame_id)
+                        ret, frame_temp = cap.read()
+                        if ret:
+                            # first, create an empty image object to be filled with the ROI
+                            # this is important in case the detection lies close to the edge
+                            # where the ROI would go outside the image
+                            track_input_img = np.zeros([context.scene.exp_ase_input_y,
+                                                        context.scene.exp_ase_input_x, 3], dtype=np.uint8)
+
+                            if context.scene.exp_ase_fixed_input_bounding_box_size:
+                                true_min_x = marker_x - int(context.scene.exp_ase_input_x / 2)
+                                true_max_x = marker_x + int(context.scene.exp_ase_input_x / 2)
+                                true_min_y = clip_height - marker_y - int(context.scene.exp_ase_input_y / 2)
+                                true_max_y = clip_height - marker_y + int(context.scene.exp_ase_input_y / 2)
+
+                                min_x = max([0, true_min_x])
+                                max_x = min([clip.size[0], true_max_x])
+                                min_y = max([0, true_min_y])
+                                max_y = min([clip.size[1], true_max_y])
+                                # crop frame to detection and rescale
+                                frame_cropped = frame_temp[min_y:max_y, min_x:max_x]
+
+                                # place the cropped frame in the previously created empty image
+                                x_min_offset = max([0, - true_min_x])
+                                x_max_offset = min([context.scene.exp_ase_input_x,
+                                                    context.scene.exp_ase_input_x - (true_max_x - clip.size[0])])
+                                y_min_offset = max([0, - true_min_y])
+                                y_max_offset = min([context.scene.exp_ase_input_y,
+                                                    context.scene.exp_ase_input_y - (true_max_y - clip.size[1])])
+
+                                print("Cropped image ROI:", x_min_offset, x_max_offset, y_min_offset, y_max_offset)
+                                track_input_img[y_min_offset:y_max_offset, x_min_offset:x_max_offset] = frame_cropped
+
+                            else:
+                                bbox = marker.pattern_corners
+                                true_min_x = marker_x + int(bbox[0][0] * clip_width)
+                                true_max_x = marker_x - int(bbox[0][0] * clip_width)
+                                true_min_y = clip_height - marker_y - int(bbox[0][1] * clip_height)
+                                true_max_y = clip_height - marker_y + int(bbox[0][1] * clip_height)
+                                true_width = true_max_x - true_min_x
+                                true_height = true_max_y - true_min_y
+
+                                if true_height < 0:  # flip y axis, if required
+                                    true_min_y, true_max_y = true_max_y, true_min_y
+                                    true_height = -true_height
+
+                                if true_width < 0:  # flip x axis, if required
+                                    true_min_x, true_max_x = true_max_x, true_min_x
+                                    true_width = -true_width
+
+                                print("Cropped image ROI:",
+                                      true_min_x, true_max_x,
+                                      true_min_y, true_max_y, "\n Detection h/w:",
+                                      true_height, true_width)
+
+                                # resize image and maintain aspect ratio to the specified ROI
+                                if true_width >= true_height:
+                                    rescale_width = int(context.scene.exp_ase_input_x)
+                                    rescale_height = int((true_height / true_width) * context.scene.exp_ase_input_y)
+                                    border_height = max([int((rescale_width - rescale_height) / 2), 0])
+                                    print(rescale_width, rescale_height, border_height)
+                                    frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
+                                                               true_min_x:true_max_x],
+                                                               (rescale_width, rescale_height))
+
+                                    track_input_img[border_height:rescale_height + border_height, :] = frame_cropped
+                                else:
+                                    rescale_width = int((true_width / true_height) * context.scene.exp_ase_input_x)
+                                    rescale_height = int(context.scene.exp_ase_input_y)
+                                    border_width = max([int(abs((rescale_height - rescale_width)) / 2), 0])
+                                    frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
+                                                               true_min_x:true_max_x],
+                                                               (rescale_width, rescale_height))
+
+                                    track_input_img[:, border_width:rescale_width + border_width] = frame_cropped
+
+                        # save out image, using the following convention:
+                        # clip-name_frame_track.format
+                        print(bpy.path.abspath(bpy.context.edit_movieclip.filepath)[
+                                    :-4] + "_" + str(frame_id) + "_" + track.name +
+                                    context.scene.exp_ase_sample_format)
+                        cv2.imwrite(bpy.path.abspath(bpy.context.edit_movieclip.filepath)[
+                                    :-4] + "_" + track.name + "_" + str(frame_id) +
+                                    context.scene.exp_ase_sample_format, track_input_img)
+
+                except Exception as e:
+                    print(e)
+
+            print("\n")
+
+        cv2.destroyAllWindows()
+
+        # always reset frame from capture at the end to avoid incorrect skips during access
+        cap.set(1, context.scene.frame_start - 1)
+        cap.release()
+        print("Read all frames")
+
+        return {"FINISHED"}
+
+
 class OMNITRAX_PT_DetectionPanel(bpy.types.Panel):
     bl_label = "Detection (YOLO)"
     bl_space_type = "CLIP_EDITOR"
@@ -1465,8 +1610,8 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
         min=0,
         max=100)
 
-    sample_formats = [("JPG", ".jpg", "Use JPG as the sample output format"),
-                      ("PNG", ".png", "Use PNG as the sample output format")]
+    sample_formats = [(".jpg", ".jpg", "Use JPG as the sample output format"),
+                      (".png", ".png", "Use PNG as the sample output format")]
 
     bpy.types.Scene.exp_ase_sample_format = EnumProperty(
         name="Sample format",
@@ -1522,6 +1667,7 @@ def register():
     bpy.utils.register_class(OMNITRAX_OT_PoseEstimationOperator)
     bpy.utils.register_class(OMNITRAX_PT_PoseEstimationPanel)
 
+    bpy.utils.register_class(EXPORT_OT_AdvancedSampleExportOperator)
     bpy.utils.register_class(EXPORT_PT_AdvancedSampleExportPanel)
 
 
@@ -1540,4 +1686,5 @@ def unregister():
     bpy.utils.unregister_class(OMNITRAX_OT_PoseEstimationOperator)
     bpy.utils.unregister_class(OMNITRAX_PT_PoseEstimationPanel)
 
+    bpy.utils.unregister_class(EXPORT_OT_AdvancedSampleExportOperator)
     bpy.utils.unregister_class(EXPORT_PT_AdvancedSampleExportPanel)
