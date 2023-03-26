@@ -121,7 +121,26 @@ virtually arbitrary numbers of tracks and updates their state for every processe
   * **Process noise magnitude** : The inherent noise of the detection process. Higher values lead to stronger corrections of the 
       resulting track and predicted next position.
   * **std in x-direction** : standard deviation of the measurement in x-direction
-  * **std in y-direction** : standard deviation of the measurement in y-direction         
+  * **std in y-direction** : standard deviation of the measurement in y-direction    
+
+### [OPTIONAL] Masking regions of interest
+
+If you want to exclude certain regions from your input footage from the automated tracking process, you can simply draw
+a **mask** of your desired region of interest on top of your footage from within same **Movieclip editor** window.
+
+From the top right corner of the **Tracking** panel, select **Mask**.
+
+![](../images/masking_01.png)
+
+Then, you can either **add** primitive shapes for your mask (such as rectangles and circles), or draw custom polygons 
+by holding **CTRL** and clicking on your footage. You can visualise your defined mask by clicking on **Mask Display**
+and selecting **Overlay**:
+
+![](../images/masking_02.png)
+
+When you are happy with your created mask, switch back to the **Tracking** view.
+
+![](../images/masking_03.png)
 
 ## 6. Run the Tracker
 
