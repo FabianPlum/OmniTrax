@@ -288,7 +288,7 @@ with the following naming convention:
 
     FOOTAGE_FRAME_TRACKNAME.FORMAT
 
-![](../images/ase_02.jpg)
+![](../images/ase_new_02.jpg)
 
 Modify the track name to, for example, include references to the unique animal IDs or their class.
 ***
