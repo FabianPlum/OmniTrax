@@ -1163,25 +1163,24 @@ class EXPORT_OT_AdvancedSampleExportOperator(bpy.types.Operator):
                                       true_height, true_width)
 
                                 # resize image and maintain aspect ratio to the specified ROI
-                                if true_width >= true_height:
-                                    rescale_width = int(context.scene.exp_ase_input_x)
-                                    rescale_height = int((true_height / true_width) * context.scene.exp_ase_input_y)
-                                    border_height = max([int((rescale_width - rescale_height) / 2), 0])
-                                    print(rescale_width, rescale_height, border_height)
-                                    frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
-                                                               true_min_x:true_max_x],
-                                                               (rescale_width, rescale_height))
+                                if context.scene.exp_ase_padding:
+                                    if true_width >= true_height:
+                                        border_height = max([int((true_width - true_height) / 2), 0])
+                                        track_input_img = np.zeros([true_width, true_width, 3], dtype=np.uint8)
 
-                                    track_input_img[border_height:rescale_height + border_height, :] = frame_cropped
+                                        track_input_img[border_height:true_height + border_height, :] = frame_temp[
+                                                                                                        true_min_y:true_max_y,
+                                                                                                        true_min_x:true_max_x]
+                                    else:
+                                        border_width = max([int(abs((true_height - true_width)) / 2), 0])
+                                        track_input_img = np.zeros([true_width, true_width, 3], dtype=np.uint8)
+
+                                        track_input_img[:, border_width:true_width + border_width] = frame_temp[
+                                                                                                     true_min_y:true_max_y,
+                                                                                                     true_min_x:true_max_x]
+
                                 else:
-                                    rescale_width = int((true_width / true_height) * context.scene.exp_ase_input_x)
-                                    rescale_height = int(context.scene.exp_ase_input_y)
-                                    border_width = max([int(abs((rescale_height - rescale_width)) / 2), 0])
-                                    frame_cropped = cv2.resize(frame_temp[true_min_y:true_max_y,
-                                                               true_min_x:true_max_x],
-                                                               (rescale_width, rescale_height))
-
-                                    track_input_img[:, border_width:rescale_width + border_width] = frame_cropped
+                                    track_input_img = frame_temp[true_min_y:true_max_y, true_min_x:true_max_x]
 
                         if context.scene.exp_ase_fixed_output_bounding_box_size:
                             track_input_img = cv2.resize(track_input_img,
@@ -1587,11 +1586,11 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
         description="Use constant sized bounding boxes, overwriting the original marker shape and dimensions",
         default=True)
     bpy.types.Scene.exp_ase_input_x = IntProperty(
-        name="input X (px)",
+        name="X (px)",
         description="Constant sized bounding box X dimension in pixels.",
         default=128)
     bpy.types.Scene.exp_ase_input_y = IntProperty(
-        name="input Y (px)",
+        name="Y (px)",
         description="Constant sized bounding box Y dimension in pixels.",
         default=128)
 
@@ -1602,11 +1601,11 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
                     "aspect ratio of the extracted samples.",
         default=True)
     bpy.types.Scene.exp_ase_output_x = IntProperty(
-        name="output X (px)",
+        name="X (px)",
         description="X dimension of exported samples.",
         default=128)
     bpy.types.Scene.exp_ase_output_y = IntProperty(
-        name="output Y (px)",
+        name="Y (px)",
         description="Y dimension of exported samples.",
         default=128)
 
@@ -1616,6 +1615,11 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
         description="Export only every nth frame, skipping intermediate frames",
         default=1,
         min=1)
+
+    bpy.types.Scene.exp_ase_padding = BoolProperty(
+        name="Use padding",
+        description="Use padding for images to preserve the original aspect ratio and produce mxm square patches",
+        default=True)
 
     sample_formats = [(".jpg", ".jpg", "Use JPG as the sample output format"),
                       (".png", ".png", "Use PNG as the sample output format")]
@@ -1643,21 +1647,30 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
         col = layout.column(align=True)
         col.label(text="Export image samples from tracks")
         col.separator()
+
         col.label(text="Input settings")
         col.prop(context.scene, "exp_ase_fixed_input_bounding_box_size")
-        col.prop(context.scene, "exp_ase_input_x")
-        col.prop(context.scene, "exp_ase_input_y")
+        row = col.row(align=True)
+        row.label(text="Input dimensions")
+        row.prop(context.scene, "exp_ase_input_x")
+        row.prop(context.scene, "exp_ase_input_y")
         col.separator()
+
         col.label(text="Output settings")
         col.prop(context.scene, "exp_ase_fixed_output_bounding_box_size")
-        col.prop(context.scene, "exp_ase_output_x")
-        col.prop(context.scene, "exp_ase_output_y")
+        row = col.row(align=True)
+        row.label(text="Output dimensions")
+        row.prop(context.scene, "exp_ase_output_x")
+        row.prop(context.scene, "exp_ase_output_y")
         col.separator()
+
         col.label(text="Optional settings")
         col.prop(context.scene, "exp_ase_export_every_nth_frame")
         col.prop(context.scene, "exp_ase_sample_format")
+        col.prop(context.scene, "exp_ase_padding")
         col.prop(context.scene, "exp_ase_grayscale")
         col.separator()
+
         col.label(text="Sample export path:")
         col.prop(context.scene, "exp_ase_path", text="")
         col.operator("scene.advanced_sample_export", text="Export samples")
