@@ -1621,13 +1621,13 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
         description="Use padding for images to preserve the original aspect ratio and produce mxm square patches",
         default=True)
 
-    sample_formats = [(".jpg", ".jpg", "Use JPG as the sample output format"),
-                      (".png", ".png", "Use PNG as the sample output format")]
-
     bpy.types.Scene.exp_ase_grayscale = BoolProperty(
         name="Convert to grayscale",
         description="Export image samples in black and white with image dimensions as (X,Y,1)",
         default=False)
+
+    sample_formats = [(".jpg", ".jpg", "Use JPG as the sample output format"),
+                      (".png", ".png", "Use PNG as the sample output format")]
 
     bpy.types.Scene.exp_ase_sample_format = EnumProperty(
         name="Sample format",
@@ -1637,7 +1637,7 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
 
     bpy.types.Scene.exp_ase_path = StringProperty(
         name="Sample Export Path",
-        description="Path to which all samples will be exported to",
+        description="Path to which all samples will be exported",
         default="C:\\",
         subtype="DIR_PATH")
 
