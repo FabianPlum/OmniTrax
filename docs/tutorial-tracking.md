@@ -123,7 +123,7 @@ virtually arbitrary numbers of tracks and updates their state for every processe
   * **std in x-direction** : standard deviation of the measurement in x-direction
   * **std in y-direction** : standard deviation of the measurement in y-direction    
 
-### [OPTIONAL] Masking regions of interest
+### Masking regions of interest _(OPTIONAL)_
 
 If you want to exclude certain regions from your input footage from the automated tracking process, you can simply draw
 a **mask** of your desired region of interest on top of your footage from within same **Movieclip editor** window.
@@ -135,6 +135,8 @@ From the top right corner of the **Tracking** panel, select **Mask**.
 Then, you can either **add** primitive shapes for your mask (such as rectangles and circles), or draw custom polygons 
 by holding **CTRL** and clicking on your footage. You can visualise your defined mask by clicking on **Mask Display**
 and selecting **Overlay**:
+
+**NOTE** : **OmniTrax** currently only supports masks consisting of straight lines, so avoid using smooth curves!
 
 ![](../images/masking_02.png)
 
@@ -216,7 +218,7 @@ annotation approaches.
 
 ![](../images/example_ant_tracked.gif)
 
-_tracking output of OmniTrax for the first 1000 frames of [example_ant_recording.mp4](..images/example_ant_recording.mp4), using
+_tracking output of **OmniTrax** for the first 1000 frames of [example_ant_recording.mp4](..images/example_ant_recording.mp4), using
 the [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)_
 
 ![](../example_scripts/_heatmap_of_ground_truth_tracks.svg)
