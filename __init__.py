@@ -1086,7 +1086,6 @@ class EXPORT_OT_AdvancedSampleExportOperator(bpy.types.Operator):
 
         # now we can load the captured video file and display it
         cap = cv2.VideoCapture(clip_path)
-        fps = cap.get(cv2.CAP_PROP_FPS)
 
         print("Extracting samples from", clip_path, "...")
 
@@ -1598,11 +1597,12 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
         default=128)
 
     # Optional settings
-    bpy.types.Scene.exp_ase_use_padding = BoolProperty(
-        name="Use padding",
-        description="If enabled, the aspect ratio of extracted samples is preserved, "
-                    "regardless of input and output dimensions",
-        default=True)
+    bpy.types.Scene.exp_ase_export_every_nth_frame = IntProperty(
+        name="Export every nth frame",
+        description="Export only every nth frame, skipping intermediate frames",
+        default=1,
+        min=1)
+
     bpy.types.Scene.exp_ase_compression = IntProperty(
         name="Sample compression",
         description="Compression setting for exported samples. 0 = no compression, 100 = maximal lossy compression",
@@ -1612,6 +1612,11 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
 
     sample_formats = [(".jpg", ".jpg", "Use JPG as the sample output format"),
                       (".png", ".png", "Use PNG as the sample output format")]
+
+    bpy.types.Scene.exp_ase_grayscale = BoolProperty(
+        name="Convert to grayscale",
+        description="Export image samples in black and white with image dimensions as (X,Y,1)",
+        default=False)
 
     bpy.types.Scene.exp_ase_sample_format = EnumProperty(
         name="Sample format",
@@ -1642,9 +1647,10 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
         col.prop(context.scene, "exp_ase_output_y")
         col.separator()
         col.label(text="Optional settings")
-        col.prop(context.scene, "exp_ase_use_padding")
+        col.prop(context.scene, "exp_ase_export_every_nth_frame")
         col.prop(context.scene, "exp_ase_compression")
         col.prop(context.scene, "exp_ase_sample_format")
+        col.prop(context.scene, "exp_ase_grayscale")
         col.separator()
         col.label(text="Sample export path:")
         col.prop(context.scene, "exp_ase_path", text="")
