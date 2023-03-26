@@ -1094,6 +1094,10 @@ class EXPORT_OT_AdvancedSampleExportOperator(bpy.types.Operator):
 
             for frame_id in range(first_frame, last_frames):
 
+                # skip all but nth frames
+                if frame_id % context.scene.exp_ase_export_every_nth_frame != 0:
+                    continue
+
                 marker = track.markers.find_frame(frame_id)
                 try:
                     if marker:
@@ -1179,14 +1183,24 @@ class EXPORT_OT_AdvancedSampleExportOperator(bpy.types.Operator):
 
                                     track_input_img[:, border_width:rescale_width + border_width] = frame_cropped
 
+                        if context.scene.exp_ase_fixed_output_bounding_box_size:
+                            track_input_img = cv2.resize(track_input_img,
+                                                         [context.scene.exp_ase_output_x,
+                                                          context.scene.exp_ase_output_y])
+
+                        if context.scene.exp_ase_grayscale:
+                            track_input_img = cv2.cvtColor(track_input_img, cv2.COLOR_BGR2GRAY)
+
                         # save out image, using the following convention:
                         # clip-name_frame_track.format
-                        print(bpy.path.abspath(bpy.context.edit_movieclip.filepath)[
-                                    :-4] + "_" + str(frame_id) + "_" + track.name +
-                                    context.scene.exp_ase_sample_format)
-                        cv2.imwrite(bpy.path.abspath(bpy.context.edit_movieclip.filepath)[
-                                    :-4] + "_" + track.name + "_" + str(frame_id) +
-                                    context.scene.exp_ase_sample_format, track_input_img)
+                        out_path = str(os.path.join(os.path.abspath(context.scene.exp_ase_path),
+                                                    os.path.basename(
+                                                        bpy.context.edit_movieclip.filepath[:-4]))) + "_" + str(
+                            frame_id) + "_" + track.name + context.scene.exp_ase_sample_format
+                        print(out_path)
+
+                        # now, write out the final patch to the desired location
+                        cv2.imwrite(out_path, track_input_img, )
 
                 except Exception as e:
                     print(e)
@@ -1603,13 +1617,6 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
         default=1,
         min=1)
 
-    bpy.types.Scene.exp_ase_compression = IntProperty(
-        name="Sample compression",
-        description="Compression setting for exported samples. 0 = no compression, 100 = maximal lossy compression",
-        default=0,
-        min=0,
-        max=100)
-
     sample_formats = [(".jpg", ".jpg", "Use JPG as the sample output format"),
                       (".png", ".png", "Use PNG as the sample output format")]
 
@@ -1627,7 +1634,7 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
     bpy.types.Scene.exp_ase_path = StringProperty(
         name="Sample Export Path",
         description="Path to which all samples will be exported to",
-        default="\\export",
+        default="C:\\",
         subtype="DIR_PATH")
 
     def draw(self, context):
@@ -1648,7 +1655,6 @@ class EXPORT_PT_AdvancedSampleExportPanel(bpy.types.Panel):
         col.separator()
         col.label(text="Optional settings")
         col.prop(context.scene, "exp_ase_export_every_nth_frame")
-        col.prop(context.scene, "exp_ase_compression")
         col.prop(context.scene, "exp_ase_sample_format")
         col.prop(context.scene, "exp_ase_grayscale")
         col.separator()
