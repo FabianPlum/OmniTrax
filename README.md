@@ -119,7 +119,14 @@ We provide a number of trained YOLOv4 and DeepLabCut networks to get started wit
 ## Example Video Footage
 Additionally, you can download a few of our video examples to get started with OmniTrax: [example_footage](docs/example_footage.md)
 
+## Upcoming feature additions
+* add option to ```exclude last N frames``` from tracking, so interpolated tracks do not influence further analysis
+* add ```bounding box stabilisation``` for YOLO detections (using moving averages for corner positions)
+* add option to ```exit pose estimation``` completely while running inference (important when the number of tracks is 
+large)
+* add a **progress bar** for all tasks
+
 ***
 ## License
-© Fabian Plum, 2021
+© Fabian Plum, 2023
 [MIT License](https://choosealicense.com/licenses/mit/)
