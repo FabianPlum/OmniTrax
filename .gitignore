@@ -1,6 +1,7 @@
 # python environment specific
 *.pyc
 /.idea/*
+.idea/*
 /__pycache__/*
 /example_scripts/__pycache__/*
 /example_scripts/.ipynb_checkpoints/*

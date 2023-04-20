@@ -21,7 +21,7 @@ Leveraging openly available or custom-trained YOLO and DeepLabCut networks, this
 
 _Pose estimation and skeleton overlay example (trained on [synthetic data](https://github.com/FabianPlum/FARTS))_
 
-[![OmniTrax : Multi-Animal Tracking Demo](images/omnitrax_demo_screen.jpg)](https://youtu.be/YXxM4QRaCDU)
+[![OmniTrax : Multi-Animal Tracking Demo](images/omnitrax_demo_screen_updated.jpg)](https://youtu.be/YXxM4QRaCDU)
 
 ## Updates:
 * 26/03/2023 - Added [**release** version 0.2.2](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.2) which adds support for **footage masking** and **advanced sample export** (see [tutorial-tracking](https://github.com/FabianPlum/OmniTrax/blob/main/docs/tutorial-tracking.md) for details).
