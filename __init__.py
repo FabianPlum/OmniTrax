@@ -30,7 +30,7 @@ bl_info = {
     "author": "Fabian Plum",
     "description": "Deep learning-based multi animal tracker",
     "blender": (3, 3, 0),
-    "version": (0, 2, 1),
+    "version": (0, 2, 2),
     "location": "",
     "warning": "RUN IN ADMINISTRATOR MODE DURING INSTALLATION!",
     "category": "motion capture"
