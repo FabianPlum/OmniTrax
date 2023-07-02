@@ -24,6 +24,7 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 [![OmniTrax : Multi-Animal Tracking Demo](images/omnitrax_demo_screen_updated.jpg)](https://youtu.be/YXxM4QRaCDU)
 
 ## Updates:
+* 02/07/2023 - Added [**release** version 0.2.3](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.3) fixing prior issues relating to masking and yolo path handling.
 * 26/03/2023 - Added [**release** version 0.2.2](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.2) which adds support for **footage masking** and **advanced sample export** (see [tutorial-tracking](https://github.com/FabianPlum/OmniTrax/blob/main/docs/tutorial-tracking.md) for details).
 * 28/11/2022 - Added [**release** version 0.2.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.1) with updated YOLO and DLC-live model handling to accomodate for different file structures.
 * 09/11/2022 - Added [**release** version 0.2.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.0) with improved DLC-live pose estimation for single and multi-animal applications.
@@ -46,7 +47,7 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 
 2. Install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1.0](https://developer.nvidia.com/rdp/cudnn-archive). Here, we provide a separate [CUDA installation guide](docs/CUDA_installation_guide.md). If you already have a separate CUDA installation on your system refer to [this](https://www.tensorflow.org/install/source#gpu) official guide for version matching and additional installation instructions.
 
-3. Download the latest release [![latest-release](https://img.shields.io/github/tag/FabianPlum/OmniTrax.svg?label=version&style=flat)](https://github.com/FabianPlum/OmniTrax/releases) of [OmniTrax](https://github.com/FabianPlum/OmniTrax/releases/download/V_0.2.2/omni_trax.zip). **No need to unzip** the file! You can install it straight from the **Blender > Preferences > Add-on** menu in the next step.
+3. Download the latest release [![latest-release](https://img.shields.io/github/tag/FabianPlum/OmniTrax.svg?label=version&style=flat)](https://github.com/FabianPlum/OmniTrax/releases) of [OmniTrax](https://github.com/FabianPlum/OmniTrax/releases/download/V_0.2.3/omni_trax.zip). **No need to unzip** the file! You can install it straight from the **Blender > Preferences > Add-on** menu in the next step.
 
 4. Open **Blender** in administrator mode. You only need to do this once, during the installation of **OmniTrax**. Once everything is up and running you can open **Blender** normally in the future. 
 
