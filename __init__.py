@@ -179,8 +179,6 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             print("No mask found!")
             img_mask = None
 
-            return {"FINISHED"}
-
         try:
             bpy.context.scene.render.fps = fps
             bpy.context.scene.render.fps_base = fps
