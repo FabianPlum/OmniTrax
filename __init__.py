@@ -30,7 +30,7 @@ bl_info = {
     "author": "Fabian Plum",
     "description": "Deep learning-based multi animal tracker",
     "blender": (3, 3, 0),
-    "version": (0, 2, 2),
+    "version": (0, 2, 3),
     "location": "",
     "warning": "RUN IN ADMINISTRATOR MODE DURING INSTALLATION!",
     "category": "motion capture"
@@ -262,6 +262,9 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
         if yolo_paths.data is None:
             yolo_paths.create_data()
+        else:
+            # update the data file to ensure it points to the correct absolute location of the names file
+            yolo_paths.update_data()
 
         context.scene.detection_config_path = yolo_paths.cfg
         context.scene.detection_data_path = yolo_paths.data

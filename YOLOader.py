@@ -69,6 +69,24 @@ class YOLOader(object):
 
         print("Created new .data file for the loaded network.")
 
+
+    def update_data(self):
+        """
+        creates a .data file in the location of the config file with the current location of the .names file and sets
+        the path to the output file as the new .data file.
+        """
+        with open(self.data, "r") as f:
+            lines = f.readlines()
+            for l, line in enumerate(lines):
+                if line.split(" ")[0] == "names":
+                    lines[l] = "names = " + str(self.names).replace("\\", "/") + "\n"
+
+        with open(self.data, "w") as f:
+            for line in lines:
+                f.write(line)
+
+        print("INFO: Updated .data file for the loaded network to include absolute path of .names file")
+
     def update_cfg(self, nw_width, nw_height, encoding="utf-8"):
         """
         Updates the cfg file and creates a copy of it in the same directory as the original. The function updates the
