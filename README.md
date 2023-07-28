@@ -91,7 +91,7 @@ _For a more detailed guide, refer to the **[Tracking](docs/tutorial-tracking.md)
 
 ![](images/use_03.jpg)
 
-**ATTENTION:** Double check the *"names="* filepath in the **obj.data** file points to the **ABSOLUTE** location of the **obj.names** file. Otherwise, the program may crash when running tracking without telling you why. 
+**ATTENTION:** Versions 0.2.x and later no longer require **.data** and **.names** files, making their provision optional. Configuration files will also be re-generated when changing the network input resolution.
 
 **EXAMPLE:  *obj.data*** from [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)
 
