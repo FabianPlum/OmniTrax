@@ -16,6 +16,7 @@ import os
 import time
 import yaml
 import tensorflow as tf
+import platform
 
 from omni_trax.omni_trax_utils import scale_detections, convertBack, cvDrawBoxes, setInferenceDevive
 
@@ -100,7 +101,10 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             from omni_trax.darknet import darknet as darknet
             darknet.set_compute_device(int(context.scene.compute_device.split("_")[1]))
         else:
-            from omni_trax.darknet import darknet_cpu as darknet
+            if platform.system() != "Linux":
+                from omni_trax.darknet import darknet_cpu as darknet
+            else:
+                from omni_trax.darknet import darknet as darknet
 
         """
         Tracker settings

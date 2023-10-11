@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 import os
 import platform
+import addon_utils
 
 script_file = os.path.realpath(__file__)
 directory = os.path.dirname(script_file)
@@ -38,7 +39,8 @@ if not setup_complete:
                           "matplotlib": "matplotlib",
                           "opencv-python": "opencv-python",
                           "scikit-learn": "scikit-learn",
-                          "deeplabcut-live": "deeplabcut-live"}
+                          "deeplabcut-live": "deeplabcut-live",
+                          "opencv-contrib-python": "opencv-contrib-python"}
 
     try:
         reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
@@ -80,7 +82,15 @@ if not setup_complete:
 
     try:
         OVERWRITE_DLC_DISPLAY = False
-        dlclive_display = Path.joinpath(Path(py_exec[:-14]), "lib", "dlclive", "display.py")
+        if platform.system() != "Linux":
+            dlclive_display = Path.joinpath(Path(py_exec[:-14]), "lib", "dlclive", "display.py")
+        else:
+            dlclive_display = Path.joinpath(Path(py_exec[:-15]), "lib",
+                                            "python3.7",
+                                            "site-packages",
+                                            "dlclive",
+                                            "display.py")
+            print(dlclive_display)
 
         orig_tk_import = "from tkinter import Tk, Label\n"
         orig_PIL_import = "from PIL import Image, ImageTk, ImageDraw\n"
@@ -112,7 +122,57 @@ if not setup_complete:
         setup_state_f_contents.append("overwritten_orig_dlclive=True")
     except FileNotFoundError:
         print("INFO: Did not suppress DLC imports - indicating unit testing")
-    setup_state_f_contents.append("setup_complete=True")
+
+    if platform.system() == "Linux":
+        # clone and make darknet (for cpu support)
+        print("\n\n----------------------------------------------------------------------------\n")
+        print("INFO: Linux environment found - building darknet from source...")
+        print("INFO: for GPU, OPENMP, AVX, or OPENCV support, edit Makefile and make again!")
+        print("\n----------------------------------------------------------------------------\n\n")
+
+        try:
+            for mod in addon_utils.modules():
+                addon_name = mod.bl_info.get("name")
+                if addon_name == "omni_trax":
+                    addon_loc = mod.__file__[:-12]
+
+            print("INFO: removing current darknet folder...")
+            # remove pre-built Windows darknet
+            subprocess.call(["rm", "-r", "-f", Path.joinpath(Path(addon_loc), "darknet")])
+            # clone darknet from source
+            subprocess.call(["git", "clone", "https://github.com/AlexeyAB/darknet"])
+            # (if required) move to correct location
+            subprocess.call(["mv", "darknet", Path(addon_loc)])
+            # update makefile to build .so
+
+            print("INFO: Updating Makefile...")
+            darknet_makefile = open(str(Path.joinpath(Path(addon_loc), "darknet", "Makefile")), "r")
+            updated_file_content = ""
+
+            for line in darknet_makefile:
+                if line == "LIBSO=0\n":
+                    line = "LIBSO=1\n"
+
+                updated_file_content += line
+
+            darknet_makefile.close()
+
+            darknet_makefile = open(str(Path.joinpath(Path(addon_loc), "darknet", "Makefile")), "w")
+            darknet_makefile.write(updated_file_content)
+            print("\nINFO: /darknet/Makefile has been updated.")
+            darknet_makefile.close()
+
+            # make darknet
+            print("INFO: Making darknet...")
+            subprocess.call(["make", "-C", Path.joinpath(Path(addon_loc), "darknet")])
+            setup_state_f_contents.append("compiled_darknet=True")
+            setup_state_f_contents.append("setup_complete=True")
+
+        except Exception as e:
+            print(e)
+            print("WARNING: Failed to rebuild darknet!")
+            setup_state_f_contents.append("compiled_darknet=False")
+            setup_state_f_contents.append("setup_complete=False")
 
     with open(os.path.join(directory, "setup_state.txt"), 'w') as f:
         for line in setup_state_f_contents:
