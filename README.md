@@ -128,6 +128,30 @@ Additionally, you can download a few of our video examples to get started with O
 large)
 * add a **progress bar** for all tasks
 
+### References
+
+When using **OmniTrax** and/or our other projects in your work, 
+please make sure to cite them:
+    
+    @misc{Plum2022,
+        title = {OmniTrax},
+        author = {Plum, Fabian},
+        resource = {GitHub repository},
+        howpublished = {https://github.com/FabianPlum/OmniTrax},
+        year = {2022}
+        }
+
+    @misc{Plumetal2023,
+        author = {Fabian Plum and Rene Bulla and Hendrik Beck and Natalie Imirzian and David Labonte},
+        title = {replicAnt: A pipeline for generating annotated images of animals in complex environments using Unreal Engine},
+        elocation-id = {2023.04.20.537685},
+        year = {2023},
+        doi = {10.1101/2023.04.20.537685},
+        publisher = {Cold Spring Harbor Laboratory},
+        URL = {https://www.biorxiv.org/content/10.1101/2023.04.20.537685v2},
+        journal = {bioRxiv}
+        }
+
 ***
 ## License
 © Fabian Plum, 2023
