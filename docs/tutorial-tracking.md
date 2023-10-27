@@ -23,16 +23,13 @@ as well as [DeepLabCut](https://github.com/DeepLabCut/DeepLabCut) documentation.
 _This tutorial assumes that you have successfully [installed **OmniTrax**](../README.md) and have enabled the **OmniTrax
 Add-on**_.
 
+### Used in this example
+* **Video** : [herbivorous leafcutter ants](..images/example_ant_recording.mp4)
+* **YOLO Network** : [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)
+
 ## 1. Open [Blender](https://www.blender.org/download/lts/3-3/) and start a new project
 
 Create a new **Workspace** from the **VFX  >  Motion_Tracking** tab.
-If you don't already have suitable videos at hand, grab some from the list of [example footage](docs/example_footage.md)
-.
-In this tutorial, we are going to use an example recording
-of [herbivorous leafcutter ants](..images/example_ant_recording.mp4),
-and one of
-our [custom trained YOLOv4 networks](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)
-.
 
 Remember to occasionally save your project as you go along.
 
