@@ -597,9 +597,13 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                     pose_cfg_yaml = yaml.safe_load(stream)
 
                 pose_joint_names = pose_cfg_yaml["all_joints_names"]
-                pose_joint_header = ",".join(str(e) + "_x," +
-                                             str(e) + "_y," +
-                                             str(e) + "_prob" for e in pose_joint_names)
+                pose_joint_header_l1 = "scorer," + ",".join("OmniTrax,OmniTrax,OmniTrax" for e in pose_joint_names)
+                pose_joint_header_l2 = "bodyparts," + ",".join(str(e) + "," +
+                                                               str(e) + "," +
+                                                               str(e) for e in pose_joint_names)
+                pose_joint_header_l3 = "coords," + ",".join("x," +
+                                                            "y," +
+                                                            "likelihood" for e in pose_joint_names)
 
             except:
                 print("Failed to load trained network... Check your model path!")
@@ -731,7 +735,9 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 pose_output_file = open(bpy.path.abspath(bpy.context.edit_movieclip.filepath)[
                                         :-4] + "_POSE_fullframe.csv", "w")
                 # write header line
-                pose_output_file.write("frame," + pose_joint_header + "\n")
+                pose_output_file.write(pose_joint_header_l1 + "\n")
+                pose_output_file.write(pose_joint_header_l2 + "\n")
+                pose_output_file.write(pose_joint_header_l3 + "\n")
                 for key, value in track_pose.items():
                     line = key + "," + ",".join(str(e) for e in value.flatten())
                     pose_output_file.write(line + "\n")
@@ -927,7 +933,16 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                     # write header line
                     # pose_output_file.write("frame," + pose_joint_header + ",r1_deg,r2_deg,r3_deg,l1_deg,l2_deg,l3_deg\n")
                     # TODO add robust joint angle calculation (see above)
-                    pose_output_file.write("frame," + pose_joint_header + "\n")
+                    """
+                    replicate DLC prediction output file structure:
+                    scorer    | OmniTrax  | OmniTrax  | OmniTrax   | ...
+                    bodyparts | part_A    | part_A    | part_A     | ...
+                    coords    | x         | y         | likelihood | ...
+                    """
+                    # write header line
+                    pose_output_file.write(pose_joint_header_l1 + "\n")
+                    pose_output_file.write(pose_joint_header_l2 + "\n")
+                    pose_output_file.write(pose_joint_header_l3 + "\n")
                     for key, value in track_pose.items():
                         line = key + "," + ",".join(str(e) for e in value.flatten())
                         pose_output_file.write(line + "\n")
