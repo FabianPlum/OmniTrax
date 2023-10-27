@@ -60,8 +60,9 @@ image samples](https://github.com/FabianPlum/FARTS).
 
 <img src=../images/use_03.jpg width="750">
 
-**ATTENTION:** Double check the *"names="* filepath in the **obj.data** file points to the **absolute** location of
-the **obj.names** file. Otherwise, **Blender** may crash when running tracking without telling you why.
+**ATTENTION:** When using custom labels double check the *"names="* filepath in the **obj.data** file points to the **absolute** location of
+the **obj.names** file. Otherwise, **Blender** may crash when running tracking without telling you why. Since release [0.2.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.1)
+the required files are auto-generated and are thus no longer required. However, if you wish to provide them, use the path convention shown below.
 
 **EXAMPLE:  *obj.data***
 from [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)
@@ -232,8 +233,7 @@ _For a more detailed explanation refer to [blenderMotionExport](https://github.c
 When the tracking process is completed you can export the resulting tracks as **.csv** files for further analysis and
 visualisation. The original export script was written by [Amudtogal](https://github.com/Amudtogal) and its current
 version
-adapted for the [blenderMotionExport](https://github.com/FabianPlum/blenderMotionExport) add-on, integrated in **
-OmniTrax**.
+adapted for the [blenderMotionExport](https://github.com/FabianPlum/blenderMotionExport) add-on, integrated in **OmniTrax**.
 
 * **Export Path** : Location on your drive where you want to write the exported tracks (.csv files).
 * **Export Subdirectories** : If enabled, a separate folder will be created in the **Export Path** for every tracked
@@ -285,7 +285,7 @@ The following options can be used to configure the style and format of the expor
     * **Convert to grayscale** : Export image samples in black and white with image dimensions as (X,Y,1)
 * **Sample export path** : Path to which all samples will be exported
 
-When you then click on ** Export samples**, all image samples are then exported to the specified **Sample export path**
+When you then click on **Export samples**, all image samples are then exported to the specified **Sample export path**
 with the following naming convention:
 
     FOOTAGE_FRAME_TRACKNAME.FORMAT
