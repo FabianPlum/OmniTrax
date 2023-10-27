@@ -62,11 +62,11 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 
 ![](images/install_03.jpg)
 
-7. The **omni_trax** Add-on should now be listed. Enabling the Add-on will start the installation process of all required python dependencies. 
+7. The **omni_trax** Add-on should now be listed. To see the installation process in action, at the top of the screen click on **Window** >> **Toggle System Console**. Then, enabling the Add-on will start the installation process of all required python dependencies. 
 
 ![](images/install_04.jpg)
 
-This will take quite a while, so have a look at the **Blender Console** to see the progress. Grab a cup of coffee (or tea) in the meantime. 
+The installation will take quite a while, so have a look at the **System Console** to see the progress. Grab a cup of coffee (or tea) in the meantime. 
 
 ![](images/install_05.jpg)
 
@@ -76,39 +76,37 @@ There may be a few **warnings** displayed throughout the installation process, h
 
 ### A quick test drive (Detection & Tracking)
 
-_For a more detailed guide, refer to the **[Tracking](docs/tutorial-tracking.md)** and **[Pose-Estimation](docs/tutorial-pose-estimation.md)** documents._
+_For a more detailed guide, refer to the **[Tracking](docs/tutorial-tracking.md)** and **[Pose-Estimation](docs/tutorial-pose-estimation.md)** docs._
 
-0. If you don't already have suitable videos at hand, grab some from the list of [example footage](docs/example_footage.md)
-
-1. Let's create a new **Workspace** from the **VFX  >  Motion_Tracking** tab.
+**1.** In Blender, with the OmniTrax Addon enabled, create a new **Workspace** from the **VFX  >  Motion_Tracking** tab.
 
 ![](images/use_01.jpg)
 
-2. Time to select your compute device! If you have a **CUDA supported GPU** *(and the CUDA installation went as planned...)*, make sure your **GPU is selected** here, **before** running any of the inference functions, as the compute device cannot be changed at runtime.
+**2.** Next, select your compute device. If you have a **CUDA supported GPU** *(and the CUDA installation went as planned...)*, make sure your **GPU is selected** here, **before** running any of the inference functions, as the compute device cannot be changed at runtime. By default, assuming your computer has a one supported GPU, **OmniTrax** will select it as **GPU_0**.
 
 ![](images/use_02.jpg)
 
-3. Now it's time to load one of your [YOLO](https://github.com/AlexeyAB/darknet) networks (or one of our pre-trained YOLO networks, see below). Next, load a video you wish to analyse from your drive by clicking on **Open**.
+**3.** Now it's time to load a trained [YOLO](https://github.com/AlexeyAB/darknet) network. In this example we are going to use a single class ant detector, trained on synthetically generated data. The YOLOv4 network can be downloaded [here](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing).
+
+By clicking on the **folder icon** next to each cell, select the respective **.cfg** and **.weights** files. Here, we are using a network input resolution of 480 x 480. The same weights file can be used for all input resolutions.
 
 ![](images/use_03.jpg)
 
-**ATTENTION:** Versions 0.2.x and later no longer require **.data** and **.names** files, making their provision optional. Configuration files will also be re-generated when changing the network input resolution.
+**ATTENTION:** Versions 0.2.x and later no longer require **.data** and **.names** files, making their provision optional. For more info on when you would need those files, refer to the extended **[Tracking](docs/tutorial-tracking.md)** tutorial.
 
-**EXAMPLE:  *obj.data*** from [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)
+Here you only need to set the path for
+* *.cfg*
+* *.weights*
 
-```bash
-classes = 1
-train = data/train.txt
-test = data/test.txt
-names = C:/Users/Legos/Downloads/atta_single_class/obj.names
-backup = backup/
-```
+**4.** Next, load a video you wish to analyse from your drive by clicking on **Open** (see image above). In this example we are using [**example_ant_recording.mp4**](images/example_ant_recording.mp4).
 
-4. Now, configure the **Detector** and **Tracker** to your liking. When you are done, click on **RESTART Track** (or **TRACK** to continue tracking from a later point in the video). Click on the video (which will open in a separate window) and press **q** to terminate the tracking process early.  
+**5.** Click on **RESTART Track** (or **TRACK** to continue tracking from a specific frame in the video). If you wish to stop the tracking process early, click on the video (which will open in a separate window) and press **q** to terminate the process.
+
+OmniTrax will continue to track your video until it has either reached its last frame, or the **End Frame** (by default 250) which can be set in the **Detection (YOLO) >> Processing settings**.
 
 ![](images/use_04.gif)
  
-*NOTE: The ideal settings will always depend on your footage, especially on the relative animal size and movement speed. Remember, **GIGO** (Garbage In Garbage Out) so ensuring your recordings are evenly-lit, free from noise, flickering, and motion blur, will go a long way to improve inference quality.*
+*NOTE: The ideal settings for the **Detector** and **Tracker** will always depend on your footage, especially on the relative animal size and movement speed. Remember, **GIGO** (Garbage In Garbage Out) so ensuring your recordings are evenly-lit, free from noise, flickering, and motion blur, will go a long way to improve inference quality. Refer to the full **[Tracking](docs/tutorial-tracking.md)** tutorial for an in-depth explanation of each setting.*
 
 ## User guides
 * [CUDA installation instructions](docs/CUDA_installation_guide.md)
