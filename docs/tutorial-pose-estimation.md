@@ -96,7 +96,7 @@ over a regular **[DeepLabCut](https://github.com/DeepLabCut/DeepLabCut)** build.
   same folder. **OmniTrax** will read the skeleton configuration from the **config.yaml** file directly, so ensure that
   the naming conventions of **config.yaml** matches **pose_cfg.yaml**
 * **Constant (input) detection sizes** : If enabled, enforces constant input ROIs, as defined by the **Pose (input) frame 
-  size (px)detection sizes. If not enabled, the tracking marker bounding box will determine the input ROI. ***NOTE** : this
+  size (px) sizes**. If not enabled, the tracking marker bounding box will determine the input ROI. ***NOTE** : this
   option will have no effect in [full frame] mode.*
 * **Pose (input) frame size (px)** : Constant detection size in pixels. All ROIs will be rescaled and padded, if 
   necessary. ***NOTE** : this option will have no effect in [full frame] mode.*
@@ -111,7 +111,7 @@ over a regular **[DeepLabCut](https://github.com/DeepLabCut/DeepLabCut)** build.
   * **Skeleton line thickness** : Line width of skeleton bones (in pixels) displayed in pose-estimation preview
   * **Display label names** : Display label names as an overlay in pose-estimation preview
 * Run Pose-Estimation:
-  * **Export pose-estimation video** : Save the (cropped) video with tracked overlay to the location of the input video. 
+  * **Export pose-estimation video** : Save the video with tracked overlay to the location of the input video. 
   * **Export pose-estimation data** : Write estimated pose data to disk landmark locations in (relative) pixel space.
 
 When you have completed configuring the pose-estimation process click on **ESTIMATE POSES [full frame]**.
