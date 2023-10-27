@@ -24,7 +24,7 @@ _This tutorial assumes that you have successfully [installed **OmniTrax**](../RE
 Add-on**_.
 
 ### Used in this example
-* **Video** : [herbivorous leafcutter ants](..images/example_ant_recording.mp4)
+* **Video** : [_example_ant_recording.mp4_](../images/example_ant_recording.mp4)
 * **YOLO Network** : [single class ant detector (trained on synthetic data)](https://drive.google.com/drive/folders/1PSseMeClcYIe9dcYG-JaOD2CzYceiWdl?usp=sharing)
 
 ## 1. Open [Blender](https://www.blender.org/download/lts/3-3/) and start a new project
