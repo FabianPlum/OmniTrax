@@ -37,7 +37,7 @@ Download the corresponding trained network(s) referenced in the [README.md](../R
 
 ## Pose-Estimation
 
-# <img src=../images/multi_ants_online_tracking_&_pose_estimation.gif width="700">
+<img src=../images/multi_ants_online_tracking_&_pose_estimation.gif width="700">
 
 
 As **OmniTrax** is designed to work with large numbers of individuals, you can run pose-estimation on lower resolution ROIs of individuals as well. 
