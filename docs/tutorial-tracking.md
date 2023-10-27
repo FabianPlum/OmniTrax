@@ -77,7 +77,7 @@ backup = backup/
 
 ***NOTE***: _Make sure to save your trained networks in a file path **without** blank spaces._
 
-Next, select a video you wish to analyse from your computer by clicking on **Open**.  (see red arrow in the image above)
+Next, **select a video** you wish to analyse from your computer by clicking on **Open**.  (see red arrow in the image above)
 
 We are going to use the file [_example_ant_recording.mp4_](../images/example_ant_recording.mp4).
 
@@ -99,8 +99,9 @@ of your chosen video footage.
       suppressed_, thus,
       only the highest confidence prediction is returned for the given area.
     * **Network width / height** : YOLO network input width. Larger network inputs allow for smaller detected subjects
-      but
-      will increase inference time and memory usage. This value must be a **multiple of 32**.
+      but will increase inference time and memory usage. This value must be a **multiple of 32**. If this values are
+      different from the width / height in the loaded **.cfg** file, a new **.cfg** file will be automatically generated
+      and used for inference. The newly created file will be saved in the same location as the original file.
 * **Processing settings** :
     * **Constant detection sizes** : If enabled, enforces constant detection sizes.
       This **does not** affect the actual inference, only the resulting bounding boxes. Ensure these fixed-size bounding
@@ -112,7 +113,7 @@ of your chosen video footage.
       discarded.
       This can be useful to decrease noise without raising the **confidence threshold**. Keep this value at 0 if this is
       not needed.
-    * **Start Frame / End Frame** : First / Last Frame(s) of the playback/tracking range.
+    * **Start Frame / End Frame** : First / Last Frame of the playback/tracking range.
 
 ## 5. Configuring the Tracker
 
@@ -148,8 +149,9 @@ virtually arbitrary numbers of tracks and updates their state for every processe
     * **Process noise magnitude** : The inherent noise of the detection process. Higher values lead to stronger
       corrections of the
       resulting track and predicted next position.
-    * **std in x-direction** : standard deviation of the measurement in x-direction
-    * **std in y-direction** : standard deviation of the measurement in y-direction
+    * **std in x/y-direction** : standard deviation of the measurement in x/y-direction. Higher values dampen the response
+      of the track to changes in position. This property is useful when your tracks are generally noisy, but also limits
+      the rate of change.
 
 ### Masking regions of interest _(OPTIONAL)_
 
@@ -240,7 +242,7 @@ adapted for the [blenderMotionExport](https://github.com/FabianPlum/blenderMotio
   video
   in your project.
 * **Write Logfile** : Save the output log as a separate file in the **Export Path**
-* **Start / End Frame** : Define the range between you want to export tracks
+* **Start / End Frame** : Define the range within which you want to export tracks
 * **Export Selected / All** : Export either only the selected tracks, or all tracks for all tracked videos.
 
 ## 9. Visualising & Analysing Exported Tracks
