@@ -53,12 +53,10 @@ cannot be changed at runtime.
 
 <img src=../images/use_02.jpg width="350">
 
-## 3. Load trained [YOLO](https://github.com/AlexeyAB/darknet) network
+## 3. Load trained [YOLO](https://github.com/AlexeyAB/darknet) network and select a video to analyse
 
 In this example, we are going to use one of [our YOLO networks](example_footage.md), trained on [synthetically generated
-image samples](https://github.com/FabianPlum/FARTS). Next, load a video you wish to analyse from your drive by clicking
-on **Open**.
-We are going to use the file [_example_ant_recording.mp4_](../images/example_ant_recording.mp4).
+image samples](https://github.com/FabianPlum/FARTS).
 
 <img src=../images/use_03.jpg width="750">
 
@@ -77,6 +75,10 @@ backup = backup/
 ```
 
 ***NOTE***: _Make sure to save your trained networks in a file path **without** blank spaces._
+
+Next, select a video you wish to analyse from your computer by clicking on **Open**.  (see red arrow in the image above)
+
+We are going to use the file [_example_ant_recording.mp4_](../images/example_ant_recording.mp4).
 
 ## 4. Configuring the Detector
 
