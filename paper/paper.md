@@ -27,7 +27,7 @@ bibliography: paper.bib
 recent advancements in deep-learning based detection [@YOLOv3; @YOLOv4] and computationally inexpensive buffer-and-recover 
 tracking approaches. Combining automated tracking with the Blender-internal motion tracking pipeline allows to streamline 
 the annotation and analysis process of large video files with hundreds of freely moving individuals. Additionally, 
-`OmniTrax` integrates DeepLabCut-Live [@Kane2020dlclive] to enable running marker-less pose-estimation on arbitrary 
+`OmniTrax` integrates DeepLabCut-Live [@Kane2020dlclive] to enable running markerless pose-estimation on arbitrary 
 numbers of animals. We leverage the existing DeepLabCut Model Zoo [@Mathisetal2018] as well as custom-trained 
 detector and pose-estimator networks to facilitate large-scale behavioural studies of social animals.
 
@@ -46,15 +46,15 @@ Blender offers a number of video editing and compositing functions which make it
 pre-processing. This includes cropping, masking, or exposure adjustment, prior to running inference on video footage within 
 the same environment, without relying on external software packages.
 
-`OmniTrax` offers marker-less pose-estimation through DeepLabCut-Live [@Kane2020dlclive] which enables 
+`OmniTrax` offers markerless pose-estimation through DeepLabCut-Live [@Kane2020dlclive] which enables 
 extracting kinematic parameters from virtually arbitrarily large groups of individuals. We are using `OmniTrax` in ongoing research 
 monitoring foraging activities of various species of leafcutter ants, tracking the movements of thousands of 
 individuals to extract path choice and changes to gait patterns.
 
 Through a library of neural networks trained on hand-annotated as well as synthetically generated samples of a number of 
-digitised study organisms [@Plum2021; @Plumetal2023], we provide range of out-of-the-box inference solutions and encourage the community 
+digitised study organisms [@Plum2021; @Plumetal2023], we provide a range of out-of-the-box inference solutions and encourage the community 
 to contribute to this emerging collection. Pre-trained detection and pose-estimation networks can be used within `OmniTrax` 
-to accelerate the annotation and analysis process of large video data sets. The ease of use and focus on extendability 
+to accelerate the annotation and analysis process of large video data sets. The ease of use and focus on extendibility 
 of `OmniTrax` will aid researchers in performing complex behavioural studies of social animals under laboratory as well 
 as challenging field conditions.
 
