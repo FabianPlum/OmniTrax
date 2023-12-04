@@ -4,11 +4,15 @@ from pathlib import Path
 import os
 import platform
 import addon_utils
+from omni_trax.CUDA_checks import check_CUDA_installation
 
 script_file = os.path.realpath(__file__)
 directory = os.path.dirname(script_file)
 
 print("\nINFO: Checking requirements for omni_trax addon...\n")
+
+required_CUDA_version = "11.2"
+CUDA_match = check_CUDA_installation(required_CUDA_version=required_CUDA_version)
 
 # only run the following checks upon initial installation
 # setup_state.txt keeps track of the installation state
@@ -29,6 +33,13 @@ except FileNotFoundError:
 if not setup_complete:
     first_pkg = True
     setup_state_f_contents = []
+    # add line on CUDA version matching
+    # n.b. - this value is only stored for debugging purposes and will not be read at runtime
+    if CUDA_match:
+        setup_state_f_contents.append("Matching CUDA version=True")
+    else:
+        setup_state_f_contents.append("Matching CUDA version=False")
+
     # get path of blender internal python executable
     py_exec = str(sys.executable)
 
