@@ -49,7 +49,7 @@ class OMNITRAX_PT_ComputePanel(bpy.types.Panel):
 
     try:
         physical_devices = tf.config.list_physical_devices()
-        print("Found computational devices:\n", physical_devices)
+        print("INFO: Found computational devices:\n", physical_devices)
 
         devices = []
         for d, device in enumerate(physical_devices):
