@@ -9,6 +9,7 @@ from bpy.props import EnumProperty as EnumProperty
 # after the initial installation, dependency checks will be disabled
 # in setup_state.txt set setup_completed to "False" to trigger a system check / reinstall when enabling omni_trax
 from omni_trax import check_packages
+from omni_trax.CUDA_checks import check_CUDA_installation
 
 import numpy as np
 import cv2
@@ -31,7 +32,7 @@ bl_info = {
     "author": "Fabian Plum",
     "description": "Deep learning-based multi animal tracker",
     "blender": (3, 3, 0),
-    "version": (0, 2, 3),
+    "version": (0, 3, 1),
     "location": "",
     "warning": "RUN IN ADMINISTRATOR MODE DURING INSTALLATION!",
     "category": "motion capture"
@@ -56,9 +57,10 @@ class OMNITRAX_PT_ComputePanel(bpy.types.Panel):
             if device.device_type == "GPU":
                 devices.append(("GPU_" + str(d - 1), "GPU_" + str(d - 1), "Use GPU for inference (requires CUDA)"))
             else:
-                devices.append(("CPU_" + str(d), "CPU", "Use CPU for inference"))
+                if bpy.app.version_string == "2.92.0":
+                    devices.append(("CPU_" + str(d), "CPU", "Use CPU for inference"))
     except:
-        print("INFO: Did not find suitable inference devices.")
+        print("WARNING: Did not find suitable inference devices.")
 
     bpy.types.Scene.compute_device = EnumProperty(
         name="",
@@ -98,13 +100,24 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
         # load darknet with compiled DLLs for windows for either GPU or CPU inference from respective path
         if context.scene.compute_device.split("_")[0] == "GPU":
+            required_CUDA_version = "11.2"
+            CUDA_match = check_CUDA_installation(required_CUDA_version=required_CUDA_version)
+
+            if not CUDA_match:
+                self.report({'ERROR'}, 'No matching CUDA version found! Refer to console for full error message')
+                return {'CANCELLED'}
+
             from omni_trax.darknet import darknet as darknet
             darknet.set_compute_device(int(context.scene.compute_device.split("_")[1]))
         else:
             if platform.system() != "Linux":
                 from omni_trax.darknet import darknet_cpu as darknet
             else:
-                from omni_trax.darknet import darknet as darknet
+                if bpy.app.version_string == "2.92.0":
+                    from omni_trax.darknet import darknet as darknet
+                else:
+                    self.report({'ERROR'}, 'To use CPU inference, you need to use OmniTrax with Blender version 2.9.2!')
+                    return {'CANCELLED'}
 
         """
         Tracker settings
@@ -133,7 +146,11 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             altNames = None
 
         clip = context.edit_movieclip
-        video = bpy.path.abspath(clip.filepath)
+        try:
+            video = bpy.path.abspath(clip.filepath)
+        except:
+            self.report({'ERROR'}, 'Open a video to track from your drive, then click TRACK / RESTART Tracking again')
+            return {'CANCELLED'}
 
         # enter the number of annotated frames:
         tracked_frames = context.scene.frame_end
