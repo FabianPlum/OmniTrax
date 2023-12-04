@@ -16,6 +16,9 @@ CUDA_match = check_CUDA_installation(required_CUDA_version=required_CUDA_version
 
 # only run the following checks upon initial installation
 # setup_state.txt keeps track of the installation state
+
+setup_complete = False
+
 try:
     with open(os.path.join(directory, "setup_state.txt")) as f:
         lines = f.readlines()
@@ -25,8 +28,6 @@ try:
             if line_elems[0] == "setup_complete":
                 if line_elems[1] == "True":
                     setup_complete = True
-                else:
-                    setup_complete = False
 except FileNotFoundError:
     setup_complete = False
 
