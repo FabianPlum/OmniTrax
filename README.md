@@ -46,7 +46,8 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 ### Step-by-step installation
 1. Install [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/) from the official website. Simply download [blender-3.3.1-windows-x64.msi](https://www.blender.org/download/release/Blender3.3/blender-3.3.1-windows-x64.msi/) and follow the installation instructions.
 
-2. Install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1.0](https://developer.nvidia.com/rdp/cudnn-archive). Here, we provide a separate [CUDA installation guide](docs/CUDA_installation_guide.md). If you already have a separate CUDA installation on your system refer to [this](https://www.tensorflow.org/install/source#gpu) official guide for version matching and additional installation instructions.
+2. Install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1.0](https://developer.nvidia.com/rdp/cudnn-archive). Here, we provide a separate [CUDA installation guide](docs/CUDA_installation_guide.md). 
+   **For advanced users**: If you already have a separate CUDA installation on your system, make sure to **additionally** install 11.2 and update your PATH environment variable. Conflicting versions may mean that OmniTrax is unable to find your GPU which may lead to unexpected crashes.
 
 3. Download the latest release [![latest-release](https://img.shields.io/github/tag/FabianPlum/OmniTrax.svg?label=version&style=flat)](https://github.com/FabianPlum/OmniTrax/releases) of [OmniTrax](https://github.com/FabianPlum/OmniTrax/releases/download/V_0.2.3/omni_trax.zip). **No need to unzip** the file! You can install it straight from the **Blender > Preferences > Add-on** menu in the next step.
 
