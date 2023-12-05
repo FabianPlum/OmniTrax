@@ -24,7 +24,7 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 [![OmniTrax : Multi-Animal Tracking Demo](images/omnitrax_demo_screen_updated.jpg)](https://youtu.be/YXxM4QRaCDU)
 
 ## Updates:
-* 05/12/2023 - Added [**release** version 0.3.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.3.1) improved eception handling and stability.
+* 05/12/2023 - Added [**release** version 0.3.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.3.1) improved exception handling and stability.
 * 11/10/2023 - Added [**release** version 0.3.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.3.0) minor fixes, major Ubuntu support! (well, on CPU at least)
 * 02/07/2023 - Added [**release** version 0.2.3](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.3) fixing prior issues relating to masking and yolo path handling.
 * 26/03/2023 - Added [**release** version 0.2.2](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.2) which adds support for **footage masking** and **advanced sample export** (see [tutorial-tracking](https://github.com/FabianPlum/OmniTrax/blob/main/docs/tutorial-tracking.md) for details).
