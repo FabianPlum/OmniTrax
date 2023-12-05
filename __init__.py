@@ -93,6 +93,25 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         default=False)
 
     def execute(self, context):
+        # start by checking all necessary paths are provided before attempting to do anything
+        clip = context.edit_movieclip
+        try:
+            video = bpy.path.abspath(clip.filepath)
+        except:
+            self.report({'ERROR'}, 'Open a video to track from your drive, then click TRACK / RESTART Tracking again')
+            return {'CANCELLED'}
+
+        # check required YOLO paths
+        yolo_cfg_path_temp = bpy.path.abspath(context.scene.detection_config_path)
+        if not os.path.isfile(yolo_cfg_path_temp) or yolo_cfg_path_temp.split(".")[-1] != "cfg":
+            self.report({'ERROR'}, 'Provide the .cfg file of a suitable YOLOv3 or V4 model')
+            return {'CANCELLED'}
+        
+        yolo_weights_path_temp = bpy.path.abspath(context.scene.detection_weights_path)
+        if not os.path.isfile(yolo_weights_path_temp) or yolo_weights_path_temp.split(".")[-1] != "weights":
+            self.report({'ERROR'}, 'Provide the .weights file of a trained YOLOv3 or V4 model')
+            return {'CANCELLED'}
+
         """
         Check which compute device is selected and set it as active
         """
@@ -144,13 +163,6 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             print("\nINFO: Initialising darkent network...\n")
             network = None
             altNames = None
-
-        clip = context.edit_movieclip
-        try:
-            video = bpy.path.abspath(clip.filepath)
-        except:
-            self.report({'ERROR'}, 'Open a video to track from your drive, then click TRACK / RESTART Tracking again')
-            return {'CANCELLED'}
 
         # enter the number of annotated frames:
         tracked_frames = context.scene.frame_end
