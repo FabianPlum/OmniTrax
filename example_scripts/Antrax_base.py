@@ -4,12 +4,15 @@ import csv
 import os
 import math
 import time
+import pandas as pd
 import random
 import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 
 
-def import_tracks(path, numFrames, export=False):
+def import_tracks(path, numFrames, export=False,
+                  min_track_length=0, strip_tail_frames=0, min_movement_px=0,
+                  VERBOSE=True, custom_order=None):
     """
     Import all tracked paths (using blender motionExport.py) from specified folder and join them to a single array.
     Optionally, allows for export of created array containing all tracks into single .csv file
@@ -21,45 +24,91 @@ def import_tracks(path, numFrames, export=False):
     :return: array of all imported tracks, row: frames, columns X / Y coordinates of individual track.
              The first column consists of the frame numbers for easier readability if exported as a single file.
     """
-    print("importing tracks...")
+    if VERBOSE:
+        print("importing tracks...")
+    lst = os.listdir(path)
+    number_files = len(lst)
+    if VERBOSE:
+        print("INFO: found a total of", number_files, "tracks...")
+
     files = []
-    tracks = np.empty([numFrames + 1, 1])  # create array for all tracks
+    tracks = np.zeros([numFrames + 1, 1 + number_files * 2])  # create array for all tracks
     tracks[:, 0] = np.arange(start=1, stop=numFrames + 2, step=1, dtype=int)  # insert frame numbers
 
     imported = 0
 
-    # r=root, d=directories, f = files
-    for r, d, f in os.walk(path):
-        for file in f:
-            if '.csv' in file:
-                files.append(os.path.join(r, file))
+    if custom_order is not None:
+        for file in custom_order:
+            df = pd.read_csv(os.path.join(path, file), delimiter=';')
 
-                # for each new track create two "zeros" columns
-                # zeros are handled as nonexistent instances
-                tracks = np.append(tracks, np.zeros([numFrames + 1, 2]), axis=1)
+            track_temp = df[["frame", "x", "y"]].to_numpy()
 
-                with open(files[imported]) as csv_file:
-                    csv_reader = csv.reader(csv_file, delimiter=';')
-                    line_count = 0
+            if strip_tail_frames > 0:
+                track_temp = track_temp[:-strip_tail_frames]
 
-                    next(csv_reader, None)  # skip the headers
+            line_count = len(track_temp)
 
-                    for row in csv_reader:
-                        # tracks.insert())
-                        tracks[int(row[0]) - 1, imported * 2 + 1] = int(row[1])
-                        tracks[int(row[0]) - 1, imported * 2 + 2] = int(row[2])
-                        line_count += 1
-                    print("imported", str(file), f' with {line_count} points.')
+            if line_count >= min_track_length:
 
-                imported += 1
+                # next, check if the track has moved sufficiently to be considered
+                movement_temp_arr = np.array([i[1:3] for i in track_temp if i[1] != ''])
+                movement_range = np.ptp(movement_temp_arr.astype(int), axis=0)
+
+                if np.sqrt(np.sum(np.square(movement_range))) >= min_movement_px:
+
+                    tracks[track_temp[:, 0] - 1, imported * 2 + 1: imported * 2 + 3] = track_temp[:, 1:]
+
+                    if VERBOSE:
+                        print("INFO: imported", str(file), f' with {line_count} points.')
+                    imported += 1
+                else:
+                    if VERBOSE:
+                        print("INFO: excluded", str(file), f"for insufficient movement points.")
+            else:
+                if VERBOSE:
+                    print("INFO: excluded", str(file), f' with {line_count} points.')
+    else:
+        # r=root, d=directories, f = files
+        for r, d, f in os.walk(path):
+            for file in f:
+                df = pd.read_csv(os.path.join(path, file), delimiter=';')
+
+                track_temp = df[["frame", "x", "y"]].to_numpy()
+
+                if strip_tail_frames > 0:
+                    track_temp = track_temp[:-strip_tail_frames]
+
+                line_count = len(track_temp)
+
+                if line_count >= min_track_length:
+
+                    # next, check if the track has moved sufficiently to be considered
+                    movement_temp_arr = np.array([i[1:3] for i in track_temp if i[1] != ''])
+                    movement_range = np.ptp(movement_temp_arr.astype(int), axis=0)
+
+                    if np.sqrt(np.sum(np.square(movement_range))) >= min_movement_px:
+
+                        tracks[track_temp[:, 0] - 1, imported * 2 + 1: imported * 2 + 3] = track_temp[:, 1:]
+
+                        if VERBOSE:
+                            print("INFO: imported", str(file), f' with {line_count} points.')
+                        imported += 1
+                    else:
+                        if VERBOSE:
+                            print("INFO: excluded", str(file), f"for insufficient movement points.")
+                else:
+                    if VERBOSE:
+                        print("INFO: excluded", str(file), f' with {line_count} points.')
 
     tracks = tracks.astype(int)
     if export:
         export_path = path + "_all_tracks.csv"
         np.savetxt(export_path, tracks, delimiter=",")
 
-    print("\nSuccessfully combined the tracks of", imported, "individuals for training and display!")
-    return tracks
+    if VERBOSE:
+        print("\nSuccessfully combined the tracks of", imported, "individuals for training and display!")
+    # trim array to only contain valid tracks
+    return tracks[:, : 1 + imported * 2]
 
 
 def display_video(cap, tracks, show=(0, math.inf), scale=1.0):
@@ -137,6 +186,334 @@ def display_video(cap, tracks, show=(0, math.inf), scale=1.0):
         time_to_process = (time.time() - time_prev)  # compute elapsed time to enforce constant frame rate (if possible)
         if time_to_process < 1 / fps:
             time.sleep((1 / fps) - time_to_process)
+
+        # press q to quit, i.e. exit the display
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+        frame_num += 1
+
+    cv2.destroyAllWindows()
+
+    # always reset frame from capture at the end to avoid incorrect skips during access
+    cap.set(1, 0)
+
+    print("\nReached last frame of specified video or ended by user input.\n")
+
+
+class BarGraph:
+    def __init__(self, width=600, height=720, num_classes=5, lightmode=False):
+        self.height = height
+        self.width = width
+        self.lightmode = lightmode
+        if self.lightmode:
+            self.graph = np.ones((height, width, 3), np.uint8) * 255
+        else:
+            self.graph = np.zeros((height, width, 3), np.uint8)
+        self.num_classes = num_classes
+        self.class_count = np.zeros(num_classes)
+
+    def update(self, classes):
+        unique, counts = np.unique(classes, return_counts=True)
+        self.class_count = np.zeros(self.num_classes)
+        for u, c in zip(unique, counts):
+            self.class_count[u] = c
+
+        if self.lightmode:
+            new_graph = np.ones((self.height, self.width, 3), np.uint8) * 255
+        else:
+            new_graph = np.zeros((self.height, self.width, 3), np.uint8)
+
+        colours = [[152, 181, 45],
+                   [181, 131, 45],
+                   [181, 52, 45],
+                   [181, 45, 118],
+                   [165, 45, 181]]
+
+        if self.lightmode:
+            fill = [[194, 232, 58],
+                    [232, 168, 58],
+                    [232, 67, 58],
+                    [232, 58, 151],
+                    [212, 58, 232]]
+        else:
+            fill = [[109, 130, 33],
+                    [130, 94, 33],
+                    [130, 37, 33],
+                    [130, 33, 85],
+                    [119, 33, 130]]
+
+        num_occurences = len(classes)
+        if num_occurences > 0:
+            for c, cl in enumerate(self.class_count):
+                # Using cv2.rectangle() method
+                # Draw a rectangle with blue line borders of thickness of 2 px
+                elem_height = cl / num_occurences
+                start_point = int(c * self.width / self.num_classes), int(self.height)
+                end_point = int((c + 1) * self.width / self.num_classes), int(self.height * (1 - elem_height))
+                new_graph = cv2.rectangle(new_graph, start_point, end_point, fill[c], cv2.FILLED)
+                new_graph = cv2.rectangle(new_graph, start_point, end_point, colours[c], 4)
+
+        self.graph = new_graph
+
+    def get_graph(self):
+        return self.graph
+
+
+def compose_video_with_overlay(cap, tracks, size_classes=None, poses=None, show=(0, math.inf), scale=1.0,
+                               constant_frame_rate=True, thresh=0.5, pose_point_size=3,
+                               video_name="Analysed video", DEBUG=False, WRITE_OUT=True,
+                               lightmode=False):
+    """
+    Function displays imported footage with tracking results, poses, and class, as overlay
+    For now, this happens at a fixed resolution and input videos will be rescaled to 720p
+
+    :param cap: Imported video file
+    :param tracks: all imported tracks as a single array, created with import_tracks
+    :param poses: list of pose data frames (shape of [len(tracks), pose_df])
+    :param show: tuple of desired displayed frames
+    :param scale: single float to up- or downscale resolution of display
+    """
+    if WRITE_OUT:
+        if not os.path.exists("output_comp_" + video_name):
+            os.mkdir("output_comp_" + video_name)
+
+    tracks = (scale * tracks).astype(int)  # rescale pixel values of tracks
+    # frame counter
+    frame_num = show[0]
+
+    # define the size of each tracking rectangle
+    target_size = 128 * scale
+
+    pose_display_size = 300 * scale
+
+    # get frame rate of imported footage
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    # colours = np.random.randint(low=0, high=255, size=((math.floor(((tracks.shape[1]) - 1) / 2)), 3))
+    # colours correspond to the class of the animal (lager = "more red")
+    colours = [[152, 181, 45],
+               [181, 131, 45],
+               [181, 52, 45],
+               [181, 45, 118],
+               [165, 45, 181]]
+
+    # assign IDs to cutout displays
+    box_id = [None, None, None, None, None, None, None, None]
+    tracks_used = []
+    # define locations for cutout displays
+    box_coords = [[200, 100, 500, 400],
+                  [620, 100, 920, 400],
+                  [1040, 100, 1340, 400],
+                  [1040, 520, 1340, 820],
+                  [1040, 950, 1340, 1250],
+                  [1040, 1370, 1340, 1670],
+                  [1040, 1800, 1340, 2100],
+                  [1040, 2230, 1340, 2530]]
+
+    # define location for centred video and plot
+    video_coords = [200, 920, 520, 1080]
+    plot_coords = [200, 920, 1920, 2530]
+
+    full_frame_dims = [1420, 2600, 3]
+
+    graph = BarGraph(width=600, height=720, num_classes=5, lightmode=lightmode)
+
+    print("\nDisplaying tracked footage!\npress 'q' to end display")
+
+    # skip to desired start frame
+    # Property identifier of cv2.CV_CAP_PROP_POS_FRAMES is 1, thus the first entry is 1
+    cap.set(1, show[0])
+
+    # set font from info display on frame
+    font = cv2.FONT_HERSHEY_DUPLEX
+
+    if lightmode:
+        line_colour = (0, 0, 0)
+    else:
+        line_colour = (255, 255, 255)
+
+    while True:  # run until no more frames are available
+        time_prev = time.time()
+        # return single frame (ret = boolean, frame = image)
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        # scale down the video
+        new_height = int(np.shape(frame)[0] * scale)
+        new_width = int(np.shape(frame)[1] * scale)
+        frame = cv2.resize(frame, (new_width, new_height))
+
+        frame_clean = frame.copy()
+
+        all_classes = []
+
+        if lightmode:
+            full_frame = np.ones(full_frame_dims, dtype=np.uint8) * 255
+            full_frame_clean = np.ones(full_frame_dims, dtype=np.uint8) * 255
+        else:
+            full_frame = np.zeros(full_frame_dims, dtype=np.uint8)
+            full_frame_clean = np.zeros(full_frame_dims, dtype=np.uint8)
+
+        full_frame_clean[200:920, 520:1800, :] = frame_clean
+
+        for bbox in box_coords:
+            start_point = bbox[1], bbox[0]
+            end_point = bbox[3], bbox[2]
+            full_frame = cv2.rectangle(full_frame, start_point, end_point, line_colour, 5)
+
+        vis_track = 0
+
+        for track in range(math.floor(((tracks.shape[1]) - 1) / 2)):
+            if tracks[frame_num, track * 2 + 1] != 0:
+                # the tracks are read as centres
+                target_centre = np.asarray([tracks[frame_num, track * 2 + 1], tracks[frame_num, track * 2 + 2]])
+
+                # invert y-axis, to fit openCV convention ( lower left -> (x=0,y=0) )
+                target_centre[1] = new_height - target_centre[1]
+                # define the starting and ending point of the bounding box rectangle, defined by "target_size"
+                px_start = target_centre - np.asarray([math.floor(target_size / 2), math.floor(target_size / 2)])
+                px_end = target_centre + np.asarray([math.floor(target_size / 2), math.floor(target_size / 2)])
+                # draw the defined rectangle of the track on top of the frame
+
+                # TODO use constant location
+                """
+                for t, temp_cutout in enumerate(box_id):
+                    if temp_cutout is None and track not in tracks_used:
+                        box_id[t] = track
+                        tracks_used.append(track)
+                """
+
+                if vis_track < len(box_id):
+                    cutout = full_frame_clean[200 + px_start[1]: 200 + px_end[1],
+                             520 + px_start[0]: 520 + px_end[0], :]
+                    try:
+                        cutout_resized = cv2.resize(cutout, (300, 300))
+                        full_frame[box_coords[vis_track][0]:box_coords[vis_track][2],
+                        box_coords[vis_track][1]:box_coords[vis_track][3], :] = cutout_resized
+                    except cv2.error:
+                        pass
+
+                if size_classes is not None:
+                    all_classes.append(size_classes[track])
+                    color_temp = (int(colours[size_classes[track]][0]),
+                                  int(colours[size_classes[track]][1]),
+                                  int(colours[size_classes[track]][2]))
+
+                    # write out CLASS
+                    cv2.putText(frame, "CLASS: " + str(size_classes[track]),
+                                (int(target_centre[0] - target_size / 2 + 80),
+                                 int(target_centre[1] - target_size / 2 - 10)),
+                                font, 0.33, color_temp, 1,
+                                cv2.LINE_AA)
+
+                    if vis_track < len(box_id):
+                        cv2.putText(full_frame, "CLASS: " + str(size_classes[track]),
+                                    (box_coords[vis_track][1],
+                                     box_coords[vis_track][2] + 40),
+                                    font, 0.83, color_temp, 2,
+                                    cv2.LINE_AA)
+
+
+                else:
+                    color_temp = (int(colours[0][0]), int(colours[0][1]), int(colours[0][2]))
+
+                cv2.rectangle(frame, (px_start[0], px_start[1]), (px_end[0], px_end[1]),
+                              color_temp, 2)
+                # write out track number of each active track
+                cv2.putText(frame, "track: " + str(track),
+                            (int(target_centre[0] - target_size / 2), int(target_centre[1] - target_size / 2 - 10)),
+                            font, 0.33, color_temp, 1,
+                            cv2.LINE_AA)
+
+                if poses is not None:
+                    temp_pose = poses[track][np.where(poses[track][:, 0] == frame_num)]
+                    num_points = int((len(temp_pose[0]) - 1) / 3)
+                    for p in range(num_points):
+                        if temp_pose[0][p * 3 + 3] >= thresh:
+                            point = temp_pose[0][p * 3 + 1:p * 3 + 3]
+                            # convert the location to the full frame equivalent
+                            # first down scale (from 300 to 128)
+                            point_rescaled = (point / 300) * 128
+                            # then add the track centre
+                            point_global = point_rescaled + px_start
+                            frame = cv2.circle(frame, (int(point_global[0]), int(point_global[1])),
+                                               pose_point_size,
+                                               (int(255 * p / num_points),
+                                                int(255 - 255 * p / num_points), 200),
+                                               -1)
+
+                            if vis_track < len(box_id):
+                                point_cutout = point + [box_coords[vis_track][1], box_coords[vis_track][0]]
+                                full_frame = cv2.circle(full_frame, (int(point_cutout[0]), int(point_cutout[1])),
+                                                        pose_point_size * 2,
+                                                        (int(255 * p / num_points),
+                                                         int(255 - 255 * p / num_points), 200),
+                                                        -1)
+
+                vis_track += 1
+
+        full_frame[200:920, 520:1800, :] = frame
+
+        cv2.putText(full_frame, "file: " + video_name, (100, 80),
+                    font, 1.6, line_colour, 1, cv2.LINE_AA)
+
+        cv2.putText(full_frame, "live size-frequency", (1990, 160),
+                    font, 1.4, line_colour, 1, cv2.LINE_AA)
+
+        cv2.putText(full_frame, "frame: " + str(frame_num), (100, 160),
+                    font, 1.6, line_colour, 1, cv2.LINE_AA)
+
+        # updated and create bar graph of normalised size frequency distribution
+        graph.update(all_classes)
+        roi = full_frame[200:920, 1920:2520, :]  # final position
+        roi[:] = graph.get_graph()
+        # draw lines and add ticks
+        full_frame = cv2.line(full_frame, (1900, 920), (2540, 920), color=line_colour, thickness=5)
+        full_frame = cv2.line(full_frame, (1910, 930), (1910, 190), color=line_colour, thickness=5)
+        cv2.putText(full_frame, "body length in mm", (2090, 1000),
+                    font, 0.9, line_colour, 1, cv2.LINE_AA)
+        cv2.putText(full_frame, "0.0", (1850, 920),
+                    font, 0.7, line_colour, 1, cv2.LINE_AA)
+        full_frame = cv2.line(full_frame,
+                              (1900, 200),
+                              (1920, 200),
+                              color=line_colour, thickness=3)
+        cv2.putText(full_frame, "0.5", (1850, 560),
+                    font, 0.7, line_colour, 1, cv2.LINE_AA)
+        full_frame = cv2.line(full_frame,
+                              (1900, 560),
+                              (1920, 560),
+                              color=line_colour, thickness=3)
+        cv2.putText(full_frame, "1.0", (1850, 200),
+                    font, 0.7, line_colour, 1, cv2.LINE_AA)
+        five_class = [" 3.0", " 4.0", " 5.0", " 6.0", " 7.0"]
+        for space, cl in enumerate(five_class):
+            full_frame = cv2.line(full_frame,
+                                  (1975 + space * 125, 905),
+                                  (1975 + space * 125, 935),
+                                  color=line_colour, thickness=3)
+            cv2.putText(full_frame, cl, (1945 + space * 125, 963),
+                        font, 0.7, line_colour, 1, cv2.LINE_AA)
+
+        if WRITE_OUT:
+            cv2.imwrite(os.path.join("output_comp_" + video_name, video_name + "_" + str(frame_num) + ".jpg"),
+                        full_frame)
+
+        if DEBUG:
+            full_frame = cv2.resize(full_frame, (1300, 710))
+
+        cv2.imshow('original frame', full_frame)
+
+        if frame_num > show[1]:
+            break
+
+        if constant_frame_rate:
+            # enforce constant frame rate during display
+            time_to_process = (time.time() - time_prev)  # compute elapsed time to enforce constant frame rate
+            if time_to_process < 1 / fps:
+                time.sleep((1 / fps) - time_to_process)
 
         # press q to quit, i.e. exit the display
         if cv2.waitKey(1) & 0xFF == ord('q'):
