@@ -106,7 +106,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         if not os.path.isfile(yolo_cfg_path_temp) or yolo_cfg_path_temp.split(".")[-1] != "cfg":
             self.report({'ERROR'}, 'Provide the .cfg file of a suitable YOLOv3 or V4 model')
             return {'CANCELLED'}
-        
+
         yolo_weights_path_temp = bpy.path.abspath(context.scene.detection_weights_path)
         if not os.path.isfile(yolo_weights_path_temp) or yolo_weights_path_temp.split(".")[-1] != "weights":
             self.report({'ERROR'}, 'Provide the .weights file of a trained YOLOv3 or V4 model')
@@ -331,10 +331,15 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             raise ValueError("Invalid data file path `" +
                              os.path.abspath(yolo_paths.data) + "`")
         if network is None:
-            network, class_names, _ = darknet.load_network(yolo_paths.cfg,
-                                                           yolo_paths.data,
-                                                           yolo_paths.weights,
-                                                           batch_size=1)
+            try:
+                network, class_names, _ = darknet.load_network(yolo_paths.cfg,
+                                                               yolo_paths.data,
+                                                               yolo_paths.weights,
+                                                               batch_size=1)
+            except Exception as e:  # work on python 3.x
+                self.report({'ERROR'}, e)
+                return {'CANCELLED'}
+
         if altNames is None:
             try:
                 with open(yolo_paths.data) as metaFH:
@@ -353,8 +358,9 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                                 altNames = [x.strip() for x in namesList]
                     except TypeError:
                         pass
-            except Exception:
-                pass
+            except Exception as e:  # work on python 3.x
+                self.report({'ERROR'}, e)
+                return {'CANCELLED'}
 
         print("Starting the YOLO loop...")
 
@@ -383,176 +389,181 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         executed_from_frame = bpy.context.scene.frame_current
 
         while True:
-            if tracker_continue:
-                if frame_counter == context.scene.frame_end + 3 - executed_from_frame:
+            try:
+                if tracker_continue:
+                    if frame_counter == context.scene.frame_end + 3 - executed_from_frame:
+                        bpy.context.scene.frame_current = context.scene.frame_end
+                        break
+                elif frame_counter == context.scene.frame_end + 3 - context.scene.frame_start:
                     bpy.context.scene.frame_current = context.scene.frame_end
                     break
-            elif frame_counter == context.scene.frame_end + 3 - context.scene.frame_start:
-                bpy.context.scene.frame_current = context.scene.frame_end
-                break
 
-            prev_time = time.time()
-            ret, frame_read = cap.read()
-            if not ret:
-                break
+                prev_time = time.time()
+                ret, frame_read = cap.read()
+                if not ret:
+                    break
 
-            clip_width = frame_read.shape[1]
-            clip_height = frame_read.shape[0]
-            frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
+                clip_width = frame_read.shape[1]
+                clip_height = frame_read.shape[0]
+                frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
 
-            # apply mask, if defined
-            if img_mask is not None:
-                frame_rgb = cv2.bitwise_and(frame_rgb, frame_rgb, mask=img_mask)
+                # apply mask, if defined
+                if img_mask is not None:
+                    frame_rgb = cv2.bitwise_and(frame_rgb, frame_rgb, mask=img_mask)
 
-            frame_resized = cv2.resize(frame_rgb,
-                                       (video_width,
-                                        video_height),
-                                       interpolation=cv2.INTER_LINEAR)
+                frame_resized = cv2.resize(frame_rgb,
+                                           (video_width,
+                                            video_height),
+                                           interpolation=cv2.INTER_LINEAR)
 
-            darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
+                darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
 
-            # thresh : detection threshold -> lower = more sensitive (higher recall)
-            # nms : non maximum suppression -> higher = allow for closer proximity between detections
-            detections = darknet.detect_image(network, class_names, darknet_image,
-                                              thresh=bpy.context.scene.detection_activation_threshold,
-                                              nms=bpy.context.scene.detection_nms)
-            print("Frame:", frame_counter + 1)
-            viable_detections = []
-            centres = []
-            bounding_boxes = []
-            predicted_classes = []
+                # thresh : detection threshold -> lower = more sensitive (higher recall)
+                # nms : non maximum suppression -> higher = allow for closer proximity between detections
+                detections = darknet.detect_image(network, class_names, darknet_image,
+                                                  thresh=bpy.context.scene.detection_activation_threshold,
+                                                  nms=bpy.context.scene.detection_nms)
+                print("Frame:", frame_counter + 1)
+                viable_detections = []
+                centres = []
+                bounding_boxes = []
+                predicted_classes = []
 
-            if tracker_continue:
-                bpy.context.scene.frame_current = executed_from_frame + frame_counter + 1
-            else:
-                bpy.context.scene.frame_current = bpy.context.scene.frame_start + frame_counter
+                if tracker_continue:
+                    bpy.context.scene.frame_current = executed_from_frame + frame_counter + 1
+                else:
+                    bpy.context.scene.frame_current = bpy.context.scene.frame_start + frame_counter
 
-            for label, confidence, bbox in detections:
-                if bbox[2] >= bpy.context.scene.detection_min_size and \
-                        bbox[3] >= bpy.context.scene.detection_min_size:
-                    predicted_classes.append(label)
-                    # we need to scale the detections to the original imagesize, as they are downsampled above
-                    scaled_xy = scale_detections(x=bbox[0], y=bbox[1],
-                                                 network_w=darknet.network_width(network),
-                                                 network_h=darknet.network_height(network),
-                                                 output_w=frame_rgb.shape[1], output_h=frame_rgb.shape[0])
-                    viable_detections.append(scaled_xy)
+                for label, confidence, bbox in detections:
+                    if bbox[2] >= bpy.context.scene.detection_min_size and \
+                            bbox[3] >= bpy.context.scene.detection_min_size:
+                        predicted_classes.append(label)
+                        # we need to scale the detections to the original imagesize, as they are downsampled above
+                        scaled_xy = scale_detections(x=bbox[0], y=bbox[1],
+                                                     network_w=darknet.network_width(network),
+                                                     network_h=darknet.network_height(network),
+                                                     output_w=frame_rgb.shape[1], output_h=frame_rgb.shape[0])
+                        viable_detections.append(scaled_xy)
 
-                    # kalman stuff here
-                    centres.append(np.round(np.array([[bbox[0]], [bbox[1]]])))
+                        # kalman stuff here
+                        centres.append(np.round(np.array([[bbox[0]], [bbox[1]]])))
 
-                    # add bounding box info by associating it with corresponding matched centres / tracks
-                    bounding_boxes.append([bbox[0] - bbox[2] / 2,
-                                           bbox[0] + bbox[2] / 2,
-                                           bbox[1] - bbox[3] / 2,
-                                           bbox[1] + bbox[3] / 2])
+                        # add bounding box info by associating it with corresponding matched centres / tracks
+                        bounding_boxes.append([bbox[0] - bbox[2] / 2,
+                                               bbox[0] + bbox[2] / 2,
+                                               bbox[1] - bbox[3] / 2,
+                                               bbox[1] + bbox[3] / 2])
 
-            all_detection_centres.append(viable_detections)
+                all_detection_centres.append(viable_detections)
 
-            if bpy.context.scene.detection_enforce_constant_size:
-                image = cvDrawBoxes(detections, frame_resized, min_size=bpy.context.scene.detection_min_size,
-                                    constant_size=bpy.context.scene.detection_constant_size,
-                                    class_colours=class_colours)
-            else:
-                image = cvDrawBoxes(detections, frame_resized, min_size=bpy.context.scene.detection_min_size,
-                                    class_colours=class_colours)
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                if bpy.context.scene.detection_enforce_constant_size:
+                    image = cvDrawBoxes(detections, frame_resized, min_size=bpy.context.scene.detection_min_size,
+                                        constant_size=bpy.context.scene.detection_constant_size,
+                                        class_colours=class_colours)
+                else:
+                    image = cvDrawBoxes(detections, frame_resized, min_size=bpy.context.scene.detection_min_size,
+                                        class_colours=class_colours)
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-            # before we show stuff, let's add some tracking fun
-            # SO, if animals are detected then track them
+                # before we show stuff, let's add some tracking fun
+                # SO, if animals are detected then track them
 
-            if len(centres) > -1:
+                if len(centres) > -1:
 
-                # Track object using Kalman Filter
-                tracker_KF.Update(centres,
-                                  predicted_classes=predicted_classes,
-                                  bounding_boxes=bounding_boxes)
+                    # Track object using Kalman Filter
+                    tracker_KF.Update(centres,
+                                      predicted_classes=predicted_classes,
+                                      bounding_boxes=bounding_boxes)
 
-                # For identified object tracks draw tracking line
-                # Use various colors to indicate different track_id
-                for i in range(len(tracker_KF.tracks)):
-                    if len(tracker_KF.tracks[i].trace) > 1:
-                        mname = "track_" + str(tracker_KF.tracks[i].track_id)
+                    # For identified object tracks draw tracking line
+                    # Use various colors to indicate different track_id
+                    for i in range(len(tracker_KF.tracks)):
+                        if len(tracker_KF.tracks[i].trace) > 1:
+                            mname = "track_" + str(tracker_KF.tracks[i].track_id)
 
-                        # record the predicted class at each increment for every track
-                        if mname in track_classes:
-                            track_classes[mname][bpy.context.scene.frame_current] = \
-                                tracker_KF.tracks[i].predicted_class[
-                                    -1]
-                        else:
-                            track_classes[mname] = {
-                                bpy.context.scene.frame_current: tracker_KF.tracks[i].predicted_class[-1]}
+                            # record the predicted class at each increment for every track
+                            if mname in track_classes:
+                                track_classes[mname][bpy.context.scene.frame_current] = \
+                                    tracker_KF.tracks[i].predicted_class[
+                                        -1]
+                            else:
+                                track_classes[mname] = {
+                                    bpy.context.scene.frame_current: tracker_KF.tracks[i].predicted_class[-1]}
 
-                        if mname not in track_colors:
-                            track_colors[mname] = np.random.randint(low=100, high=255, size=3).tolist()
-
-                        # draw direction of movement onto footage
-                        x_t, y_t = tracker_KF.tracks[i].trace[-1]
-                        tracker_KF_velocity = 5 * (tracker_KF.tracks[i].trace[-1] - tracker_KF.tracks[i].trace[-2])
-                        x_t_future, y_t_future = tracker_KF.tracks[i].trace[-1] + tracker_KF_velocity * 0.1
-                        cv2.arrowedLine(image, (int(x_t), int(y_t)), (int(x_t_future), int(y_t_future)),
-                                        (np.array(track_colors[mname]) - np.array([70, 70, 70])).tolist(), 3,
-                                        tipLength=0.75)
-
-                        for j in range(len(tracker_KF.tracks[i].trace) - 1):
-                            hind_sight_frame = bpy.context.scene.frame_current - len(tracker_KF.tracks[i].trace) + j
-                            # Draw trace line on preview
-                            x1 = tracker_KF.tracks[i].trace[j][0][0]
-                            y1 = tracker_KF.tracks[i].trace[j][1][0]
-                            x2 = tracker_KF.tracks[i].trace[j + 1][0][0]
-                            y2 = tracker_KF.tracks[i].trace[j + 1][1][0]
                             if mname not in track_colors:
                                 track_colors[mname] = np.random.randint(low=100, high=255, size=3).tolist()
-                            cv2.line(image, (int(x1), int(y1)), (int(x2), int(y2)),
-                                     track_colors[mname], 2)
 
-                        if x2 != 0 and y2 != 0 and x2 <= clip_width and y2 <= clip_height:
-                            if mname not in clip.tracking.objects[0].tracks:
-                                # add new tracks to the set of markers
-                                bpy.ops.clip.add_marker(location=(x2 / clip_width, 1 - y2 / clip_height))
-                                clip.tracking.tracks.active.name = mname
-                                # return {"FINISHED"}
+                            # draw direction of movement onto footage
+                            x_t, y_t = tracker_KF.tracks[i].trace[-1]
+                            tracker_KF_velocity = 5 * (tracker_KF.tracks[i].trace[-1] - tracker_KF.tracks[i].trace[-2])
+                            x_t_future, y_t_future = tracker_KF.tracks[i].trace[-1] + tracker_KF_velocity * 0.1
+                            cv2.arrowedLine(image, (int(x_t), int(y_t)), (int(x_t_future), int(y_t_future)),
+                                            (np.array(track_colors[mname]) - np.array([70, 70, 70])).tolist(), 3,
+                                            tipLength=0.75)
 
-                            # write track to clip markers
-                            # update marker positions on the current frame
-                            # remember to invert the y axis, because things are never easy or correct by default
-                            # constrain x1 and
-                            clip.tracking.objects[0].tracks[mname].markers.insert_frame(hind_sight_frame,
-                                                                                        co=(x2 / clip_width,
-                                                                                            1 - y2 / clip_height))
-                            if context.scene.detection_enforce_constant_size:
-                                clip.tracking.objects[0].tracks[mname].markers.find_frame(
-                                    hind_sight_frame).pattern_corners = (
-                                    (ROI_size / clip_width, ROI_size / clip_height),
-                                    (ROI_size / clip_width, -ROI_size / clip_height),
-                                    (-ROI_size / clip_width, -ROI_size / clip_height),
-                                    (-ROI_size / clip_width, ROI_size / clip_height))
-                            else:
-                                clip.tracking.objects[0].tracks[mname].markers.find_frame(
-                                    hind_sight_frame).pattern_corners = (
-                                    ((tracker_KF.tracks[i].bbox_trace[-1][0] - x2) / clip_width,
-                                     (tracker_KF.tracks[i].bbox_trace[-1][3] - y2) / clip_height),
-                                    ((tracker_KF.tracks[i].bbox_trace[-1][1] - x2) / clip_width,
-                                     (tracker_KF.tracks[i].bbox_trace[-1][3] - y2) / clip_height),
-                                    ((tracker_KF.tracks[i].bbox_trace[-1][1] - x2) / clip_width,
-                                     (tracker_KF.tracks[i].bbox_trace[-1][2] - y2) / clip_height),
-                                    ((tracker_KF.tracks[i].bbox_trace[-1][0] - x2) / clip_width,
-                                     (tracker_KF.tracks[i].bbox_trace[-1][2] - y2) / clip_height))
+                            for j in range(len(tracker_KF.tracks[i].trace) - 1):
+                                hind_sight_frame = bpy.context.scene.frame_current - len(tracker_KF.tracks[i].trace) + j
+                                # Draw trace line on preview
+                                x1 = tracker_KF.tracks[i].trace[j][0][0]
+                                y1 = tracker_KF.tracks[i].trace[j][1][0]
+                                x2 = tracker_KF.tracks[i].trace[j + 1][0][0]
+                                y2 = tracker_KF.tracks[i].trace[j + 1][1][0]
+                                if mname not in track_colors:
+                                    track_colors[mname] = np.random.randint(low=100, high=255, size=3).tolist()
+                                cv2.line(image, (int(x1), int(y1)), (int(x2), int(y2)),
+                                         track_colors[mname], 2)
 
-                        cv2.putText(image,
-                                    mname,
-                                    (int(x2) - int(bpy.context.scene.detection_constant_size / 2),
-                                     int(y2) - bpy.context.scene.detection_constant_size), cv2.FONT_HERSHEY_SIMPLEX,
-                                    0.4,
-                                    track_colors[mname], 2)
-            if context.scene.tracker_save_video:
-                video_out.write(image)
-            cv2.imshow("Live tracking", image)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                bpy.context.scene.frame_current -= 2
-                break
+                            if x2 != 0 and y2 != 0 and x2 <= clip_width and y2 <= clip_height:
+                                if mname not in clip.tracking.objects[0].tracks:
+                                    # add new tracks to the set of markers
+                                    bpy.ops.clip.add_marker(location=(x2 / clip_width, 1 - y2 / clip_height))
+                                    clip.tracking.tracks.active.name = mname
+                                    # return {"FINISHED"}
 
-            frame_counter += 1
+                                # write track to clip markers
+                                # update marker positions on the current frame
+                                # remember to invert the y axis, because things are never easy or correct by default
+                                # constrain x1 and
+                                clip.tracking.objects[0].tracks[mname].markers.insert_frame(hind_sight_frame,
+                                                                                            co=(x2 / clip_width,
+                                                                                                1 - y2 / clip_height))
+                                if context.scene.detection_enforce_constant_size:
+                                    clip.tracking.objects[0].tracks[mname].markers.find_frame(
+                                        hind_sight_frame).pattern_corners = (
+                                        (ROI_size / clip_width, ROI_size / clip_height),
+                                        (ROI_size / clip_width, -ROI_size / clip_height),
+                                        (-ROI_size / clip_width, -ROI_size / clip_height),
+                                        (-ROI_size / clip_width, ROI_size / clip_height))
+                                else:
+                                    clip.tracking.objects[0].tracks[mname].markers.find_frame(
+                                        hind_sight_frame).pattern_corners = (
+                                        ((tracker_KF.tracks[i].bbox_trace[-1][0] - x2) / clip_width,
+                                         (tracker_KF.tracks[i].bbox_trace[-1][3] - y2) / clip_height),
+                                        ((tracker_KF.tracks[i].bbox_trace[-1][1] - x2) / clip_width,
+                                         (tracker_KF.tracks[i].bbox_trace[-1][3] - y2) / clip_height),
+                                        ((tracker_KF.tracks[i].bbox_trace[-1][1] - x2) / clip_width,
+                                         (tracker_KF.tracks[i].bbox_trace[-1][2] - y2) / clip_height),
+                                        ((tracker_KF.tracks[i].bbox_trace[-1][0] - x2) / clip_width,
+                                         (tracker_KF.tracks[i].bbox_trace[-1][2] - y2) / clip_height))
+
+                            cv2.putText(image,
+                                        mname,
+                                        (int(x2) - int(bpy.context.scene.detection_constant_size / 2),
+                                         int(y2) - bpy.context.scene.detection_constant_size), cv2.FONT_HERSHEY_SIMPLEX,
+                                        0.4,
+                                        track_colors[mname], 2)
+                if context.scene.tracker_save_video:
+                    video_out.write(image)
+                cv2.imshow("Live tracking", image)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    bpy.context.scene.frame_current -= 2
+                    break
+
+                frame_counter += 1
+
+            except Exception as e:  # work on python 3.x
+                self.report({'ERROR'}, e)
+                return {'CANCELLED'}
 
         cv2.destroyAllWindows()
         # always reset frame from capture at the end to avoid incorrect skips during access
@@ -595,6 +606,12 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         default=False)
 
     def execute(self, context):
+        # check the DLC input folder checks out
+        model_path = bpy.path.abspath(context.scene.pose_network_path)
+        if not os.path.isdir(model_path):
+            self.report({'ERROR'}, 'Enter a valid path to a trained and exported DLC model folder')
+            return {'CANCELLED'}
+
         print("\nRUNNING POSE ESTIMATION\n")
 
         # check if any tracks exist for the currently selected clip. If not, run full frame pose estimation
@@ -615,7 +632,6 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         if "dlc_proc" not in globals():
             from dlclive import DLCLive, Processor
             try:
-                model_path = bpy.path.abspath(context.scene.pose_network_path)
                 dlc_proc = Processor()
                 print("Loading DLC Network from", model_path)
                 dlc_live = DLCLive(model_path, processor=dlc_proc, pcutoff=context.scene.pose_pcutoff)
