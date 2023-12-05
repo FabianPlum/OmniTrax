@@ -135,7 +135,10 @@ if not setup_complete:
     except FileNotFoundError:
         print("INFO: Did not suppress DLC imports - indicating unit testing")
 
-    if platform.system() == "Linux":
+    if platform.system() != "Linux":
+        setup_state_f_contents.append("setup_complete=True")
+
+    else:
         # clone and make darknet (for cpu support)
         print("\n\n----------------------------------------------------------------------------\n")
         print("INFO: Linux environment found - building darknet from source...")
