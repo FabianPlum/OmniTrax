@@ -51,7 +51,7 @@ If you have an idea for an enhancement or a new feature, please follow these ste
 
 We welcome code contributions from the community. To contribute code to OmniTrax, follow these steps:
 
-1. Fork the [OmniTrax repository](https://github.com/omnitrax/omnitrax) to your own GitHub account.
+1. Fork the [OmniTrax repository](https://github.com/FabianPlum/OmniTrax) to your own GitHub account.
 2. Clone your forked repository to your local machine.
 3. Create a new branch for your work: `git checkout -b feature/your-feature-name`.
 4. Make your changes, following the project's coding standards.

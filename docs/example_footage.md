@@ -25,7 +25,7 @@ Download the corresponding trained network(s) referenced in the [README.md](../R
 
 #### Field
 
-* [foraging trail, field, close up, sparse, night 1](https://drive.google.com/file/d/10d2YuEpx62UOU8oQ1179XVxuKZOCbUZ5/view?usp=share_link)
+* [foraging trail, field, close up, sparse, night 1](https://drive.google.com/file/d/1gCPURw2MttaOBt2lyqVvbgQzXhdap4Dv/view?usp=drive_link)
 * [foraging trail, field, close up, sparse, night 2](https://drive.google.com/file/d/1X5fNkaEkALo1lgAu4HsKgzyZSAEapIq_/view?usp=share_link)
 
 
