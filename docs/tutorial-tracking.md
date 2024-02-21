@@ -258,7 +258,7 @@ the [single class ant detector (trained on synthetic data)](https://drive.google
 ![](../example_scripts/example_ant_recording_heatmap_of_ground_truth_tracks.svg)
 
 _generated heatmap from the [tracked outputs](../example_scripts/example_ant_recording)_ of
-[example_ant_recording.mp4](..images/example_ant_recording.mp4)
+[example_ant_recording.mp4](../images/example_ant_recording.mp4)
 
 ## 10. Advanced Sample Export _(OPTIONAL)_
 
