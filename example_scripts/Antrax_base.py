@@ -37,8 +37,11 @@ def import_tracks(path, numFrames, export=False,
 
     imported = 0
 
+    file_order = []
+
     if custom_order is not None:
         for file in custom_order:
+            file_order.append(file)
             df = pd.read_csv(os.path.join(path, file), delimiter=';')
 
             track_temp = df[["frame", "x", "y"]].to_numpy()
@@ -71,6 +74,7 @@ def import_tracks(path, numFrames, export=False,
         # r=root, d=directories, f = files
         for r, d, f in os.walk(path):
             for file in f:
+                file_order.append(file)
                 df = pd.read_csv(os.path.join(path, file), delimiter=';')
 
                 track_temp = df[["frame", "x", "y"]].to_numpy()
@@ -108,10 +112,11 @@ def import_tracks(path, numFrames, export=False,
     if VERBOSE:
         print("\nSuccessfully combined the tracks of", imported, "individuals for training and display!")
     # trim array to only contain valid tracks
-    return tracks[:, : 1 + imported * 2]
+    return tracks[:, : 1 + imported * 2], file_order
 
 
-def display_video(cap, tracks, show=(0, math.inf), scale=1.0):
+def display_video(cap, tracks, show=(0, math.inf), scale=1.0,
+                  focus_track=None, export_video=False):
     """
     Function displays imported footage with tracking results as overlay
 
@@ -143,6 +148,14 @@ def display_video(cap, tracks, show=(0, math.inf), scale=1.0):
     # set font from info display on frame
     font = cv2.FONT_HERSHEY_SIMPLEX
 
+    if export_video:
+        width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)  # float `width`
+        height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float `height`
+        fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+        out = cv2.VideoWriter("ID" + str(focus_track) + "_start_frame_" + str(show[0]) + "_output.avi",
+                              fourcc, int(fps),
+                              (int(width), int(height)))
+
     while True:  # run until no more frames are available
         time_prev = time.time()
         # return single frame (ret = boolean, frame = image)
@@ -155,29 +168,50 @@ def display_video(cap, tracks, show=(0, math.inf), scale=1.0):
         new_width = int(np.shape(frame)[1] * scale)
         frame = cv2.resize(frame, (new_width, new_height))
 
-        # iterate through all columns and draw rectangles for all non 0 values
-        for track in range(math.floor(((tracks.shape[1]) - 1) / 2)):
-            if tracks[frame_num, track * 2 + 1] != 0:
-                # the tracks are read as centres
-                target_centre = np.asarray([tracks[frame_num, track * 2 + 1], tracks[frame_num, track * 2 + 2]])
+        if focus_track is not None:
+            track = focus_track
+            target_centre = np.asarray([tracks[frame_num, track * 2 + 1], tracks[frame_num, track * 2 + 2]])
 
-                # invert y axis, to fit openCV convention ( lower left -> (x=0,y=0) )
-                target_centre[1] = new_height - target_centre[1]
-                # define the starting and ending point of the bounding box rectangle, defined by "target_size"
-                px_start = target_centre - np.asarray([math.floor(target_size / 2), math.floor(target_size / 2)])
-                px_end = target_centre + np.asarray([math.floor(target_size / 2), math.floor(target_size / 2)])
-                # draw the defined rectangle of the track on top of the frame
-                cv2.rectangle(frame, (px_start[0], px_start[1]), (px_end[0], px_end[1]),
-                              (int(colours[track, 0]), int(colours[track, 1]), int(colours[track, 2])), 2)
-                # write out track number of each active track
-                cv2.putText(frame, "track: " + str(track),
-                            (int(target_centre[0] - target_size / 2), int(target_centre[1] - target_size / 2 - 10)),
-                            font, 0.3, (int(colours[track, 0]), int(colours[track, 1]), int(colours[track, 2])), 1,
-                            cv2.LINE_AA)
+            # invert y-axis, to fit openCV convention ( lower left -> (x=0,y=0) )
+            target_centre[1] = new_height - target_centre[1]
+            # define the starting and ending point of the bounding box rectangle, defined by "target_size"
+            px_start = target_centre - np.asarray([math.floor(target_size / 2), math.floor(target_size / 2)])
+            px_end = target_centre + np.asarray([math.floor(target_size / 2), math.floor(target_size / 2)])
+            # draw the defined rectangle of the track on top of the frame
+            cv2.rectangle(frame, (px_start[0], px_start[1]), (px_end[0], px_end[1]),
+                          (int(colours[track, 0]), int(colours[track, 1]), int(colours[track, 2])), 2)
+            # write out track number of each active track
+            cv2.putText(frame, "track: " + str(track),
+                        (int(target_centre[0] - target_size / 2), int(target_centre[1] - target_size / 2 - 10)),
+                        font, 0.3, (int(colours[track, 0]), int(colours[track, 1]), int(colours[track, 2])), 1,
+                        cv2.LINE_AA)
+        else:
+            # iterate through all columns and draw rectangles for all non 0 values
+            for track in range(math.floor(((tracks.shape[1]) - 1) / 2)):
+                if tracks[frame_num, track * 2 + 1] != 0:
+                    # the tracks are read as centres
+                    target_centre = np.asarray([tracks[frame_num, track * 2 + 1], tracks[frame_num, track * 2 + 2]])
+
+                    # invert y axis, to fit openCV convention ( lower left -> (x=0,y=0) )
+                    target_centre[1] = new_height - target_centre[1]
+                    # define the starting and ending point of the bounding box rectangle, defined by "target_size"
+                    px_start = target_centre - np.asarray([math.floor(target_size / 2), math.floor(target_size / 2)])
+                    px_end = target_centre + np.asarray([math.floor(target_size / 2), math.floor(target_size / 2)])
+                    # draw the defined rectangle of the track on top of the frame
+                    cv2.rectangle(frame, (px_start[0], px_start[1]), (px_end[0], px_end[1]),
+                                  (int(colours[track, 0]), int(colours[track, 1]), int(colours[track, 2])), 2)
+                    # write out track number of each active track
+                    cv2.putText(frame, "track: " + str(track),
+                                (int(target_centre[0] - target_size / 2), int(target_centre[1] - target_size / 2 - 10)),
+                                font, 0.3, (int(colours[track, 0]), int(colours[track, 1]), int(colours[track, 2])), 1,
+                                cv2.LINE_AA)
 
         cv2.putText(frame, "frame: " + str(frame_num), (int(new_width / 2) - 100, 35),
                     font, 0.8, (255, 255, 255), 1, cv2.LINE_AA)
         cv2.imshow('original frame', frame)
+
+        if export_video:
+            out.write(frame)
 
         if frame_num > show[1]:
             break
@@ -194,6 +228,9 @@ def display_video(cap, tracks, show=(0, math.inf), scale=1.0):
         frame_num += 1
 
     cv2.destroyAllWindows()
+
+    if export_video:
+        out.release()
 
     # always reset frame from capture at the end to avoid incorrect skips during access
     cap.set(1, 0)
