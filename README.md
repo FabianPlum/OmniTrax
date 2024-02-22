@@ -23,19 +23,6 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 
 [![OmniTrax : Multi-Animal Tracking Demo](images/omnitrax_demo_screen_updated.jpg)](https://youtu.be/YXxM4QRaCDU)
 
-## Updates:
-* 05/12/2023 - Added [**release** version 0.3.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.3.1) improved exception handling and stability.
-* 11/10/2023 - Added [**release** version 0.3.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.3.0) minor fixes, major Ubuntu support! (well, on CPU at least)
-* 02/07/2023 - Added [**release** version 0.2.3](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.3) fixing prior issues relating to masking and yolo path handling.
-* 26/03/2023 - Added [**release** version 0.2.2](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.2) which adds support for **footage masking** and **advanced sample export** (see [tutorial-tracking](https://github.com/FabianPlum/OmniTrax/blob/main/docs/tutorial-tracking.md) for details).
-* 28/11/2022 - Added [**release** version 0.2.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.1) with updated YOLO and DLC-live model handling to accomodate for different file structures.
-* 09/11/2022 - Added [**release** version 0.2.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.0) with improved DLC-live pose estimation for single and multi-animal applications.
-* 02/11/2022 - Added [**release** version 0.1.3](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.1.3) which includes improved tracking from previous states, faster and more robust track transfer, building skeletons from DLC config files, improved package installation and start-up checks, a few bug fixes, and GPU compatibility with the latest release of [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/)!   For CPU-only inference, continue to use **Blender 2.92.0**.
-* 06/10/2022 - Added [**release** version 0.1.2](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.1.2) with GPU support for latest [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/)! For CPU-only inference, continue to use **Blender 2.92.0**.
-* 19/02/2022 - Added [**release** version 0.1.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.1.1)! Things run a lot faster now and I have added support for devices without dedicated GPUs. 
-* 06/12/2021 - Added the first [**release** version 0.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.1)! Lots of small improvements and mammal fixes. Now, it no longer feels like a pre-release and we can all give this a try. Happy Tracking!
-* 29/11/2021 - Added [**pre-release** version 0.0.2](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.0.2), with [DeepLabCut-Live](https://github.com/DeepLabCut/DeepLabCut-live) support, tested for **Blender 2.92.0** only
-* 20/11/2021 - Added [**pre-release** version 0.0.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.0.1), tested for **Blender 2.92.0** only
 
 ## Installation Guide
 ### Requirements / Notes
@@ -51,7 +38,7 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
    
    - **For advanced users**: If you already have a separate CUDA installation on your system, make sure to **additionally** install 11.2 and update your PATH environment variable. Conflicting versions may mean that OmniTrax is unable to find your GPU which may lead to unexpected crashes.
 
-3. Download the latest release [![latest-release](https://img.shields.io/github/tag/FabianPlum/OmniTrax.svg?label=version&style=flat)](https://github.com/FabianPlum/OmniTrax/releases) of [OmniTrax](https://github.com/FabianPlum/OmniTrax/releases/download/V_0.2.3/omni_trax.zip). **No need to unzip** the file! You can install it straight from the **Blender > Preferences > Add-on** menu in the next step.
+3. Download the latest release [![latest-release](https://img.shields.io/github/tag/FabianPlum/OmniTrax.svg?label=version&style=flat)](https://github.com/FabianPlum/OmniTrax/releases) of [OmniTrax](https://github.com/FabianPlum/OmniTrax/releases/latest/download/omni_trax.zip). **No need to unzip** the file! You can install it straight from the **Blender > Preferences > Add-on** menu in the next step.
 
 4. Open **Blender** in administrator mode. You only need to do this once, during the installation of **OmniTrax**. Once everything is up and running you can open **Blender** normally in the future. 
 
@@ -128,6 +115,22 @@ Additionally, you can download a few of our video examples to get started with O
 * add option to ```exit pose estimation``` completely while running inference (important when the number of tracks is 
 large)
 * add a **progress bar** for all tasks
+
+
+## Updates:
+* 05/12/2023 - Added [**release** version 0.3.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.3.1) improved exception handling and stability.
+* 11/10/2023 - Added [**release** version 0.3.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.3.0) minor fixes, major Ubuntu support! (well, on CPU at least)
+* 02/07/2023 - Added [**release** version 0.2.3](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.3) fixing prior issues relating to masking and yolo path handling.
+* 26/03/2023 - Added [**release** version 0.2.2](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.2) which adds support for **footage masking** and **advanced sample export** (see [tutorial-tracking](https://github.com/FabianPlum/OmniTrax/blob/main/docs/tutorial-tracking.md) for details).
+* 28/11/2022 - Added [**release** version 0.2.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.1) with updated YOLO and DLC-live model handling to accomodate for different file structures.
+* 09/11/2022 - Added [**release** version 0.2.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.0) with improved DLC-live pose estimation for single and multi-animal applications.
+* 02/11/2022 - Added [**release** version 0.1.3](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.1.3) which includes improved tracking from previous states, faster and more robust track transfer, building skeletons from DLC config files, improved package installation and start-up checks, a few bug fixes, and GPU compatibility with the latest release of [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/)!   For CPU-only inference, continue to use **Blender 2.92.0**.
+* 06/10/2022 - Added [**release** version 0.1.2](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.1.2) with GPU support for latest [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/)! For CPU-only inference, continue to use **Blender 2.92.0**.
+* 19/02/2022 - Added [**release** version 0.1.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.1.1)! Things run a lot faster now and I have added support for devices without dedicated GPUs. 
+* 06/12/2021 - Added the first [**release** version 0.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.1)! Lots of small improvements and mammal fixes. Now, it no longer feels like a pre-release and we can all give this a try. Happy Tracking!
+* 29/11/2021 - Added [**pre-release** version 0.0.2](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.0.2), with [DeepLabCut-Live](https://github.com/DeepLabCut/DeepLabCut-live) support, tested for **Blender 2.92.0** only
+* 20/11/2021 - Added [**pre-release** version 0.0.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.0.1), tested for **Blender 2.92.0** only
+
 
 ### References
 
