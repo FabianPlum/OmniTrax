@@ -104,7 +104,7 @@ By clicking on the **folder icon** next to each cell, select the respective **.c
 ![](images/use_03.jpg)
 
 > [!IMPORTANT] 
-> **OmniTrax versions 0.2.x and later no longer require **.data** and **.names** files, making their provision optional. 
+> **OmniTrax** versions 0.2.x and later no longer require **.data** and **.names** files, making their provision optional. 
 > For more info on when you would need those files, refer to the extended **[Tracking](docs/tutorial-tracking.md)** tutorial.
 
 Here you only need to set the path for
