@@ -46,6 +46,9 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 
 5. Open the Blender system console to see the installation progress and display information.
 
+> [!TIP] In Ubuntu this option is missing. In order to display this type of information, you need to launch blender from
+> the terminal directly and this terminal will display equivalent information while using blender.
+
 ![](images/install_02.jpg)
 
 6. Next, open **(1) Edit** > **(2) Preferences...** and under **Add-ons** click on **(3) Install...**. Then, locate the downloaded **(4) omni_trax.zip** file, select it, and click on **(5) Install Add-on**.
