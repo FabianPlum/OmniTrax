@@ -73,7 +73,7 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 
 ![](images/install_03.jpg)
 
-7. The **omni_trax** Add-on should now be listed. To see the installation process in action, at the top of the screen click on **Window** >> **Toggle System Console**. Then, enabling the Add-on will start the installation process of all required python dependencies. 
+7. The **omni_trax** Add-on should now be listed. Then, enabling the Add-on will start the installation process of all required python dependencies. 
 
 ![](images/install_04.jpg)
 
@@ -103,7 +103,9 @@ By clicking on the **folder icon** next to each cell, select the respective **.c
 
 ![](images/use_03.jpg)
 
-**ATTENTION:** Versions 0.2.x and later no longer require **.data** and **.names** files, making their provision optional. For more info on when you would need those files, refer to the extended **[Tracking](docs/tutorial-tracking.md)** tutorial.
+> [!IMPORTANT] 
+> **OmniTrax versions 0.2.x and later no longer require **.data** and **.names** files, making their provision optional. 
+> For more info on when you would need those files, refer to the extended **[Tracking](docs/tutorial-tracking.md)** tutorial.
 
 Here you only need to set the path for
 * *.cfg*
