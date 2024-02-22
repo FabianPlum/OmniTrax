@@ -24,6 +24,18 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 [![OmniTrax : Multi-Animal Tracking Demo](images/omnitrax_demo_screen_updated.jpg)](https://youtu.be/YXxM4QRaCDU)
 
 
+## Operating System Support
+
+> [!Important] 
+> **OmniTrax** runs on both Windows 10 / 11 as well as Ubuntu systems. However, the installation and CPU vs GPU slightly 
+> differs, as well as which Blender version needs to be installed to ensure compatibility of dependencies.
+
+|    Operating System    | Blender Version | CPU inference  | GPU inference |
+|:----------------------:|:---------------:|:--------------:|:-------------:|
+|    Windows 10 / 11     |     **3.3**     |     **X**      |     **X**     |
+| Ubuntu 18.04 / 20.04   |    **2.92**     |     **X**      |               |
+
+
 ## Installation Guide
 ### Requirements / Notes
 * **OmniTrax GPU** is currently only supported on **Windows 10 / 11**. For Ubuntu support on CPU, use [**Blender version 2.92.0**](https://download.blender.org/release/Blender2.92/) and skip the steps on CUDA installation.
@@ -46,7 +58,8 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 
 5. Open the Blender system console to see the installation progress and display information.
 
-> [!TIP] In Ubuntu this option is missing. In order to display this type of information, you need to launch blender from
+> [!TIP] 
+> In Ubuntu this option is missing. In order to display this type of information, you need to launch blender from
 > the terminal directly and this terminal will display equivalent information while using blender.
 
 ![](images/install_02.jpg)
