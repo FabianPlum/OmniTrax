@@ -27,8 +27,9 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 ## Operating System Support
 
 > [!Important] 
-> **OmniTrax** runs on both Windows 10 / 11 as well as Ubuntu systems. However, the installation and CPU vs GPU slightly 
-> differs, as well as which Blender version needs to be installed to ensure compatibility of dependencies.
+> **OmniTrax** runs on both Windows 10 / 11 as well as Ubuntu systems. However, the installation and CPU vs GPU 
+> inference support differs, as well as which Blender version needs to be installed to ensure compatibility of 
+> dependencies.
 
 |    Operating System    | Blender Version | CPU inference  | GPU inference |
 |:----------------------:|:---------------:|:--------------:|:-------------:|
@@ -45,6 +46,10 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 
 ### Step-by-step installation
 1. Install [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/) from the official website. Simply download [blender-3.3.1-windows-x64.msi](https://www.blender.org/download/release/Blender3.3/blender-3.3.1-windows-x64.msi/) and follow the installation instructions.
+
+> [!TIP]
+> If you are new to using blender, have a look at the [official Blender docs](https://docs.blender.org/manual/en/latest/interface/window_system/workspaces.html#save-and-override) 
+> to learn how to set up a workspace and arrange different types of editor windows.
 
 2. Install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1.0](https://developer.nvidia.com/rdp/cudnn-archive). Here, we provide a separate [CUDA installation guide](docs/CUDA_installation_guide.md). 
    
@@ -104,6 +109,11 @@ Here you only need to set the path for
 * *.cfg*
 * *.weights*
 
+> [!TIP]
+> After setting up your workspace, consider saving your project by pressing ```CTRL + S```
+> 
+> Saving your project also saves your workspace, so in the future you can use this file to begin tracking right away!
+
 **4.** Next, load a video you wish to analyse from your drive by clicking on **Open** (see image above). In this example we are using [**example_ant_recording.mp4**](images/example_ant_recording.mp4).
 
 **5.** Click on **RESTART Track** (or **TRACK** to continue tracking from a specific frame in the video). If you wish to stop the tracking process early, click on the video (which will open in a separate window) and press **q** to terminate the process.
@@ -111,8 +121,9 @@ Here you only need to set the path for
 OmniTrax will continue to track your video until it has either reached its last frame, or the **End Frame** (by default 250) which can be set in the **Detection (YOLO) >> Processing settings**.
 
 ![](images/use_04.gif)
- 
-*NOTE: The ideal settings for the **Detector** and **Tracker** will always depend on your footage, especially on the relative animal size and movement speed. Remember, **GIGO** (Garbage In Garbage Out) so ensuring your recordings are evenly-lit, free from noise, flickering, and motion blur, will go a long way to improve inference quality. Refer to the full **[Tracking](docs/tutorial-tracking.md)** tutorial for an in-depth explanation of each setting.*
+
+> [!NOTE] 
+> The ideal settings for the **Detector** and **Tracker** will always depend on your footage, especially on the relative animal size and movement speed. Remember, **GIGO** (Garbage In Garbage Out) so ensuring your recordings are evenly-lit, free from noise, flickering, and motion blur, will go a long way to improve inference quality. Refer to the full **[Tracking](docs/tutorial-tracking.md)** tutorial for an in-depth explanation of each setting.*
 
 ## User guides
 * [CUDA installation instructions](docs/CUDA_installation_guide.md)
