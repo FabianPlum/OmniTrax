@@ -31,7 +31,7 @@ bl_info = {
     "name": "omni_trax",
     "author": "Fabian Plum",
     "description": "Deep learning-based multi animal tracker",
-    "blender": (3, 3, 0),
+    "blender": (2, 92, 0),
     "version": (0, 3, 1),
     "location": "",
     "warning": "RUN IN ADMINISTRATOR MODE DURING INSTALLATION!",
