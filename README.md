@@ -15,7 +15,11 @@ Deep learning-based multi animal tracking and pose estimation Blender Add-on.
 
 _automated multi animal tracking example (trained on [synthetic data](https://github.com/FabianPlum/FARTS))_
 
-Leveraging openly available or custom-trained YOLO and DeepLabCut networks, this Blender Add-on enables straight forward user interaction to automatically evaluate or annotate large video files containing hundreds of animals, requiring minimal prior experience. Estimated tracks can be edited, iteratively refined, and exported. We additionally provide basic evaluation python scripts to visualise and plot trajectories.
+Leveraging openly available or custom-trained [YOLO](https://github.com/AlexeyAB/darknet) and [DeepLabCut](https://github.com/DeepLabCut/DeepLabCut) networks, this Blender Add-on enables straight forward user interaction to automatically evaluate or annotate large video files containing hundreds of animals, requiring minimal prior experience. Estimated tracks can be edited, iteratively refined, and exported. We additionally provide basic evaluation python scripts to visualise and plot trajectories.
+
+**OmniTrax** is designed to be a plug-and-play toolkit for biologists to facilitate the extraction of kinematic and behavioural data of freely moving animals. 
+**OmniTrax** can, for example, be used in population monitoring applications, especially, in changing environments where background subtraction methods may fail. This ability can be amplified by using detection models trained on highly variable [synthetically generated data](https://github.com/evo-biomech/replicAnt).
+**OmniTrax** can also be used to annotate training and validation data for [detector & tracker neural networks](https://github.com/AlexeyAB/darknet), or provide instance and pose data for [size classification and unsupervised behavioural clustering tasks](https://github.com/FabianPlum/WOLO).
 
 ![](images/single_ant_1080p_POSE_track_0.gif) ![](images/single_ant_1080p_POSE_track_0_skeleton.gif)
 
@@ -42,7 +46,7 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 * **OmniTrax GPU** is currently only supported on **Windows 10 / 11**. For Ubuntu support on CPU, use [**Blender version 2.92.0**](https://download.blender.org/release/Blender2.92/) and skip the steps on CUDA installation.
 * download and install [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/) to match dependencies. If you are planning on running inference on your CPU instead (which is considerably slower) use [**Blender version 2.92.0**](https://download.blender.org/release/Blender2.92/).
 * As we are using **tensorflow 2.7**, to run inference on your GPU, you will need to install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1](https://developer.nvidia.com/rdp/cudnn-archive). Refer to [this](https://www.tensorflow.org/install/source#gpu) official guide for version matching and installation instructions.
-* When installing the **OmniTrax** package, you need to run **Blender** in **admnistrator mode** (on **Windows**). Otherwise, the additional required python packages may not be installable.
+* When installing the **OmniTrax** package, you need to run **Blender** in **administrator mode** (on **Windows**). Otherwise, the additional required python packages may not be installable.
 
 ### Step-by-step installation
 1. Install [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/) from the official website. Simply download [blender-3.3.1-windows-x64.msi](https://www.blender.org/download/release/Blender3.3/blender-3.3.1-windows-x64.msi/) and follow the installation instructions.
