@@ -626,7 +626,9 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
         global dlc_live
         global network_initialised
         global pose_cfg
-        global pose_joint_header
+        global pose_joint_header_l1
+        global pose_joint_header_l2
+        global pose_joint_header_l3
         global pose_joint_names
 
         if "dlc_proc" not in globals():
@@ -783,6 +785,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 pose_output_file.write(pose_joint_header_l1 + "\n")
                 pose_output_file.write(pose_joint_header_l2 + "\n")
                 pose_output_file.write(pose_joint_header_l3 + "\n")
+
                 for key, value in track_pose.items():
                     line = key + "," + ",".join(str(e) for e in value.flatten())
                     pose_output_file.write(line + "\n")
@@ -988,6 +991,7 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                     pose_output_file.write(pose_joint_header_l1 + "\n")
                     pose_output_file.write(pose_joint_header_l2 + "\n")
                     pose_output_file.write(pose_joint_header_l3 + "\n")
+
                     for key, value in track_pose.items():
                         line = key + "," + ",".join(str(e) for e in value.flatten())
                         pose_output_file.write(line + "\n")
