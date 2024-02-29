@@ -15,11 +15,19 @@ Deep learning-based multi animal tracking and pose estimation Blender Add-on.
 
 _automated multi animal tracking example (trained on [synthetic data](https://github.com/FabianPlum/FARTS))_
 
-Leveraging openly available or custom-trained [YOLO](https://github.com/AlexeyAB/darknet) and [DeepLabCut](https://github.com/DeepLabCut/DeepLabCut) networks, this Blender Add-on enables straight forward user interaction to automatically evaluate or annotate large video files containing hundreds of animals, requiring minimal prior experience. Estimated tracks can be edited, iteratively refined, and exported. We additionally provide basic evaluation python scripts to visualise and plot trajectories.
+**OmniTrax** is an open-source Blender Add-on designed for deep learning-driven multi-animal tracking and pose-estimation. 
+It leverages recent advancements in deep-learning-based detection ([YOLOv3](https://github.com/pjreddie/darknet), 
+[YOLOv4](https://github.com/AlexeyAB/darknet)) and computationally inexpensive buffer-and-recover tracking techniques. 
+OmniTrax integrates with Blender's internal motion tracking pipeline, making it an excellent tool for annotating and 
+analyzing large video files containing numerous freely moving subjects. 
+Additionally, it integrates [DeepLabCut-Live](https://github.com/DeepLabCut/DeepLabCut) for marker-less 
+pose estimation on arbitrary numbers of animals, using both the 
+[DeepLabCut Model Zoo](https://www.mackenziemathislab.org/dlc-modelzoo) and custom-trained detector and 
+pose estimator networks.
 
 **OmniTrax** is designed to be a plug-and-play toolkit for biologists to facilitate the extraction of kinematic and behavioural data of freely moving animals. 
 **OmniTrax** can, for example, be used in population monitoring applications, especially, in changing environments where background subtraction methods may fail. This ability can be amplified by using detection models trained on highly variable [synthetically generated data](https://github.com/evo-biomech/replicAnt).
-**OmniTrax** can also be used to annotate training and validation data for [detector & tracker neural networks](https://github.com/AlexeyAB/darknet), or provide instance and pose data for [size classification and unsupervised behavioural clustering tasks](https://github.com/FabianPlum/WOLO).
+**OmniTrax** also lends itself well to annotating training and validation data for [detector & tracker neural networks](https://github.com/AlexeyAB/darknet), or providing instance and pose data for [size classification and unsupervised behavioural clustering tasks](https://github.com/FabianPlum/WOLO).
 
 ![](images/single_ant_1080p_POSE_track_0.gif) ![](images/single_ant_1080p_POSE_track_0_skeleton.gif)
 
