@@ -7,6 +7,8 @@
 /example_scripts/.ipynb_checkpoints/*
 /trained_models/*
 /trained_models
+/sources
+/sources/*
 
 # installation specific
 setup_state.txt
