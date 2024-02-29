@@ -39,10 +39,10 @@ Deep learning-based computer vision approaches promise to transform the landscap
 behavioural research. The goal of `OmniTrax` is to provide an interactive inference pipeline that decreases the entry barrier 
 for researchers who wish to streamline annotation and analysis processes using deep learning-driven computer vision tools.
 `OmniTrax` is designed to track and infer the pose of large numbers of freely moving animals. Unlike background
-subtraction, blob-detector, or optical-flow based approaches, common in multi-animal tracking (see e.g. [@Kalafatic2001; 
-@Perez-Escudero2014; @Walter2021]), the use of deep learning-based detectors allows for buffer-and-recover tracking 
+subtraction, blob-detector, or optical-flow based approaches, common in multi-animal tracking [@Kalafatic2001; 
+@Perez-Escudero2014; @Walter2021], the use of deep learning-based detectors allows for buffer-and-recover tracking 
 in changing environments. `OmniTrax` automatically initiates new tracks
-when animals are detected for the first time and terminated when they leave the recording site or become occluded for 
+when an animal is detected for the first time and terminates the track when the animal leaves the recording site or become occluded for 
 prolonged periods. `OmniTrax` uses a tuneable Kalman-Filter and the Hungarian Method for cost assignment to extrapolate 
 the 2D trajectories of identified animals across frames, so that temporarily missing detections, e.g. due to occlusion, 
 motion blur, or other changes in appearance, can be compensated. 
