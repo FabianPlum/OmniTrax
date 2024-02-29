@@ -11,6 +11,7 @@ if len(sys.argv) > 1:
 
 # run all tests before aborting build
 testfailed = False
+failed_tests = []
 
 # iterate over each *.test.py file in the "tests" directory
 for file in glob.glob('tests/*.test.py'):
@@ -25,6 +26,17 @@ for file in glob.glob('tests/*.test.py'):
     print('#' * 100 + '\n\n\n')
     if code:
         testfailed = True
+        failed_tests.append(file)
+
+for test in failed_tests:
+    print('#' * 100, '\n')
+    print('FAILED: {}'.format(test))
+    print('See stderr above for details!'.format(test))
+    print('\n', '#' * 100 + '\n\n\n')
 
 if testfailed:
     sys.exit(1)
+else:
+    print('#' * 100)
+    print('--- ALL TESTS PASSED ---')
+    print('#' * 100 + '\n')

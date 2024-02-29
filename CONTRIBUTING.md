@@ -63,6 +63,22 @@ We welcome code contributions from the community. To contribute code to OmniTrax
 
 The maintainers will review your PR, and if everything looks good, it will be merged into the project.
 
+### Running CI tests locally
+
+To ensure your additions did not break **OmniTrax** core functionality, you can test your code by running the following:
+
+`python testrunner.py "PATH/TO/YOUR/BLENDER/EXECUTABLE"`
+
+so, e.g., under Windows it will likely be
+
+`python testrunner.py "C:\Program Files\Blender Foundation\Blender 3.3\blender"`
+
+If you are greeted with 
+
+`--- ALL TESTS PASSED ---`
+
+All is well.
+
 ### Trained model contributions
 
 If you want to contribute trained detector or pose estimator models to our 
