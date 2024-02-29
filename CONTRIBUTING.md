@@ -26,6 +26,7 @@ Before you start contributing to OmniTrax, make sure you have the following prer
 - Familiarity with deep learning concepts, especially YOLO and DeepLabCut.
 - Python programming skills.
 - An understanding of the project's goals and features by reviewing the [OmniTrax documentation](https://github.com/FabianPlum/OmniTrax/tree/main/docs).
+- A local python environment with all [dependencies installed](requirements-dev.txt)
 
 ## Contributing
 
