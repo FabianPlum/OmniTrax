@@ -1,0 +1,8 @@
+scipy
+matplotlib
+pandas
+PyYAML
+opencv-python
+opencv-contrib-python
+scikit-learn
+deeplabcut-live
