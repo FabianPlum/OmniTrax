@@ -62,6 +62,15 @@ We welcome code contributions from the community. To contribute code to OmniTrax
 
 The maintainers will review your PR, and if everything looks good, it will be merged into the project.
 
+## Trained model contributions
+
+If you want to contribute trained detector or pose estimator models to our 
+[model collection](https://github.com/FabianPlum/OmniTrax/blob/main/docs/trained_networks.md),
+please open a [new issue](https://github.com/FabianPlum/OmniTrax/issues/new/choose).
+
+Follow the file requirements listed in the `Trained model submission` issue template and, if possible, include example 
+video footage for us to test your model.
+
 ## Contact
 
 If you have any questions or need further assistance, please reach out to us at [Fabian.Plum18@Imperial.ac.uk](mailto:fabian.plum18@imperial.ac.uk).
