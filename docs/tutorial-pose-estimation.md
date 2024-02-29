@@ -91,7 +91,7 @@ _Keep in mind that given the focus on multi-animal applications, apart from ease
 installation, there are limited benefits to running full-frame pose estimation for single animals within **OmniTrax** 
 over a regular **[DeepLabCut](https://github.com/DeepLabCut/DeepLabCut)** build._
 
-* **DLC network path** : Path to your trained and exported DLC network where your pose_cfg.yaml and snapshot files are stored.
+* **DLC network path** : Path to the **DIRECTORY** of your trained and exported DLC network where your pose_cfg.yaml and snapshot files are stored.
   In order to enable plotting the defined skeleton as an overlay, simply include (a copy of) your original **config.yaml** file in the
   same folder. **OmniTrax** will read the skeleton configuration from the **config.yaml** file directly, so ensure that
   the naming conventions of **config.yaml** matches **pose_cfg.yaml**
@@ -143,7 +143,7 @@ When using **Constant detection sizes**, make sure to keep them sufficiently lar
 resulting ROIs you wish to consider in the pose-estimation step. Once you have finished tracking the video footage,
 continue in the **Pose Estimation (DLC)** panel:
 
-* **DLC network path** : Path to your trained and exported DLC network where your pose_cfg.yaml and snapshot files are stored.
+* **DLC network path** : Path to the **DIRECTORY** of your trained and exported DLC network where your pose_cfg.yaml and snapshot files are stored.
   In order to enable plotting the defined skeleton as an overlay, simply include (a copy of) your original **config.yaml** file in the
   same folder. **OmniTrax** will read the skeleton configuration from the **config.yaml** file directly, so ensure that
   the naming conventions of **config.yaml** matches **pose_cfg.yaml**

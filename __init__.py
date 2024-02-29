@@ -1515,7 +1515,7 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.label(text="DLC network path:")
+        col.label(text="DLC network path: [path to the directory of your trained network]")
         col.prop(context.scene, "pose_network_path", text="")
         col.separator()
 
