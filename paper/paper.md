@@ -14,7 +14,7 @@ authors:
 affiliations:
   - name: Imperial College London, Department of Bioengineering, United Kingdom
     index: 1
-date: 28 November 2022
+date: 28 February 2022
 bibliography: paper.bib
 
 ---
@@ -39,14 +39,20 @@ Deep learning-based computer vision approaches promise to transform the landscap
 behavioural research. The goal of `OmniTrax` is to provide an interactive inference pipeline that decreases the entry barrier 
 for researchers who wish to streamline annotation and analysis processes using deep learning-driven computer vision tools.
 `OmniTrax` is designed to track and infer the pose of large numbers of freely moving animals. Unlike background
-subtraction and blob-detector based approaches, common in multi-animal tracking, the use of deep neural networks 
-allows for buffer-and-recover tracking in changing environments. A key advantage of integrating such a
-pipeline into Blender is the seamless transition between automated tracking and iterative user-refinement. Additionally, 
-Blender offers a number of video editing and compositing functions which make it possible to perform any required 
-pre-processing. This includes cropping, masking, or exposure adjustment, prior to running inference on video footage within 
-the same environment, without relying on external software packages.
+subtraction, blob-detector, or optical-flow based approaches, common in multi-animal tracking (see e.g. [@Kalafatic2001; 
+@Perez-Escudero2014; @Walter2021]), the use of deep learning-based detectors allows for buffer-and-recover tracking 
+in changing environments. `OmniTrax` automatically initiates new tracks
+when animals are detected for the first time and terminated when they leave the recording site or become occluded for 
+prolonged periods. `OmniTrax` uses a tuneable Kalman-Filter and the Hungarian Method for cost assignment to extrapolate 
+the 2D trajectories of identified animals across frames, so that temporarily missing detections, e.g. due to occlusion, 
+motion blur, or other changes in appearance, can be compensated. 
 
-`OmniTrax` offers markerless pose-estimation through DeepLabCut-Live [@Kane2020dlclive] which enables 
+A key advantage of integrating such a pipeline into Blender is the seamless transition between automated tracking and 
+iterative user-refinement. Additionally, Blender offers a number of video editing and compositing functions which make 
+it possible to perform pre-processing. This includes cropping, masking, or exposure adjustment, prior to running 
+inference on video footage within the same environment, without relying on external software packages.
+
+`OmniTrax` additionally offers markerless pose-estimation through DeepLabCut-Live [@Kane2020dlclive] which enables 
 extracting kinematic parameters from virtually arbitrarily large groups of individuals. We are using `OmniTrax` in ongoing research 
 monitoring foraging activities of various species of leafcutter ants, tracking the movements of thousands of 
 individuals to extract path choice and changes to gait patterns.
