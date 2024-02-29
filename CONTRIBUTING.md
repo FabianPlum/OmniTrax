@@ -62,7 +62,7 @@ We welcome code contributions from the community. To contribute code to OmniTrax
 
 The maintainers will review your PR, and if everything looks good, it will be merged into the project.
 
-## Trained model contributions
+### Trained model contributions
 
 If you want to contribute trained detector or pose estimator models to our 
 [model collection](https://github.com/FabianPlum/OmniTrax/blob/main/docs/trained_networks.md),
