@@ -1,8 +1,12 @@
 import sys
 import unittest
+import numpy as np
 
 try:
-    from omni_trax.utils.track.kalman_filter_new import *
+    try:
+        from omni_trax.utils.track.kalman_filter_new import KalmanFilter
+    except:
+        from utils.track.kalman_filter_new import KalmanFilter
 
 
     class TestKalman(unittest.TestCase):

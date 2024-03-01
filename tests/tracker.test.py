@@ -1,8 +1,12 @@
 import sys
 import unittest
+import numpy as np
 
 try:
-    from omni_trax.utils.track.tracker import *
+    try:
+        from omni_trax.utils.track.tracker import Tracker
+    except:
+        from utils.track.tracker import Tracker
 
 
     class TestTracker(unittest.TestCase):

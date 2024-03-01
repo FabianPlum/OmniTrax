@@ -2,7 +2,10 @@ import sys
 import unittest
 
 try:
-    from omni_trax.utils.omni_trax_utils import *
+    try:
+        from omni_trax.utils.omni_trax_utils import scale_detections, convertBack
+    except:
+        from utils.omni_trax_utils import scale_detections, convertBack
 
 
     class TestUtils(unittest.TestCase):
