@@ -2,6 +2,17 @@ import glob
 import subprocess
 import sys
 
+"""
+when running this locally use:
+
+python testrunner.py "PATH/TO/YOUR/BLENDER/EXECUTABLE"
+
+so, e.g., under Windows it will likely be
+
+python testrunner.py "C:\Program Files\Blender Foundation\Blender 3.3\blender"
+
+"""
+
 blenderExecutable = 'blender'
 
 # testrunner structure built based on https://github.com/dfki-ric/phobos
