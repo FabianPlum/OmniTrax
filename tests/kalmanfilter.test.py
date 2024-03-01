@@ -2,7 +2,7 @@ import sys
 import unittest
 
 try:
-    from omni_trax.kalman_filter_new import *
+    from omni_trax.utils.track.kalman_filter_new import *
 
 
     class TestKalman(unittest.TestCase):
@@ -42,5 +42,6 @@ try:
     if success.errors or success.failures:
         raise Exception
 
-except Exception:
+except Exception as e:
+    print(e)
     sys.exit(1)

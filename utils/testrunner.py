@@ -14,7 +14,7 @@ testfailed = False
 failed_tests = []
 
 # iterate over each *.test.py file in the "tests" directory
-for file in glob.glob('tests/*.test.py'):
+for file in glob.glob('../tests/*.test.py'):
     print('#' * 100)
     print('Running {} tests...'.format(file))
     print('#' * 100)
