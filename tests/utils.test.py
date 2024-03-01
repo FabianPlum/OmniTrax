@@ -1,10 +1,16 @@
 import sys
 import unittest
+import os
 
 try:
     try:
         from omni_trax.utils.omni_trax_utils import scale_detections, convertBack
     except:
+        from inspect import getsourcefile
+        from os.path import abspath
+
+        project_dir = os.path.dirname(os.path.dirname(getsourcefile(lambda: 0)))
+        sys.path.append(project_dir)
         from utils.omni_trax_utils import scale_detections, convertBack
 
 

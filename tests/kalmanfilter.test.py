@@ -1,4 +1,5 @@
 import sys
+import os
 import unittest
 import numpy as np
 
@@ -6,6 +7,11 @@ try:
     try:
         from omni_trax.utils.track.kalman_filter_new import KalmanFilter
     except:
+        from inspect import getsourcefile
+        from os.path import abspath
+
+        project_dir = os.path.dirname(os.path.dirname(getsourcefile(lambda: 0)))
+        sys.path.append(project_dir)
         from utils.track.kalman_filter_new import KalmanFilter
 
 
