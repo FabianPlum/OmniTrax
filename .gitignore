@@ -2,7 +2,7 @@
 *.pyc
 /.idea/*
 .idea/*
-/__pycache__/*
+**/__pycache__/
 /example_scripts/__pycache__/*
 /example_scripts/.ipynb_checkpoints/*
 /trained_models/*
@@ -11,4 +11,4 @@
 /sources/*
 
 # installation specific
-utils/setup_state.txt
+utils/setup/setup_state.txt
