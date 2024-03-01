@@ -1,5 +1,5 @@
 try:
-    from omni_trax.tracker import Tracker
+    from omni_trax.tracking.tracker import Tracker
 except ModuleNotFoundError:
     from tracker import Tracker
 import numpy as np
@@ -7,8 +7,7 @@ import os
 import cv2
 import time
 import argparse
-from operator import itemgetter
-from omni_trax_utils import scale_detections, convertBack, cvDrawBoxes
+from utils.omni_trax_utils import scale_detections, cvDrawBoxes
 
 # TODO
 # add option to switch networks through sub-processes after loading an initial model

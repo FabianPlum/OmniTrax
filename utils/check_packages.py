@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 import platform
 import addon_utils
-from omni_trax.CUDA_checks import check_CUDA_installation
+from omni_trax.utils.CUDA_checks import check_CUDA_installation
 
 script_file = os.path.realpath(__file__)
 directory = os.path.dirname(script_file)
@@ -20,7 +20,7 @@ CUDA_match = check_CUDA_installation(required_CUDA_version=required_CUDA_version
 setup_complete = False
 
 try:
-    with open(os.path.join(directory, "setup_state.txt")) as f:
+    with open(os.path.join(directory, "utils", "setup_state.txt")) as f:
         lines = f.readlines()
         for line in lines:
             line = line.rstrip('\n')
@@ -153,7 +153,7 @@ if not setup_complete:
 
             print("INFO: removing current darknet folder...")
             # remove pre-built Windows darknet
-            subprocess.call(["rm", "-r", "-f", Path.joinpath(Path(addon_loc), "darknet")])
+            subprocess.call(["rm", "-r", "-f", Path.joinpath(Path(addon_loc), "../darknet")])
             # clone darknet from source
             subprocess.call(["git", "clone", "https://github.com/AlexeyAB/darknet"])
             # (if required) move to correct location
@@ -161,7 +161,7 @@ if not setup_complete:
             # update makefile to build .so
 
             print("INFO: Updating Makefile...")
-            darknet_makefile = open(str(Path.joinpath(Path(addon_loc), "darknet", "Makefile")), "r")
+            darknet_makefile = open(str(Path.joinpath(Path(addon_loc), "../darknet", "Makefile")), "r")
             updated_file_content = ""
 
             for line in darknet_makefile:
@@ -172,14 +172,14 @@ if not setup_complete:
 
             darknet_makefile.close()
 
-            darknet_makefile = open(str(Path.joinpath(Path(addon_loc), "darknet", "Makefile")), "w")
+            darknet_makefile = open(str(Path.joinpath(Path(addon_loc), "../darknet", "Makefile")), "w")
             darknet_makefile.write(updated_file_content)
             print("\nINFO: /darknet/Makefile has been updated.")
             darknet_makefile.close()
 
             # make darknet
             print("INFO: Making darknet...")
-            subprocess.call(["make", "-C", Path.joinpath(Path(addon_loc), "darknet")])
+            subprocess.call(["make", "-C", Path.joinpath(Path(addon_loc), "../darknet")])
             setup_state_f_contents.append("compiled_darknet=True")
             setup_state_f_contents.append("setup_complete=True")
 
