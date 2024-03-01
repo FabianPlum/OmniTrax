@@ -8,8 +8,8 @@ from bpy.props import EnumProperty as EnumProperty
 # check for installed packages and if they are missing, install them now
 # after the initial installation, dependency checks will be disabled
 # in setup_state.txt set setup_completed to "False" to trigger a system check / reinstall when enabling omni_trax
-from omni_trax import check_packages
-from omni_trax.CUDA_checks import check_CUDA_installation
+from omni_trax.utils import check_packages
+from omni_trax.utils.CUDA_checks import check_CUDA_installation
 
 import numpy as np
 import cv2
@@ -19,13 +19,13 @@ import yaml
 import tensorflow as tf
 import platform
 
-from omni_trax.omni_trax_utils import scale_detections, convertBack, cvDrawBoxes, setInferenceDevive
+from omni_trax.utils.omni_trax_utils import scale_detections, convertBack, cvDrawBoxes, setInferenceDevive
 
 # kalman imports
-from omni_trax.tracker import Tracker
+from omni_trax.tracking.tracker import Tracker
 
 # YOLO handler
-from omni_trax.YOLOader import YOLOader
+from omni_trax.utils.YOLOader import YOLOader
 
 bl_info = {
     "name": "omni_trax",
