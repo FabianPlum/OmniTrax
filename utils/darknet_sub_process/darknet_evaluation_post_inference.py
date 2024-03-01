@@ -3,14 +3,10 @@ import pickle
 import os
 from os import listdir
 from os.path import join
-from pathlib import Path
-import subprocess
-import argparse
 import time
-import threading
-import queue
 import sys
 from scipy.spatial import distance
+from multiprocessing import Pool
 
 
 def compare_points(gt, detection, max_dist=25):
@@ -198,8 +194,6 @@ if __name__ == '__main__':
     # Given this is just a simple numerical comparison, use as many threads as there are virtual cores
 
     # only use a fourth of the number of CPUs for export as hugin and enfuse utilise multi core processing in part
-
-    from multiprocessing import Pool
 
     with Pool(20) as p:
         p.map(process_detections, model_paths)

@@ -7,7 +7,7 @@ import time
 import tensorflow as tf
 
 
-### Various Detection Processing functions ###
+### Various Processing functions ###
 
 def scale_detections(x, y, network_w, network_h, output_w, output_h):
     """

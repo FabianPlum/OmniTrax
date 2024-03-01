@@ -1,11 +1,9 @@
-from . import ui, operators
+from . import ui
 
 
 def register():
     ui.register()
-    operators.register()
 
 
 def unregister():
     ui.unregister()
-    operators.unregister()

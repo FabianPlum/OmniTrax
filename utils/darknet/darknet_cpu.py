@@ -9,8 +9,7 @@ Use pip3 instead of pip on some systems to be sure to install modules for python
 """
 
 from ctypes import *
-import math
-import numpy
+import numpy as np
 import random
 import os
 
