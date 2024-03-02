@@ -23,7 +23,7 @@ try:
     with open(os.path.join(directory, "utils", "setup_state.txt")) as f:
         lines = f.readlines()
         for line in lines:
-            line = line.rstrip('\n')
+            line = line.rstrip("\n")
             line_elems = line.split("=")
             if line_elems[0] == "setup_complete":
                 if line_elems[1] == "True":
@@ -45,26 +45,28 @@ if not setup_complete:
     py_exec = str(sys.executable)
 
     # install packages (if they are not already installed)
-    required_libraries = {"scipy": "scipy",
-                          "pandas": "pandas",
-                          "PyYAML": "PyYAML",
-                          "matplotlib": "matplotlib",
-                          "opencv-python": "opencv-python",
-                          "scikit-learn": "scikit-learn",
-                          "deeplabcut-live": "deeplabcut-live",
-                          "opencv-contrib-python": "opencv-contrib-python"}
+    required_libraries = {
+        "scipy": "scipy",
+        "pandas": "pandas",
+        "PyYAML": "PyYAML",
+        "matplotlib": "matplotlib",
+        "opencv-python": "opencv-python",
+        "scikit-learn": "scikit-learn",
+        "deeplabcut-live": "deeplabcut-live",
+        "opencv-contrib-python": "opencv-contrib-python",
+    }
 
     try:
-        reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
+        reqs = subprocess.check_output([sys.executable, "-m", "pip", "freeze"])
     except:
         subprocess.call([py_exec, "-m", "ensurepip", "--user"])
 
     try:
-        reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
+        reqs = subprocess.check_output([sys.executable, "-m", "pip", "freeze"])
     except:
-        reqs = subprocess.check_output([sys.executable, '-m', 'pip3', 'freeze'])
+        reqs = subprocess.check_output([sys.executable, "-m", "pip3", "freeze"])
 
-    installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
+    installed_packages = [r.decode().split("==")[0] for r in reqs.split()]
 
     print("\nInstalled packages:", installed_packages, "\n")
 
@@ -82,10 +84,19 @@ if not setup_complete:
 
             if platform.system() != "Linux":
                 subprocess.call(
-                    [py_exec, "-m", "pip", "install", f"--target={py_exec[:-14]}" + "lib", required_libraries[library]])
+                    [
+                        py_exec,
+                        "-m",
+                        "pip",
+                        "install",
+                        f"--target={py_exec[:-14]}" + "lib",
+                        required_libraries[library],
+                    ]
+                )
             else:
                 subprocess.call(
-                    [py_exec, "-m", "pip", "install", required_libraries[library]])
+                    [py_exec, "-m", "pip", "install", required_libraries[library]]
+                )
 
         setup_state_f_contents.append(library + "=True")
 
@@ -95,13 +106,18 @@ if not setup_complete:
     try:
         OVERWRITE_DLC_DISPLAY = False
         if platform.system() != "Linux":
-            dlclive_display = Path.joinpath(Path(py_exec[:-14]), "lib", "dlclive", "display.py")
+            dlclive_display = Path.joinpath(
+                Path(py_exec[:-14]), "lib", "dlclive", "display.py"
+            )
         else:
-            dlclive_display = Path.joinpath(Path(py_exec[:-15]), "lib",
-                                            "python3.7",
-                                            "site-packages",
-                                            "dlclive",
-                                            "display.py")
+            dlclive_display = Path.joinpath(
+                Path(py_exec[:-15]),
+                "lib",
+                "python3.7",
+                "site-packages",
+                "dlclive",
+                "display.py",
+            )
             print(dlclive_display)
 
         orig_tk_import = "from tkinter import Tk, Label\n"
@@ -128,7 +144,9 @@ if not setup_complete:
         if OVERWRITE_DLC_DISPLAY:
             dlclive_display_file = open(str(dlclive_display), "w")
             dlclive_display_file.write(updated_file_content)
-            print("\nINFO: /dlclive/display.py has been updated to suppress tkinter import!!!")
+            print(
+                "\nINFO: /dlclive/display.py has been updated to suppress tkinter import!!!"
+            )
             dlclive_display_file.close()
 
         setup_state_f_contents.append("overwritten_orig_dlclive=True")
@@ -140,10 +158,16 @@ if not setup_complete:
 
     else:
         # clone and make darknet (for cpu support)
-        print("\n\n----------------------------------------------------------------------------\n")
+        print(
+            "\n\n----------------------------------------------------------------------------\n"
+        )
         print("INFO: Linux environment found - building darknet from source...")
-        print("INFO: for GPU, OPENMP, AVX, or OPENCV support, edit Makefile and make again!")
-        print("\n----------------------------------------------------------------------------\n\n")
+        print(
+            "INFO: for GPU, OPENMP, AVX, or OPENCV support, edit Makefile and make again!"
+        )
+        print(
+            "\n----------------------------------------------------------------------------\n\n"
+        )
 
         try:
             for mod in addon_utils.modules():
@@ -153,7 +177,9 @@ if not setup_complete:
 
             print("INFO: removing current darknet folder...")
             # remove pre-built Windows darknet
-            subprocess.call(["rm", "-r", "-f", Path.joinpath(Path(addon_loc), "../../darknet")])
+            subprocess.call(
+                ["rm", "-r", "-f", Path.joinpath(Path(addon_loc), "../../darknet")]
+            )
             # clone darknet from source
             subprocess.call(["git", "clone", "https://github.com/AlexeyAB/darknet"])
             # (if required) move to correct location
@@ -161,7 +187,9 @@ if not setup_complete:
             # update makefile to build .so
 
             print("INFO: Updating Makefile...")
-            darknet_makefile = open(str(Path.joinpath(Path(addon_loc), "../../darknet", "Makefile")), "r")
+            darknet_makefile = open(
+                str(Path.joinpath(Path(addon_loc), "../../darknet", "Makefile")), "r"
+            )
             updated_file_content = ""
 
             for line in darknet_makefile:
@@ -172,14 +200,18 @@ if not setup_complete:
 
             darknet_makefile.close()
 
-            darknet_makefile = open(str(Path.joinpath(Path(addon_loc), "../../darknet", "Makefile")), "w")
+            darknet_makefile = open(
+                str(Path.joinpath(Path(addon_loc), "../../darknet", "Makefile")), "w"
+            )
             darknet_makefile.write(updated_file_content)
             print("\nINFO: /darknet/Makefile has been updated.")
             darknet_makefile.close()
 
             # make darknet
             print("INFO: Making darknet...")
-            subprocess.call(["make", "-C", Path.joinpath(Path(addon_loc), "../../darknet")])
+            subprocess.call(
+                ["make", "-C", Path.joinpath(Path(addon_loc), "../../darknet")]
+            )
             setup_state_f_contents.append("compiled_darknet=True")
             setup_state_f_contents.append("setup_complete=True")
 
@@ -189,12 +221,13 @@ if not setup_complete:
             setup_state_f_contents.append("compiled_darknet=False")
             setup_state_f_contents.append("setup_complete=False")
 
-    with open(os.path.join(directory, "setup_state.txt"), 'w') as f:
+    with open(os.path.join(directory, "setup_state.txt"), "w") as f:
         for line in setup_state_f_contents:
             f.write(line)
-            f.write('\n')
+            f.write("\n")
 
     print(
-        "\nINFO: Cool, all looks good here! \nINFO: Uncheck OmniTrax in your addons to remove checks at program start!")
+        "\nINFO: Cool, all looks good here! \nINFO: Uncheck OmniTrax in your addons to remove checks at program start!"
+    )
 else:
     print("\nINFO: successfully loaded OmniTrax")

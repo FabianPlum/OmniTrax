@@ -17,17 +17,13 @@ def nonMaximumSupression(detections):
         det_sorted = sorted(detections, key=itemgetter(2))
         max_conf_detection = det_sorted[0][0]
     else:
-        max_conf_detection = 'No Detect'
+        max_conf_detection = "No Detect"
     return max_conf_detection
 
 
 from ctypes import *
-import math
-import random
 import os
 import cv2
-import numpy as np
-import time
 
 
 def convertBack(x, y, w, h):
@@ -40,31 +36,29 @@ def convertBack(x, y, w, h):
 
 def cvDrawBoxes(detections, img, min_size=20, constant_size=False):
     for detection in detections:
-
-        x, y, w, h = detection[2][0], \
-                     detection[2][1], \
-                     detection[2][2], \
-                     detection[2][3]
+        x, y, w, h = detection[2][0], detection[2][1], detection[2][2], detection[2][3]
 
         if w >= min_size and h >= min_size:
-
             if constant_size:
                 w, h = constant_size, constant_size
 
-            xmin, ymin, xmax, ymax = convertBack(
-                float(x), float(y), float(w), float(h))
+            xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
             pt1 = (xmin, ymin)
             pt2 = (xmax, ymax)
             cv2.rectangle(img, pt1, pt2, (150, 0, 160), 1)
-            cv2.putText(img,
-                        detection[0].decode() +
-                        " [" + str(round(detection[1] * 100, 2)) + "]",
-                        (pt1[0], pt1[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.3,
-                        [150, 0, 160], 2)
+            cv2.putText(
+                img,
+                detection[0].decode() + " [" + str(round(detection[1] * 100, 2)) + "]",
+                (pt1[0], pt1[1] - 5),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.3,
+                [150, 0, 160],
+                2,
+            )
     return img
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # construct the argument parse and parse the arguments
     ap = argparse.ArgumentParser()
     ap.add_argument("-c", "--configPath", required=True, type=str)
@@ -90,25 +84,26 @@ if __name__ == '__main__':
     sys.path.append(darknetFolder)
     import darknet
 
-    sample_paths = [join(sample_folder, f) for f in listdir(sample_folder)
-                    if str(join(sample_folder, f)).split(".")[-1] == "JPG"]
+    sample_paths = [
+        join(sample_folder, f)
+        for f in listdir(sample_folder)
+        if str(join(sample_folder, f)).split(".")[-1] == "JPG"
+    ]
 
     netMain = None
     metaMain = None
     altNames = None
 
     if not os.path.exists(configPath):
-        raise ValueError("Invalid config path `" +
-                         os.path.abspath(configPath) + "`")
+        raise ValueError("Invalid config path `" + os.path.abspath(configPath) + "`")
     if not os.path.exists(weightPath):
-        raise ValueError("Invalid weight path `" +
-                         os.path.abspath(weightPath) + "`")
+        raise ValueError("Invalid weight path `" + os.path.abspath(weightPath) + "`")
     if not os.path.exists(metaPath):
-        raise ValueError("Invalid data file path `" +
-                         os.path.abspath(metaPath) + "`")
+        raise ValueError("Invalid data file path `" + os.path.abspath(metaPath) + "`")
     if netMain is None:
-        netMain = darknet.load_net_custom(configPath.encode(
-            "ascii"), weightPath.encode("ascii"), 0, 1)  # batch size = 1
+        netMain = darknet.load_net_custom(
+            configPath.encode("ascii"), weightPath.encode("ascii"), 0, 1
+        )  # batch size = 1
     if metaMain is None:
         metaMain = darknet.load_meta(metaPath.encode("ascii"))
     if altNames is None:
@@ -117,8 +112,9 @@ if __name__ == '__main__':
                 metaContents = metaFH.read()
                 import re
 
-                match = re.search("names *= *(.*)$", metaContents,
-                                  re.IGNORECASE | re.MULTILINE)
+                match = re.search(
+                    "names *= *(.*)$", metaContents, re.IGNORECASE | re.MULTILINE
+                )
                 if match:
                     result = match.group(1)
                 else:
@@ -137,31 +133,33 @@ if __name__ == '__main__':
     print("Starting the YOLO loop...")
 
     # Create an image we reuse for each detect
-    darknet_image = darknet.make_image(darknet.network_width(netMain),
-                                       darknet.network_height(netMain), 3)
+    darknet_image = darknet.make_image(
+        darknet.network_width(netMain), darknet.network_height(netMain), 3
+    )
 
     all_detections = []
-
 
     def scale_detections(x, y, network_w, network_h, output_w, output_h):
         scaled_x = x * (output_w / network_w)
         scaled_y = (network_h - y) * (output_h / network_h)  # y is inverted
         return [scaled_x, scaled_y]
 
-
     for s, sample in enumerate(sample_paths):
         frame_read = cv2.imread(sample)
         frame_rgb = cv2.cvtColor(frame_read, cv2.COLOR_BGR2RGB)
-        frame_resized = cv2.resize(frame_rgb,
-                                   (darknet.network_width(netMain),
-                                    darknet.network_height(netMain)),
-                                   interpolation=cv2.INTER_LINEAR)
+        frame_resized = cv2.resize(
+            frame_rgb,
+            (darknet.network_width(netMain), darknet.network_height(netMain)),
+            interpolation=cv2.INTER_LINEAR,
+        )
 
         darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
 
         # thresh : detection threshold -> lower = more sensitive
         # nms : non maximum suppression -> higher = allow for closer proximity between detections
-        detections = darknet.detect_image(netMain, metaMain, darknet_image, thresh=0.25, nms=0.55)
+        detections = darknet.detect_image(
+            netMain, metaMain, darknet_image, thresh=0.25, nms=0.55
+        )
         viable_detections = []
 
         for detection in detections:
@@ -173,13 +171,15 @@ if __name__ == '__main__':
         print("Frame: {}".format(s))
 
         if showDetections:
-            image = cvDrawBoxes(viable_detections, frame_resized, min_size=min_size)  # , constant_size=50)
+            image = cvDrawBoxes(
+                viable_detections, frame_resized, min_size=min_size
+            )  # , constant_size=50)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            cv2.imshow('Detections on video', image)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            cv2.imshow("Detections on video", image)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
     cv2.destroyAllWindows()
 
-    with open(outputName + ".pkl", 'wb') as fp:
+    with open(outputName + ".pkl", "wb") as fp:
         pickle.dump(all_detections, fp)

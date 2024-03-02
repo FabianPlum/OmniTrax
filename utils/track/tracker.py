@@ -13,12 +13,20 @@ class Track(object):
     Including Kalman-Filter based buffer-and-recover tracking
     """
 
-    def __init__(self, prediction, trackIdCount,
-                 dt=0.033, u_x=0, u_y=0,
-                 std_acc=5, y_std_meas=0.1, x_std_meas=0.1,
-                 predicted_class=None,
-                 bbox=[None, None, None, None],
-                 known_id=-1):
+    def __init__(
+        self,
+        prediction,
+        trackIdCount,
+        dt=0.033,
+        u_x=0,
+        u_y=0,
+        std_acc=5,
+        y_std_meas=0.1,
+        x_std_meas=0.1,
+        predicted_class=None,
+        bbox=[None, None, None, None],
+        known_id=-1,
+    ):
         """
         Initialise individual track
         :param prediction: [x,y] coordinates of input (detection)
@@ -34,12 +42,20 @@ class Track(object):
         :param known_id: assigned ID, when initialising from a prior tracker state
         """
         if known_id != -1:
-            self.track_id = known_id  # use previous ID, when initialising from prior tracked state
+            self.track_id = (
+                known_id  # use previous ID, when initialising from prior tracked state
+            )
         else:
             self.track_id = trackIdCount  # identification of each track object
-        self.KF = KalmanFilter(dt=dt, u_x=u_x, u_y=u_y,
-                               std_acc=std_acc, y_std_meas=y_std_meas, x_std_meas=x_std_meas,
-                               initial_state=prediction)  # KF instance to track this object
+        self.KF = KalmanFilter(
+            dt=dt,
+            u_x=u_x,
+            u_y=u_y,
+            std_acc=std_acc,
+            y_std_meas=y_std_meas,
+            x_std_meas=x_std_meas,
+            initial_state=prediction,
+        )  # KF instance to track this object
         self.prediction = np.asarray(prediction)  # predicted centroids (x,y)
         self.skipped_frames = 0  # number of frames skipped undetected
         self.trace = []  # trace path
@@ -59,9 +75,20 @@ class Tracker(object):
     Kalman-Filter based buffer-and-recover tracking
     """
 
-    def __init__(self, dist_thresh, max_frames_to_skip, max_trace_length,
-                 trackIdCount, use_kf=False, dt=0.033, u_x=0, u_y=0,
-                 std_acc=5, y_std_meas=0.1, x_std_meas=0.1):
+    def __init__(
+        self,
+        dist_thresh,
+        max_frames_to_skip,
+        max_trace_length,
+        trackIdCount,
+        use_kf=False,
+        dt=0.033,
+        u_x=0,
+        u_y=0,
+        std_acc=5,
+        y_std_meas=0.1,
+        x_std_meas=0.1,
+    ):
         """
         Initialise Tracker Class
         :param dist_thresh: maximum squared distance between a track and a detection to be considered for matching
@@ -96,12 +123,19 @@ class Tracker(object):
         :param prior_state: [id,x,y] of prior track
         """
         # create new track from the last increment of the prior state, keeping ID's intact
-        track = Track([[prior_state[1]], [prior_state[2]]],
-                      self.trackIdCount, known_id=prior_state[0],
-                      dt=self.dt, u_x=self.u_x, u_y=self.u_y, std_acc=self.std_acc,
-                      y_std_meas=self.y_std_meas, x_std_meas=self.x_std_meas,
-                      predicted_class=prior_state[3],
-                      bbox=prior_state[4])
+        track = Track(
+            [[prior_state[1]], [prior_state[2]]],
+            self.trackIdCount,
+            known_id=prior_state[0],
+            dt=self.dt,
+            u_x=self.u_x,
+            u_y=self.u_y,
+            std_acc=self.std_acc,
+            y_std_meas=self.y_std_meas,
+            x_std_meas=self.x_std_meas,
+            predicted_class=prior_state[3],
+            bbox=prior_state[4],
+        )
         self.trackIdCount += 1
         self.tracks.append(track)
 
@@ -139,11 +173,18 @@ class Tracker(object):
         # Create tracks if no tracks vector was found
         if len(self.tracks) == 0:
             for i in range(len(detections)):
-                track = Track(detections[i], self.trackIdCount,
-                              dt=self.dt, u_x=self.u_x, u_y=self.u_y, std_acc=self.std_acc,
-                              y_std_meas=self.y_std_meas, x_std_meas=self.x_std_meas,
-                              predicted_class=predicted_classes[i],
-                              bbox=bounding_boxes[i])
+                track = Track(
+                    detections[i],
+                    self.trackIdCount,
+                    dt=self.dt,
+                    u_x=self.u_x,
+                    u_y=self.u_y,
+                    std_acc=self.std_acc,
+                    y_std_meas=self.y_std_meas,
+                    x_std_meas=self.x_std_meas,
+                    predicted_class=predicted_classes[i],
+                    bbox=bounding_boxes[i],
+                )
                 self.trackIdCount += 1
                 self.tracks.append(track)
 
@@ -156,8 +197,7 @@ class Tracker(object):
         for i in range(N):
             for j in range(len(detections)):
                 diff = self.tracks[i].prediction[:2] - detections[j]
-                distance = np.sqrt(diff[0][0] * diff[0][0] +
-                                   diff[1][0] * diff[1][0])
+                distance = np.sqrt(diff[0][0] * diff[0][0] + diff[1][0] * diff[1][0])
                 cost[i][j] = distance
 
         # add columns equal to the number of tracks, so that if a track cannot be assigned to
@@ -186,7 +226,13 @@ class Tracker(object):
                 assignment[i] = -1
                 un_assigned_tracks.append(i)
                 self.tracks[i].skipped_frames += 1
-                print("Track", i, "has been invisible for", self.tracks[i].skipped_frames, "frames!")
+                print(
+                    "Track",
+                    i,
+                    "has been invisible for",
+                    self.tracks[i].skipped_frames,
+                    "frames!",
+                )
 
         print("Unassigned tracks:", un_assigned_tracks, "\n")
 
@@ -215,17 +261,29 @@ class Tracker(object):
         if len(un_assigned_detects) != 0:
             for i in range(len(un_assigned_detects)):
                 if predicted_classes is not None and any(bounding_boxes) is not None:
-                    track = Track(detections[un_assigned_detects[i]],
-                                  self.trackIdCount,
-                                  dt=self.dt, u_x=self.u_x, u_y=self.u_y, std_acc=self.std_acc,
-                                  y_std_meas=self.y_std_meas, x_std_meas=self.x_std_meas,
-                                  predicted_class=predicted_classes[un_assigned_detects[i]],
-                                  bbox=bounding_boxes[un_assigned_detects[i]])
+                    track = Track(
+                        detections[un_assigned_detects[i]],
+                        self.trackIdCount,
+                        dt=self.dt,
+                        u_x=self.u_x,
+                        u_y=self.u_y,
+                        std_acc=self.std_acc,
+                        y_std_meas=self.y_std_meas,
+                        x_std_meas=self.x_std_meas,
+                        predicted_class=predicted_classes[un_assigned_detects[i]],
+                        bbox=bounding_boxes[un_assigned_detects[i]],
+                    )
                 else:
-                    track = Track(detections[un_assigned_detects[i]],
-                                  self.trackIdCount,
-                                  dt=self.dt, u_x=self.u_x, u_y=self.u_y, std_acc=self.std_acc,
-                                  y_std_meas=self.y_std_meas, x_std_meas=self.x_std_meas)
+                    track = Track(
+                        detections[un_assigned_detects[i]],
+                        self.trackIdCount,
+                        dt=self.dt,
+                        u_x=self.u_x,
+                        u_y=self.u_y,
+                        std_acc=self.std_acc,
+                        y_std_meas=self.y_std_meas,
+                        x_std_meas=self.x_std_meas,
+                    )
                 self.trackIdCount += 1
                 self.tracks.append(track)
                 assignment.append(-1)
@@ -244,7 +302,9 @@ class Tracker(object):
                 continue
             if predicted_classes is not None:
                 if i not in un_assigned_tracks:
-                    self.tracks[i].predicted_class.append(predicted_classes[assignment[i]])
+                    self.tracks[i].predicted_class.append(
+                        predicted_classes[assignment[i]]
+                    )
                 else:
                     self.tracks[i].predicted_class.append("")
             if any(bounding_boxes) is not None:
@@ -261,15 +321,16 @@ class Tracker(object):
                 if assignment[i] != -1:
                     self.tracks[i].skipped_frames = 0
                     self.tracks[i].prediction = self.tracks[i].KF.update(
-                        detections[assignment[i]], 1)
+                        detections[assignment[i]], 1
+                    )
                 else:
                     if len(self.tracks[i].trace) > 1:
                         self.tracks[i].prediction = self.tracks[i].KF.update(
-                            np.array([[0], [0]]), 0)
+                            np.array([[0], [0]]), 0
+                        )
 
                 if len(self.tracks[i].trace) > self.max_trace_length:
-                    for j in range(len(self.tracks[i].trace) -
-                                   self.max_trace_length):
+                    for j in range(len(self.tracks[i].trace) - self.max_trace_length):
                         del self.tracks[i].trace[j]
 
                 self.tracks[i].trace.append(self.tracks[i].prediction[:2])
@@ -284,8 +345,7 @@ class Tracker(object):
                     self.tracks[i].prediction = detections[assignment[i]]
 
                 if len(self.tracks[i].trace) > self.max_trace_length:
-                    for j in range(len(self.tracks[i].trace) -
-                                   self.max_trace_length):
+                    for j in range(len(self.tracks[i].trace) - self.max_trace_length):
                         del self.tracks[i].trace[j]
 
                 self.tracks[i].trace.append(self.tracks[i].prediction[:2])

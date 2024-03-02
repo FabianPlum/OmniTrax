@@ -14,8 +14,7 @@ print(max_frames)
 
 plot_IDs = [0, 1, 2, 3, 4, 5, 6]  # ,8,9,15,16,22,23,29,30,36,37,43,44]
 
-while (cap.isOpened()):
-
+while cap.isOpened():
     frame_num += 1
     if frame_num == max_frames:
         break
@@ -31,11 +30,16 @@ while (cap.isOpened()):
 
             for p, point in enumerate(pose):
                 if p in plot_IDs:
-                    frame = cv2.circle(frame, (int(point[0]), int(point[1])), 5,
-                                       (int(255 * point[2]), int(100 * point[2]), 200), -1)
+                    frame = cv2.circle(
+                        frame,
+                        (int(point[0]), int(point[1])),
+                        5,
+                        (int(255 * point[2]), int(100 * point[2]), 200),
+                        -1,
+                    )
 
             cv2.imshow("DLC-Live_output", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     except:
         print("Yeah, that's enough for now.")

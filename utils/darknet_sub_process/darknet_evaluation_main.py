@@ -17,7 +17,9 @@ def compare_points(gt, detection, max_dist=25):
     return match, px_distance
 
 
-def compare_frame(frame_gt, frame_detections, max_dist=0.05, network_shape=[None, None], confidence=0):
+def compare_frame(
+    frame_gt, frame_detections, max_dist=0.05, network_shape=[None, None], confidence=0
+):
     # strip away all sub threshold detections!
     frame_detections = [f for f in frame_detections if f[1] > confidence]
 
@@ -31,17 +33,18 @@ def compare_frame(frame_gt, frame_detections, max_dist=0.05, network_shape=[None
     for i in range(len(matches_gt)):
         min_dist = max_dist
         for j in range(len(matches_det)):
-
             if network_shape[0] is not None:
-                norm_frame_detection = [frame_detections[j][2][0] / network_shape[0],
-                                        frame_detections[j][2][1] / network_shape[1]]
+                norm_frame_detection = [
+                    frame_detections[j][2][0] / network_shape[0],
+                    frame_detections[j][2][1] / network_shape[1],
+                ]
 
             else:
                 norm_frame_detection = frame_detections[j][2][0:2]
 
-            match, px_dist = compare_points(gt=frame_gt[i][0:2],
-                                            detection=norm_frame_detection,
-                                            max_dist=max_dist)
+            match, px_dist = compare_points(
+                gt=frame_gt[i][0:2], detection=norm_frame_detection, max_dist=max_dist
+            )
 
             if match:
                 matches_gt[i] = 0
@@ -63,14 +66,19 @@ def compare_frame(frame_gt, frame_detections, max_dist=0.05, network_shape=[None
     return len(frame_gt), missed_detections, false_positives, mean_detection_distance
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # construct the argument parse and parse the arguments
     ap = argparse.ArgumentParser()
     # Data input and output
     ap.add_argument("-md", "--modelFolder", required=True, type=str)
     ap.add_argument("-dt", "--dataFolder", required=True, type=str)
-    ap.add_argument("-of", "--outputFolder", required=False, type=str,
-                    default=Path(__file__).parent.resolve())
+    ap.add_argument(
+        "-of",
+        "--outputFolder",
+        required=False,
+        type=str,
+        default=Path(__file__).parent.resolve(),
+    )
     ap.add_argument("-da", "--darknetFolder", required=True, type=str)
 
     # Darknet setup
@@ -107,10 +115,12 @@ if __name__ == '__main__':
 
     model_folder = Path(args["modelFolder"])
     # get all weights files
-    model_paths = [join(model_folder, f) for f in listdir(model_folder)
-                   if
-                   str(join(model_folder, f)).split(".")[-1] == "weights" and str(join(model_folder, f)).split(".")[0][
-                       -1] == "0"]
+    model_paths = [
+        join(model_folder, f)
+        for f in listdir(model_folder)
+        if str(join(model_folder, f)).split(".")[-1] == "weights"
+        and str(join(model_folder, f)).split(".")[0][-1] == "0"
+    ]
 
     model_paths.sort()
 
@@ -118,14 +128,17 @@ if __name__ == '__main__':
 
     sample_folder = Path(args["dataFolder"])
     # get test sample files
-    sample_paths = [join(sample_folder, f) for f in listdir(sample_folder)
-                    if str(join(sample_folder, f)).split(".")[-1] == "JPG"]
+    sample_paths = [
+        join(sample_folder, f)
+        for f in listdir(sample_folder)
+        if str(join(sample_folder, f)).split(".")[-1] == "JPG"
+    ]
 
     print("\nFound a total of {} samples".format(len(sample_paths)))
 
     # read config file to determine network (input) shape
     network_shape = [None, None]
-    f = open(configPath, 'r')
+    f = open(configPath, "r")
     Lines = f.readlines()
     # Strips the "\n" newline character
     for line in Lines:
@@ -147,35 +160,69 @@ if __name__ == '__main__':
     all_detections = []
 
     for weightPath in model_paths:
-        output_name = str(os.path.join(outputFolder,
-                                       os.path.basename(os.path.dirname(model_folder))
-                                       + "_" + str(os.path.basename(weightPath)).split(".")[0]))
+        output_name = str(
+            os.path.join(
+                outputFolder,
+                os.path.basename(os.path.dirname(model_folder))
+                + "_"
+                + str(os.path.basename(weightPath)).split(".")[0],
+            )
+        )
         print(output_name)
 
         if showDetections:
-            subprocess.call(['python', 'sub_darknet.py',
-                             "--darknetFolder", darknetFolder,
-                             "--configPath", configPath,
-                             "--weightPath", weightPath,
-                             "--metaPath", metaPath,
-                             "--samplePath", str(sample_folder),
-                             "--outputName", output_name,
-                             "--min_size", str(10),
-                             "--showDetections", "True"])
+            subprocess.call(
+                [
+                    "python",
+                    "sub_darknet.py",
+                    "--darknetFolder",
+                    darknetFolder,
+                    "--configPath",
+                    configPath,
+                    "--weightPath",
+                    weightPath,
+                    "--metaPath",
+                    metaPath,
+                    "--samplePath",
+                    str(sample_folder),
+                    "--outputName",
+                    output_name,
+                    "--min_size",
+                    str(10),
+                    "--showDetections",
+                    "True",
+                ]
+            )
         else:
-            subprocess.call(['python', 'sub_darknet.py',
-                             "--darknetFolder", darknetFolder,
-                             "--configPath", configPath,
-                             "--weightPath", weightPath,
-                             "--metaPath", metaPath,
-                             "--samplePath", str(sample_folder),
-                             "--outputName", output_name,
-                             "--min_size", str(10)])
+            subprocess.call(
+                [
+                    "python",
+                    "sub_darknet.py",
+                    "--darknetFolder",
+                    darknetFolder,
+                    "--configPath",
+                    configPath,
+                    "--weightPath",
+                    weightPath,
+                    "--metaPath",
+                    metaPath,
+                    "--samplePath",
+                    str(sample_folder),
+                    "--outputName",
+                    output_name,
+                    "--min_size",
+                    str(10),
+                ]
+            )
 
-        with open(os.path.join(outputFolder, output_name + ".pkl"), 'rb') as f:
+        with open(os.path.join(outputFolder, output_name + ".pkl"), "rb") as f:
             all_detections.append([output_name, pickle.load(f)])
 
-        print("ran inference on {} frames, using {}".format(len(all_detections[-1][1]), output_name))
+        print(
+            "ran inference on {} frames, using {}".format(
+                len(all_detections[-1][1]), output_name
+            )
+        )
 
     # structure of ground truth data
     all_annotations = []
@@ -193,7 +240,7 @@ if __name__ == '__main__':
             all_annotations.append([dataset_name])
             print(all_annotations[-1])
 
-        f = open(annotation, 'r')
+        f = open(annotation, "r")
         Lines = f.readlines()
 
         bounding_boxes = []  # x,y,w,h
@@ -213,11 +260,33 @@ if __name__ == '__main__':
 
     from scipy.spatial import distance
 
-    max_detection_distance_px = 0.05  # 0.1 = 10% away from centre to be considered a valid detection
+    max_detection_distance_px = (
+        0.05  # 0.1 = 10% away from centre to be considered a valid detection
+    )
     # DEFAULT:
     # thresh_list = [0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8]
-    thresh_list = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9,
-                   0.95]
+    thresh_list = [
+        0,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25,
+        0.3,
+        0.35,
+        0.4,
+        0.45,
+        0.5,
+        0.55,
+        0.6,
+        0.65,
+        0.7,
+        0.75,
+        0.8,
+        0.85,
+        0.9,
+        0.95,
+    ]
     print("Computing AP scores for thresholds of {}".format(thresh_list))
 
     Results_mat = []
@@ -235,21 +304,28 @@ if __name__ == '__main__':
             print("\n running inference at {} confidence threshold".format(confidence))
 
             for unique_dataset in all_annotations:
-
                 print("dataset:", unique_dataset[0])
 
-                total_gt_detections = 0  # number of total detections in the ground truth dataset
+                total_gt_detections = (
+                    0  # number of total detections in the ground truth dataset
+                )
                 total_missed_detections = 0  # number of missed detections which are present in the groud truth dataset
                 total_false_positives = 0  # number of incorrect detections that do not match any groud thruth tracks
                 all_frame_detection_deviations = []  # list of mean deviations for correct detections
 
                 for detection, annotation in zip(model[1], unique_dataset[1:]):
-                    gt_detections, missed_detections, false_positives, mean_detection_distance = compare_frame(
+                    (
+                        gt_detections,
+                        missed_detections,
+                        false_positives,
+                        mean_detection_distance,
+                    ) = compare_frame(
                         annotation,
                         detection,
                         max_detection_distance_px,
                         network_shape,
-                        confidence)
+                        confidence,
+                    )
 
                     total_gt_detections += gt_detections
                     total_missed_detections += missed_detections
@@ -257,38 +333,62 @@ if __name__ == '__main__':
                     all_frame_detection_deviations.append(mean_detection_distance)
 
                 mean_px_error = np.mean(all_frame_detection_deviations) * 100
-                detection_accuracy = ((
-                                              total_gt_detections - total_missed_detections - total_false_positives) / total_gt_detections) * 100
+                detection_accuracy = (
+                    (
+                        total_gt_detections
+                        - total_missed_detections
+                        - total_false_positives
+                    )
+                    / total_gt_detections
+                ) * 100
 
                 if total_gt_detections == total_missed_detections:
                     # the accuracy is zero if no objects are correctly detected
                     AP = 0
                 else:
                     AP = (total_gt_detections - total_missed_detections) / (
-                            total_gt_detections - total_missed_detections + total_false_positives)
-                    Recall = (total_gt_detections - total_missed_detections) / total_gt_detections
+                        total_gt_detections
+                        - total_missed_detections
+                        + total_false_positives
+                    )
+                    Recall = (
+                        total_gt_detections - total_missed_detections
+                    ) / total_gt_detections
 
                 print("Total ground truth detections:", total_gt_detections)
-                print("Total correct detections:", total_gt_detections - total_missed_detections)
+                print(
+                    "Total correct detections:",
+                    total_gt_detections - total_missed_detections,
+                )
                 print("Total missed detections:", total_missed_detections)
                 print("Total false positives:", total_false_positives)
                 print("Average Precision:", round(AP, 3))
                 print("Recall:", round(Recall, 3))
-                print("Detection accuracy (GT - FP - MD) / GT):", np.round(detection_accuracy, 1), "%")
-                print("Mean relative deviation: {} %\n".format(np.round(mean_px_error, 3)))
+                print(
+                    "Detection accuracy (GT - FP - MD) / GT):",
+                    np.round(detection_accuracy, 1),
+                    "%",
+                )
+                print(
+                    "Mean relative deviation: {} %\n".format(np.round(mean_px_error, 3))
+                )
 
-                Results_mat[-1][-1].append([unique_dataset[0],
-                                            total_gt_detections,
-                                            total_gt_detections - total_missed_detections,
-                                            total_missed_detections,
-                                            total_false_positives,
-                                            AP,
-                                            Recall])
+                Results_mat[-1][-1].append(
+                    [
+                        unique_dataset[0],
+                        total_gt_detections,
+                        total_gt_detections - total_missed_detections,
+                        total_missed_detections,
+                        total_false_positives,
+                        AP,
+                        Recall,
+                    ]
+                )
 
     output_results = output_name.split("_")[0] + "_RESULTS.pkl"
     print(output_results)
 
-    with open(output_results, 'wb') as fp:
+    with open(output_results, "wb") as fp:
         pickle.dump(Results_mat, fp)
 
     print("--- %s seconds ---" % (time.time() - start_time))

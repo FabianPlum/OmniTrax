@@ -17,7 +17,9 @@ def compare_points(gt, detection, max_dist=25):
     return match, px_distance
 
 
-def compare_frame(frame_gt, frame_detections, max_dist=0.05, network_shape=[None, None], confidence=0):
+def compare_frame(
+    frame_gt, frame_detections, max_dist=0.05, network_shape=[None, None], confidence=0
+):
     # strip away all sub threshold detections!
     frame_detections = [f for f in frame_detections if f[1] > confidence]
 
@@ -31,17 +33,18 @@ def compare_frame(frame_gt, frame_detections, max_dist=0.05, network_shape=[None
     for i in range(len(matches_gt)):
         min_dist = max_dist
         for j in range(len(matches_det)):
-
             if network_shape[0] is not None:
-                norm_frame_detection = [frame_detections[j][2][0] / network_shape[0],
-                                        frame_detections[j][2][1] / network_shape[1]]
+                norm_frame_detection = [
+                    frame_detections[j][2][0] / network_shape[0],
+                    frame_detections[j][2][1] / network_shape[1],
+                ]
 
             else:
                 norm_frame_detection = frame_detections[j][2][0:2]
 
-            match, px_dist = compare_points(gt=frame_gt[i][0:2],
-                                            detection=norm_frame_detection,
-                                            max_dist=max_dist)
+            match, px_dist = compare_points(
+                gt=frame_gt[i][0:2], detection=norm_frame_detection, max_dist=max_dist
+            )
 
             if match:
                 matches_gt[i] = 0
@@ -64,30 +67,48 @@ def compare_frame(frame_gt, frame_detections, max_dist=0.05, network_shape=[None
 
 
 def getThreads():
-    """ Returns the number of available threads on a posix/win based system """
-    if sys.platform == 'win32':
-        return int(os.environ['NUMBER_OF_PROCESSORS'])
+    """Returns the number of available threads on a posix/win based system"""
+    if sys.platform == "win32":
+        return int(os.environ["NUMBER_OF_PROCESSORS"])
     else:
-        return int(os.popen('grep -c cores /proc/cpuinfo').read())
+        return int(os.popen("grep -c cores /proc/cpuinfo").read())
 
 
 def process_detections(data):
     print("Running evaluation of ", data, "...")
 
-    with open("ANNOTATIONS_ALL.pkl", 'rb') as f:
+    with open("ANNOTATIONS_ALL.pkl", "rb") as f:
         all_annotations = pickle.load(f)
 
     snapshots = [join(data, f) for f in listdir(data)]
     all_detections = []
 
     for snapshot in snapshots:
-        with open(snapshot, 'rb') as f:
+        with open(snapshot, "rb") as f:
             all_detections.append([snapshot, pickle.load(f)])
 
-    print("ran inference on {} frames, using {}".format(len(all_detections[-1][1]), data))
+    print(
+        "ran inference on {} frames, using {}".format(len(all_detections[-1][1]), data)
+    )
 
-    max_detection_distance_px = 0.1  # 0.1 = 10% away from centre to be considered a valid detection
-    thresh_list = [0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8]
+    max_detection_distance_px = (
+        0.1  # 0.1 = 10% away from centre to be considered a valid detection
+    )
+    thresh_list = [
+        0.2,
+        0.25,
+        0.3,
+        0.35,
+        0.4,
+        0.45,
+        0.5,
+        0.55,
+        0.6,
+        0.65,
+        0.7,
+        0.75,
+        0.8,
+    ]
     print("Computing AP scores for thresholds of {}".format(thresh_list))
 
     Results_mat = []
@@ -105,21 +126,28 @@ def process_detections(data):
             print("\n running inference at {} confidence threshold".format(confidence))
 
             for unique_dataset in all_annotations:
-
                 print("dataset:", unique_dataset[0])
 
-                total_gt_detections = 0  # number of total detections in the ground truth dataset
+                total_gt_detections = (
+                    0  # number of total detections in the ground truth dataset
+                )
                 total_missed_detections = 0  # number of missed detections which are present in the groud truth dataset
                 total_false_positives = 0  # number of incorrect detections that do not match any groud thruth tracks
                 all_frame_detection_deviations = []  # list of mean deviations for correct detections
 
                 for detection, annotation in zip(model[1], unique_dataset[1:]):
-                    gt_detections, missed_detections, false_positives, mean_detection_distance = compare_frame(
+                    (
+                        gt_detections,
+                        missed_detections,
+                        false_positives,
+                        mean_detection_distance,
+                    ) = compare_frame(
                         annotation,
                         detection,
                         max_detection_distance_px,
                         [800, 800],
-                        confidence)
+                        confidence,
+                    )
 
                     total_gt_detections += gt_detections
                     total_missed_detections += missed_detections
@@ -127,46 +155,70 @@ def process_detections(data):
                     all_frame_detection_deviations.append(mean_detection_distance)
 
                 mean_px_error = np.mean(all_frame_detection_deviations) * 100
-                detection_accuracy = ((
-                                              total_gt_detections - total_missed_detections - total_false_positives) / total_gt_detections) * 100
+                detection_accuracy = (
+                    (
+                        total_gt_detections
+                        - total_missed_detections
+                        - total_false_positives
+                    )
+                    / total_gt_detections
+                ) * 100
 
                 if total_gt_detections == total_missed_detections:
                     # the accuracy is zero if no objects are correctly detected
                     AP = 0
                 else:
                     AP = (total_gt_detections - total_missed_detections) / (
-                            total_gt_detections - total_missed_detections + total_false_positives)
-                    Recall = (total_gt_detections - total_missed_detections) / total_gt_detections
+                        total_gt_detections
+                        - total_missed_detections
+                        + total_false_positives
+                    )
+                    Recall = (
+                        total_gt_detections - total_missed_detections
+                    ) / total_gt_detections
 
                 print("Total ground truth detections:", total_gt_detections)
-                print("Total correct detections:", total_gt_detections - total_missed_detections)
+                print(
+                    "Total correct detections:",
+                    total_gt_detections - total_missed_detections,
+                )
                 print("Total missed detections:", total_missed_detections)
                 print("Total false positives:", total_false_positives)
                 print("Average Precision:", round(AP, 3))
                 print("Recall:", round(Recall, 3))
-                print("Detection accuracy (GT - FP - MD) / GT):", np.round(detection_accuracy, 1), "%")
-                print("Mean relative deviation: {} %\n".format(np.round(mean_px_error, 3)))
+                print(
+                    "Detection accuracy (GT - FP - MD) / GT):",
+                    np.round(detection_accuracy, 1),
+                    "%",
+                )
+                print(
+                    "Mean relative deviation: {} %\n".format(np.round(mean_px_error, 3))
+                )
 
-                Results_mat[-1][-1].append([unique_dataset[0],
-                                            total_gt_detections,
-                                            total_gt_detections - total_missed_detections,
-                                            total_missed_detections,
-                                            total_false_positives,
-                                            AP,
-                                            Recall])
+                Results_mat[-1][-1].append(
+                    [
+                        unique_dataset[0],
+                        total_gt_detections,
+                        total_gt_detections - total_missed_detections,
+                        total_missed_detections,
+                        total_false_positives,
+                        AP,
+                        Recall,
+                    ]
+                )
 
     outputFolder = "I:\\BENCHMARK\\DARKNET_TRAIN\\EVALUATION\\RESULTS"
     output_results = join(outputFolder, str(os.path.basename(data)) + "_RESULTS.pkl")
     print(output_results)
 
-    with open(output_results, 'wb') as fp:
+    with open(output_results, "wb") as fp:
         pickle.dump(Results_mat, fp)
 
     print("--- %s seconds ---" % (time.time() - start_time))
     exit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Data input and output
     modelFolder = "I:\\BENCHMARK\\DARKNET_TRAIN\\OUTPUT"
     outputFolder = "I:\\BENCHMARK\\DARKNET_TRAIN\\EVALUATION\\RESULTS"

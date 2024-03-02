@@ -39,9 +39,11 @@ class YOLOader(object):
                 if line[:7] == "classes":
                     num_classes = int(line.split("=")[1].split("\n")[0])
 
-        self.names = str(Path(self.cfg).parent.joinpath(str(Path(self.cfg).name)[:-4] + ".names"))
+        self.names = str(
+            Path(self.cfg).parent.joinpath(str(Path(self.cfg).name)[:-4] + ".names")
+        )
 
-        with open(self.names, 'w', encoding="utf-8") as f:
+        with open(self.names, "w", encoding="utf-8") as f:
             for class_name in range(num_classes):
                 f.write(str(class_name) + "\n")
 
@@ -58,9 +60,11 @@ class YOLOader(object):
                 if line[:7] == "classes":
                     num_classes = int(line.split("=")[1].split("\n")[0])
 
-        self.data = str(Path(self.cfg).parent.joinpath(str(Path(self.cfg).name)[:-4] + ".data"))
+        self.data = str(
+            Path(self.cfg).parent.joinpath(str(Path(self.cfg).name)[:-4] + ".data")
+        )
 
-        with open(self.data, 'w', encoding="utf-8") as f:
+        with open(self.data, "w", encoding="utf-8") as f:
             f.write("classes = " + str(num_classes) + "\n")
             f.write("train = data/train.txt\n")
             f.write("test = data/test.txt\n")
@@ -68,7 +72,6 @@ class YOLOader(object):
             f.write("backup = backup/\n")
 
         print("Created new .data file for the loaded network.")
-
 
     def update_data(self):
         """
@@ -85,7 +88,9 @@ class YOLOader(object):
             for line in lines:
                 f.write(line)
 
-        print("INFO: Updated .data file for the loaded network to include absolute path of .names file")
+        print(
+            "INFO: Updated .data file for the loaded network to include absolute path of .names file"
+        )
 
     def update_cfg(self, nw_width, nw_height, encoding="utf-8"):
         """
@@ -112,10 +117,17 @@ class YOLOader(object):
                         correct_h = True
 
         if not correct_w and not correct_h:
-            self.cfg = str(Path(self.cfg).parent.joinpath(str(Path(self.cfg).name)[:-4] +
-                                                          "_width_" + str(nw_width_rounded) +
-                                                          "_height_" + str(nw_height_rounded) + ".cfg"))
-            with open(self.cfg, 'w', encoding="utf-8") as f:
+            self.cfg = str(
+                Path(self.cfg).parent.joinpath(
+                    str(Path(self.cfg).name)[:-4]
+                    + "_width_"
+                    + str(nw_width_rounded)
+                    + "_height_"
+                    + str(nw_height_rounded)
+                    + ".cfg"
+                )
+            )
+            with open(self.cfg, "w", encoding="utf-8") as f:
                 for line in lines:
                     if line.split("=")[0] == "batch":
                         f.write("batch=1\n")
@@ -128,12 +140,19 @@ class YOLOader(object):
                     else:
                         f.write(line)
 
-            print("Updated .cfg file with network width", nw_width_rounded, "and height", nw_height_rounded)
+            print(
+                "Updated .cfg file with network width",
+                nw_width_rounded,
+                "and height",
+                nw_height_rounded,
+            )
 
 
 if __name__ == "__main__":
-    test_yolo = YOLOader(cfg="C:\\Users\\Legos\\Desktop\\yolov4\\data\\yolov4-big_and_small_ants.cfg",
-                         weights="C:\\Users\\Legos\\Desktop\\yolov4\\data\\yolov4-big_and_small_ants_21000.weights")
+    test_yolo = YOLOader(
+        cfg="C:\\Users\\Legos\\Desktop\\yolov4\\data\\yolov4-big_and_small_ants.cfg",
+        weights="C:\\Users\\Legos\\Desktop\\yolov4\\data\\yolov4-big_and_small_ants_21000.weights",
+    )
 
     test_yolo.update_cfg(nw_width=320, nw_height=320)
     test_yolo.create_names()

@@ -17,8 +17,8 @@ bl_info = {
     "location": "",
     "author": "Fabian Plum",
     "warning": "RUN IN ADMINISTRATOR MODE DURING INSTALLATION! "
-               "Additional dependencies may conflict with other custom Add-ons.",
-    "category": "motion capture"
+    "Additional dependencies may conflict with other custom Add-ons.",
+    "category": "motion capture",
 }
 
 

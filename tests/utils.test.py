@@ -7,31 +7,35 @@ try:
         from omni_trax.utils.omni_trax_utils import scale_detections, convertBack
     except:
         from inspect import getsourcefile
-        from os.path import abspath
 
         project_dir = os.path.dirname(os.path.dirname(getsourcefile(lambda: 0)))
         sys.path.append(project_dir)
         from utils.omni_trax_utils import scale_detections, convertBack
 
-
     class TestUtils(unittest.TestCase):
-
         def test_scale_detections(self):
             values = [100, 200, 320, 320, 1920, 1080]
             target = [600, 405]
 
-            self.assertEqual(scale_detections(x=values[0], y=values[1],
-                                              network_w=values[2], network_h=values[3],
-                                              output_w=values[4], output_h=values[5]),
-                             target)
+            self.assertEqual(
+                scale_detections(
+                    x=values[0],
+                    y=values[1],
+                    network_w=values[2],
+                    network_h=values[3],
+                    output_w=values[4],
+                    output_h=values[5],
+                ),
+                target,
+            )
 
         def test_convert_back(self):
             values = [100, 200, 1920, 1080]
             target = (-860, -340, 1060, 740)
 
-            self.assertEqual(convertBack(x=values[0], y=values[1], w=values[2], h=values[3]),
-                             target)
-
+            self.assertEqual(
+                convertBack(x=values[0], y=values[1], w=values[2], h=values[3]), target
+            )
 
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestUtils)
     success = unittest.TextTestRunner().run(suite)

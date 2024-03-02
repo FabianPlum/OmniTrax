@@ -30,30 +30,33 @@ class KalmanFilter(object):
         self.x = np.matrix([initial_state[0], initial_state[1], [0], [0]])
 
         # Define the State Transition Matrix A
-        self.A = np.matrix([[1, 0, self.dt, 0],
-                            [0, 1, 0, self.dt],
-                            [0, 0, 1, 0],
-                            [0, 0, 0, 1]])
+        self.A = np.matrix(
+            [[1, 0, self.dt, 0], [0, 1, 0, self.dt], [0, 0, 1, 0], [0, 0, 0, 1]]
+        )
 
         # Define the Control Input Matrix B
-        self.B = np.matrix([[(self.dt ** 2) / 2, 0],
-                            [0, (self.dt ** 2) / 2],
-                            [self.dt, 0],
-                            [0, self.dt]])
+        self.B = np.matrix(
+            [[(self.dt**2) / 2, 0], [0, (self.dt**2) / 2], [self.dt, 0], [0, self.dt]]
+        )
 
         # Define Measurement Mapping Matrix
-        self.H = np.matrix([[1, 0, 0, 0],
-                            [0, 1, 0, 0]])
+        self.H = np.matrix([[1, 0, 0, 0], [0, 1, 0, 0]])
 
         # Initial Process Noise Covariance
-        self.Q = np.matrix([[(self.dt ** 4) / 4, 0, (self.dt ** 3) / 2, 0],
-                            [0, (self.dt ** 4) / 4, 0, (self.dt ** 3) / 2],
-                            [(self.dt ** 3) / 2, 0, self.dt ** 2, 0],
-                            [0, (self.dt ** 3) / 2, 0, self.dt ** 2]]) * std_acc ** 2
+        self.Q = (
+            np.matrix(
+                [
+                    [(self.dt**4) / 4, 0, (self.dt**3) / 2, 0],
+                    [0, (self.dt**4) / 4, 0, (self.dt**3) / 2],
+                    [(self.dt**3) / 2, 0, self.dt**2, 0],
+                    [0, (self.dt**3) / 2, 0, self.dt**2],
+                ]
+            )
+            * std_acc**2
+        )
 
         # Initial Measurement Noise Covariance
-        self.R = np.matrix([[x_std_meas ** 2, 0],
-                            [0, y_std_meas ** 2]])
+        self.R = np.matrix([[x_std_meas**2, 0], [0, y_std_meas**2]])
 
         # Initial Covariance Matrix
         self.P = np.eye(self.A.shape[1])

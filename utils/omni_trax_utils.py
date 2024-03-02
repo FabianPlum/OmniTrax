@@ -9,6 +9,7 @@ import tensorflow as tf
 
 ### Various Processing functions ###
 
+
 def scale_detections(x, y, network_w, network_h, output_w, output_h):
     """
     scaling detections from their original darknet output to the blender XY convention
@@ -52,26 +53,26 @@ def cvDrawBoxes(detections, img, min_size=20, constant_size=False, class_colours
     :return: image with superimposed detections
     """
     for label, confidence, bbox in detections:
-
-        x, y, w, h = bbox[0], \
-                     bbox[1], \
-                     bbox[2], \
-                     bbox[3]
+        x, y, w, h = bbox[0], bbox[1], bbox[2], bbox[3]
 
         if w >= min_size and h >= min_size:
-
             if constant_size:
                 w, h = constant_size, constant_size
 
-            xmin, ymin, xmax, ymax = convertBack(
-                float(x), float(y), float(w), float(h))
+            xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
             pt1 = (xmin, ymin)
             pt2 = (xmax, ymax)
             cl_colour = class_colours[label]
             cv2.rectangle(img, pt1, pt2, (cl_colour[0], cl_colour[1], cl_colour[2]), 1)
-            cv2.putText(img, label + " [" + confidence + "]",
-                        (pt1[0], pt1[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.3,
-                        cl_colour, 1)
+            cv2.putText(
+                img,
+                label + " [" + confidence + "]",
+                (pt1[0], pt1[1] - 5),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.3,
+                cl_colour,
+                1,
+            )
     return img
 
 
@@ -83,7 +84,10 @@ def setInferenceDevive(device):
     # disables all but the selected computational device (by setting them invisible)
     physical_devices = tf.config.list_physical_devices(device.split("_")[0])
     try:
-        tf.config.set_visible_devices(physical_devices[int(device.split("_")[1])], device_type=device.split("_")[0])
+        tf.config.set_visible_devices(
+            physical_devices[int(device.split("_")[1])],
+            device_type=device.split("_")[0],
+        )
         logical_devices = tf.config.list_logical_devices()
         # Logical device was not created for first GPU
     except:
@@ -107,14 +111,16 @@ def import_tracks(path, numFrames, export=False):
     print("importing tracks...")
     files = []
     tracks = np.empty([numFrames + 1, 1])  # create array for all tracks
-    tracks[:, 0] = np.arange(start=1, stop=numFrames + 2, step=1, dtype=int)  # insert frame numbers
+    tracks[:, 0] = np.arange(
+        start=1, stop=numFrames + 2, step=1, dtype=int
+    )  # insert frame numbers
 
     imported = 0
 
     # r=root, d=directories, f = files
     for r, d, f in os.walk(path):
         for file in f:
-            if '.csv' in file:
+            if ".csv" in file:
                 files.append(os.path.join(r, file))
 
                 # for each new track create two "zeros" columns
@@ -122,7 +128,7 @@ def import_tracks(path, numFrames, export=False):
                 tracks = np.append(tracks, np.zeros([numFrames + 1, 2]), axis=1)
 
                 with open(files[imported]) as csv_file:
-                    csv_reader = csv.reader(csv_file, delimiter=';')
+                    csv_reader = csv.reader(csv_file, delimiter=";")
                     line_count = 0
 
                     next(csv_reader, None)  # skip the headers
@@ -131,7 +137,7 @@ def import_tracks(path, numFrames, export=False):
                         tracks[int(row[0]) - 1, imported * 2 + 1] = int(row[1])
                         tracks[int(row[0]) - 1, imported * 2 + 2] = int(row[2])
                         line_count += 1
-                    print("imported", str(file), f' with {line_count} points.')
+                    print("imported", str(file), f" with {line_count} points.")
 
                 imported += 1
 
@@ -140,7 +146,11 @@ def import_tracks(path, numFrames, export=False):
         export_path = path + "_all_tracks.csv"
         np.savetxt(export_path, tracks, delimiter=",")
 
-    print("\nSuccessfully combined the tracks of", imported, "individuals for training and display!")
+    print(
+        "\nSuccessfully combined the tracks of",
+        imported,
+        "individuals for training and display!",
+    )
     return tracks
 
 
@@ -164,7 +174,9 @@ def display_video(cap, tracks, show=(0, math.inf), scale=1.0, target_size=100):
 
     # fix the seed for the same set of randomly assigned colours for each track
     np.random.seed(seed=0)
-    colours = np.random.randint(low=0, high=255, size=((math.floor(((tracks.shape[1]) - 1) / 2)), 3))
+    colours = np.random.randint(
+        low=0, high=255, size=((math.floor(((tracks.shape[1]) - 1) / 2)), 3)
+    )
 
     print("\nDisplaying tracked footage!\npress 'q' to end display")
 
@@ -191,36 +203,74 @@ def display_video(cap, tracks, show=(0, math.inf), scale=1.0, target_size=100):
         for track in range(math.floor(((tracks.shape[1]) - 1) / 2)):
             if tracks[frame_num, track * 2 + 1] != 0:
                 # the tracks are read as centres
-                target_centre = np.asarray([tracks[frame_num, track * 2 + 1], tracks[frame_num, track * 2 + 2]])
+                target_centre = np.asarray(
+                    [tracks[frame_num, track * 2 + 1], tracks[frame_num, track * 2 + 2]]
+                )
 
                 # invert y axis, to fit openCV convention ( lower left -> (x=0,y=0) )
                 target_centre[1] = new_height - target_centre[1]
                 # define the starting and ending point of the bounding box rectangle, defined by "target_size"
-                px_start = target_centre - np.asarray([math.floor(target_size / 2), math.floor(target_size / 2)])
-                px_end = target_centre + np.asarray([math.floor(target_size / 2), math.floor(target_size / 2)])
+                px_start = target_centre - np.asarray(
+                    [math.floor(target_size / 2), math.floor(target_size / 2)]
+                )
+                px_end = target_centre + np.asarray(
+                    [math.floor(target_size / 2), math.floor(target_size / 2)]
+                )
                 # draw the defined rectangle of the track on top of the frame
-                cv2.rectangle(frame, (px_start[0], px_start[1]), (px_end[0], px_end[1]),
-                              (int(colours[track, 0]), int(colours[track, 1]), int(colours[track, 2])), 2)
+                cv2.rectangle(
+                    frame,
+                    (px_start[0], px_start[1]),
+                    (px_end[0], px_end[1]),
+                    (
+                        int(colours[track, 0]),
+                        int(colours[track, 1]),
+                        int(colours[track, 2]),
+                    ),
+                    2,
+                )
                 # write out track number of each active track
-                cv2.putText(frame, "track: " + str(track),
-                            (int(target_centre[0] - target_size / 2), int(target_centre[1] - target_size / 2 - 10)),
-                            font, 0.3, (int(colours[track, 0]), int(colours[track, 1]), int(colours[track, 2])), 1,
-                            cv2.LINE_AA)
+                cv2.putText(
+                    frame,
+                    "track: " + str(track),
+                    (
+                        int(target_centre[0] - target_size / 2),
+                        int(target_centre[1] - target_size / 2 - 10),
+                    ),
+                    font,
+                    0.3,
+                    (
+                        int(colours[track, 0]),
+                        int(colours[track, 1]),
+                        int(colours[track, 2]),
+                    ),
+                    1,
+                    cv2.LINE_AA,
+                )
 
-        cv2.putText(frame, "frame: " + str(frame_num), (int(new_width / 2) - 100, 35),
-                    font, 0.8, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.imshow('original frame', frame)
+        cv2.putText(
+            frame,
+            "frame: " + str(frame_num),
+            (int(new_width / 2) - 100, 35),
+            font,
+            0.8,
+            (255, 255, 255),
+            1,
+            cv2.LINE_AA,
+        )
+        cv2.imshow("original frame", frame)
 
         if frame_num > show[1]:
             break
 
         # enforce constant frame rate during display
-        time_to_process = (time.time() - time_prev)  # compute elapsed time to enforce constant frame rate (if possible)
+        time_to_process = (
+            time.time() - time_prev
+        )  # compute elapsed time to enforce constant frame rate (if possible)
         if time_to_process < 1 / fps:
             time.sleep((1 / fps) - time_to_process)
 
         # press q to quit, i.e. exit the display
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
         frame_num += 1
@@ -256,7 +306,7 @@ def get_exact_frame(frame_no, num_frames_max, file, display=False, num_frames=1)
 
     for i in range(1, num_frames + 1):
         # skip back specified number of frames to include previous frames if desired / possible
-        frame_val = (frame_no - 1 + (i - num_frames))
+        frame_val = frame_no - 1 + (i - num_frames)
         # set desired frame (Property identifier of cv2.CV_CAP_PROP_POS_FRAMES is 1, thus the first entry is 1
         file.set(1, frame_val)
 
@@ -272,8 +322,16 @@ def get_exact_frame(frame_no, num_frames_max, file, display=False, num_frames=1)
             frame = cv2.resize(frame, (new_width, new_height))
 
             font = cv2.FONT_HERSHEY_SIMPLEX
-            cv2.putText(frame, "frame: " + str(frame_no + (i - num_frames)), (int(new_width / 2) - 100, 35),
-                        font, 0.8, (255, 255, 255), 1, cv2.LINE_AA)
+            cv2.putText(
+                frame,
+                "frame: " + str(frame_no + (i - num_frames)),
+                (int(new_width / 2) - 100, 35),
+                font,
+                0.8,
+                (255, 255, 255),
+                1,
+                cv2.LINE_AA,
+            )
 
             # Display the resulting frame
             cv2.imshow("Selected frames: ", frame)
@@ -334,16 +392,28 @@ def extractPatches(frame_no, frames, tracks, patch_size=128, BW=True):
         for img in range(len(frames) - num_empty_img):
             if tracks[frame_no + (img - len(frames) + num_empty_img), track] != 0:
                 # the tracks are read as centres
-                target_centre = np.asarray([tracks[frame_no + (img - len(frames) + num_empty_img), track],
-                                            tracks[frame_no + (img - len(frames) + num_empty_img), track + 1]])
+                target_centre = np.asarray(
+                    [
+                        tracks[frame_no + (img - len(frames) + num_empty_img), track],
+                        tracks[
+                            frame_no + (img - len(frames) + num_empty_img), track + 1
+                        ],
+                    ]
+                )
 
                 # invert y-axis, to fit OpenCV convention ( lower left -> (x=0,y=0) )
                 target_centre[1] = frames[0].shape[0] - target_centre[1]
                 # define the starting and ending point of the bounding box rectangle, defined by "target_size"
-                px_start = target_centre - np.asarray([math.floor(patch_size / 2), math.floor(patch_size / 2)])
-                px_end = target_centre + np.asarray([math.floor(patch_size / 2), math.floor(patch_size / 2)])
+                px_start = target_centre - np.asarray(
+                    [math.floor(patch_size / 2), math.floor(patch_size / 2)]
+                )
+                px_end = target_centre + np.asarray(
+                    [math.floor(patch_size / 2), math.floor(patch_size / 2)]
+                )
                 # extract the defined rectangle of the track from the frame and save to the stack
-                stack.append(frames[img][px_start[1]:px_end[1], px_start[0]:px_end[0]])
+                stack.append(
+                    frames[img][px_start[1] : px_end[1], px_start[0] : px_end[0]]
+                )
 
                 # save the position of each patch within the stack
                 pos.append(target_centre)
@@ -382,7 +452,14 @@ def extractPatches(frame_no, frames, tracks, patch_size=128, BW=True):
     detections_label = np.array(detections_label)
     detections_pos = np.array(detections_pos)
 
-    return stacks, stacks_label, stacks_pos, detections, detections_label, detections_pos
+    return (
+        stacks,
+        stacks_label,
+        stacks_pos,
+        detections,
+        detections_label,
+        detections_pos,
+    )
 
 
 def sortByDistance(detections, stack_pos, detections_pos, labels, verbose=False):
@@ -404,12 +481,21 @@ def sortByDistance(detections, stack_pos, detections_pos, labels, verbose=False)
         # compute distance between all detections and a given active stack
         all_dist.append(
             math.sqrt(
-                ((last_valid_pos[0] - detections_pos[i, 0]) ** 2) + ((last_valid_pos[1] - detections_pos[i, 1]) ** 2)))
+                ((last_valid_pos[0] - detections_pos[i, 0]) ** 2)
+                + ((last_valid_pos[1] - detections_pos[i, 1]) ** 2)
+            )
+        )
 
     # sort detections based on smallest distance to given stack (closest detection first)
-    detections_sorted = [i for _, i in sorted(zip(all_dist, detections), key=lambda pair: pair[0])]
-    labels_sorted = [i for _, i in sorted(zip(all_dist, labels), key=lambda pair: pair[0])]
-    detections_pos_sorted = [i for _, i in sorted(zip(all_dist, detections_pos), key=lambda pair: pair[0])]
+    detections_sorted = [
+        i for _, i in sorted(zip(all_dist, detections), key=lambda pair: pair[0])
+    ]
+    labels_sorted = [
+        i for _, i in sorted(zip(all_dist, labels), key=lambda pair: pair[0])
+    ]
+    detections_pos_sorted = [
+        i for _, i in sorted(zip(all_dist, detections_pos), key=lambda pair: pair[0])
+    ]
     all_dist.sort()
 
     if verbose:

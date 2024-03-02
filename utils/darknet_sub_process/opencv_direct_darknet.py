@@ -4,25 +4,32 @@ import numpy as np
 import time
 
 img = cv.imread(
-    'C:/Users/Legos/AppData/Roaming/Blender Foundation/Blender/3.2/scripts/addons/omni_trax/darknet_sub_process/ant3.jpg')
-cv.imshow('window', img)
+    "C:/Users/Legos/AppData/Roaming/Blender Foundation/Blender/3.2/scripts/addons/omni_trax/darknet_sub_process/ant3.jpg"
+)
+cv.imshow("window", img)
 cv.waitKey(1)
 
 # Give the configuration and weight files for the model and load the network.
 net = cv.dnn.readNetFromDarknet(
-    'C:/Users/Legos/Documents/PhD/Blender/OmniTrax/trained_networks/atta_single_class/yolov4-big_and_small_ants_480.cfg',
-    'C:/Users/Legos/Documents/PhD/Blender/OmniTrax/trained_networks/atta_single_class/yolov4-big_and_small_ants_HPC_final.weights')
+    "C:/Users/Legos/Documents/PhD/Blender/OmniTrax/trained_networks/atta_single_class/yolov4-big_and_small_ants_480.cfg",
+    "C:/Users/Legos/Documents/PhD/Blender/OmniTrax/trained_networks/atta_single_class/yolov4-big_and_small_ants_HPC_final.weights",
+)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_CUDA)
 net.setPreferableTarget(cv.dnn.DNN_TARGET_CUDA)
-#net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
-#net.setPreferableTarget(cv.dnn.DNN_TARGET_GPU)
+# net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
+# net.setPreferableTarget(cv.dnn.DNN_TARGET_GPU)
 
 # Load names of classes and get random colors
-classes = open(
-    'C:/Users/Legos/Documents/PhD/Blender/OmniTrax/trained_networks/atta_single_class/obj.names').read().strip().split(
-    '\n')
+classes = (
+    open(
+        "C:/Users/Legos/Documents/PhD/Blender/OmniTrax/trained_networks/atta_single_class/obj.names"
+    )
+    .read()
+    .strip()
+    .split("\n")
+)
 np.random.seed(42)
-colors = np.random.randint(0, 255, size=(len(classes), 3), dtype='uint8')
+colors = np.random.randint(0, 255, size=(len(classes), 3), dtype="uint8")
 
 # determine the output layer
 ln = net.getLayerNames()
@@ -32,8 +39,8 @@ ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 blob = cv.dnn.blobFromImage(img, 1 / 255.0, (416, 416), swapRB=True, crop=False)
 r = blob[0, 0, :, :]
 
-cv.imshow('blob', r)
-text = f'Blob shape={blob.shape}'
+cv.imshow("blob", r)
+text = f"Blob shape={blob.shape}"
 # cv.displayOverlay('blob', text)
 cv.waitKey(1)
 
@@ -41,7 +48,7 @@ net.setInput(blob)
 t0 = time.time()
 outputs = net.forward(ln)
 t = time.time()
-print('time=', t - t0)
+print("time=", t - t0)
 
 print(len(outputs))
 for out in outputs:
@@ -77,7 +84,7 @@ if len(indices) > 0:
         text = "{}: {:.4f}".format(classes[classIDs[i]], confidences[i])
         cv.putText(img, text, (x, y - 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
-cv.imshow('window', img)
+cv.imshow("window", img)
 cv.waitKey(0)
 cv.destroyAllWindows()
 
@@ -85,7 +92,9 @@ cv.destroyAllWindows()
 
 # initialize the video stream, pointer to output video file, and
 # frame dimensions
-vs = cv.VideoCapture("C:/Users/Legos/Desktop/yolov4/example_recordings/first_half_hour_resized.mp4")
+vs = cv.VideoCapture(
+    "C:/Users/Legos/Desktop/yolov4/example_recordings/first_half_hour_resized.mp4"
+)
 writer = None
 (W, H) = (None, None)
 # try to determine the total number of frames in the video file
@@ -113,8 +122,7 @@ while True:
     # construct a blob from the input frame and then perform a forward
     # pass of the YOLO object detector, giving us our bounding boxes
     # and associated probabilities
-    blob = cv.dnn.blobFromImage(frame, 1 / 255.0, (416, 416),
-                                swapRB=True, crop=False)
+    blob = cv.dnn.blobFromImage(frame, 1 / 255.0, (416, 416), swapRB=True, crop=False)
     net.setInput(blob)
     start = time.time()
     layerOutputs = net.forward(ln)
