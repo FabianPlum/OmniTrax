@@ -23,23 +23,23 @@ python .\darknet_evaluation_main.py
 """
 
 for model in models:
-	subprocess.call(
-		[
-			"python",
-			"darknet_evaluation_main.py",
-			"--modelFolder",
-			"I:\\BENCHMARK\\DARKNET_TRAIN\\NEW_BATCH_LR_0001\\" + model + "\\backup",
-			"--dataFolder",
-			dataset,
-			"--darknetFolder",
-			"I:\\BENCHMARK\\DARKNET_TRAIN\\darknet\\x64",
-			"--configPath",
-			"I:\\BENCHMARK/DARKNET_TRAIN\\yolov4_array_HPC_new_test.cfg",
-			"--metaPath",
-			"I:\\BENCHMARK/DARKNET_TRAIN\\obj.data",
-			"--outputFolder",
-			"I:\\BENCHMARK\\DARKNET_TRAIN\\OUTPUT\\" + model,
-			"--GPU",
-			"0",
-		]
-	)
+    subprocess.call(
+        [
+            "python",
+            "darknet_evaluation_main.py",
+            "--modelFolder",
+            "I:\\BENCHMARK\\DARKNET_TRAIN\\NEW_BATCH_LR_0001\\" + model + "\\backup",
+            "--dataFolder",
+            dataset,
+            "--darknetFolder",
+            "I:\\BENCHMARK\\DARKNET_TRAIN\\darknet\\x64",
+            "--configPath",
+            "I:\\BENCHMARK/DARKNET_TRAIN\\yolov4_array_HPC_new_test.cfg",
+            "--metaPath",
+            "I:\\BENCHMARK/DARKNET_TRAIN\\obj.data",
+            "--outputFolder",
+            "I:\\BENCHMARK\\DARKNET_TRAIN\\OUTPUT\\" + model,
+            "--GPU",
+            "0",
+        ]
+    )

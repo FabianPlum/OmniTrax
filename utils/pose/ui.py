@@ -20,7 +20,7 @@ class OMNITRAX_PT_PoseEstimationPanel(bpy.types.Panel):
     )
     bpy.types.Scene.pose_enforce_constant_size = BoolProperty(
         name="constant (input) ROI [over-write original bounding boxes]",
-        description="Check to enforce constant Regions Of Interest (ROI) sizes, overwriting the tracker bounding boxes."
+        description="Check to enforce constant Region Of Interest (ROI) sizes, overwriting the tracker bounding boxes."
         + "This affects the following pose inference. If enabled, all ROIs will extracted as a squares of "
         + "dimensions m x m from the video footage. The resolution is then equivalent to the 'Pose (input) "
         + "frame size (px)' below.",
