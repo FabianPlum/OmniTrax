@@ -104,13 +104,19 @@ class OMNITRAX_PT_DetectionPanel(bpy.types.Panel):
 
         col.label(text="Processing settings")
         col.prop(context.scene, "detection_enforce_constant_size")
-        col.prop(context.scene, "detection_constant_size")
-        col.prop(context.scene, "detection_min_size")
-        col.separator()
+        col_1 = layout.column(align=True)
+        col_1.prop(context.scene, "detection_constant_size")
+        if context.scene.detection_enforce_constant_size:
+            col_1.enabled = True
+        else:
+            col_1.enabled = False
+        col_2 = layout.column(align=True)
+        col_2.prop(context.scene, "detection_min_size")
+        col_2.separator()
 
-        col.prop(context.scene, "frame_start")
-        col.prop(context.scene, "frame_end")
-        col.separator()
+        col_2.prop(context.scene, "frame_start")
+        col_2.prop(context.scene, "frame_end")
+        col_2.separator()
 
 
 class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
