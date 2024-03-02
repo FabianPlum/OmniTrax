@@ -9,27 +9,27 @@ from .utils import track
 from .utils import pose
 
 bl_info = {
-    "name": "omni_trax",
-    "author": "Fabian Plum",
-    "description": "Deep learning-based multi animal tracker",
-    "blender": (2, 92, 0),
-    "version": (0, 3, 1),
-    "location": "",
-    "author": "Fabian Plum",
-    "warning": "RUN IN ADMINISTRATOR MODE DURING INSTALLATION! "
-    "Additional dependencies may conflict with other custom Add-ons.",
-    "category": "motion capture",
+	"name": "omni_trax",
+	"author": "Fabian Plum",
+	"description": "Deep learning-based multi animal tracker",
+	"blender": (2, 92, 0),
+	"version": (0, 3, 1),
+	"location": "",
+	"author": "Fabian Plum",
+	"warning": "RUN IN ADMINISTRATOR MODE DURING INSTALLATION! "
+	"Additional dependencies may conflict with other custom Add-ons.",
+	"category": "motion capture",
 }
 
 
 # (un)register module #
 def register():
-    utils.compute.register()
-    utils.track.register()
-    utils.pose.register()
+	utils.compute.register()
+	utils.track.register()
+	utils.pose.register()
 
 
 def unregister():
-    utils.compute.unregister()
-    utils.track.unregister()
-    utils.pose.unregister()
+	utils.compute.unregister()
+	utils.track.unregister()
+	utils.pose.unregister()

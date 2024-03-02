@@ -2,8 +2,8 @@ from . import ui
 
 
 def register():
-    ui.register()
+	ui.register()
 
 
 def unregister():
-    ui.unregister()
+	ui.unregister()
