@@ -62,10 +62,12 @@ class KalmanFilter(object):
 		self.P = np.eye(self.A.shape[1])
 
 	def predict(self):
-		# Refer to :Eq.(9) and Eq.(10)
-		# in https://machinelearningspace.com/object-tracking-python/
-		# Update time state
-		# x_k =Ax_(k-1) + Bu_(k-1)     Eq.(9)
+		"""
+		Extrapolate the track based on its current position and velocity
+		Refer to :Eq.(9) and Eq.(10)
+		in https://machinelearningspace.com/object-tracking-python/
+		x_k =Ax_(k-1) + Bu_(k-1)     Eq.(9)
+		"""
 		self.x = np.dot(self.A, self.x) + np.dot(self.B, self.u)
 		# Calculate error covariance
 		# P= A*P*A' + Q               Eq.(10)
@@ -73,9 +75,12 @@ class KalmanFilter(object):
 		return self.x[0:2]
 
 	def update(self, z, flag):
+		"""
+		Update time state of the filter
 		# Refer to :Eq.(11), Eq.(12) and Eq.(13)  in
 		# https://machinelearningspace.com/object-tracking-python/
 		# S = H*P*H'+R
+		"""
 		if not flag:
 			# use prediction of previous
 			z = self.x[0:2]  # + (self.dt * self.x[:2])
