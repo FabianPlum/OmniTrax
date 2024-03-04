@@ -24,27 +24,28 @@ class KalmanFilter(object):
         self.dt = dt
 
         # Define the  control input variables
-        self.u = np.matrix([[u_x], [u_y]])
+        self.u = np.array([[u_x], [u_y]])
 
         # Intial State
-        self.x = np.matrix([initial_state[0], initial_state[1], [0], [0]])
+        initial_state = np.array(initial_state)
+        self.x = np.array([[float(initial_state[0])], [float(initial_state[1])], [0.0], [0.0]])
 
         # Define the State Transition Matrix A
-        self.A = np.matrix(
+        self.A = np.array(
             [[1, 0, self.dt, 0], [0, 1, 0, self.dt], [0, 0, 1, 0], [0, 0, 0, 1]]
         )
 
         # Define the Control Input Matrix B
-        self.B = np.matrix(
+        self.B = np.array(
             [[(self.dt**2) / 2, 0], [0, (self.dt**2) / 2], [self.dt, 0], [0, self.dt]]
         )
 
         # Define Measurement Mapping Matrix
-        self.H = np.matrix([[1, 0, 0, 0], [0, 1, 0, 0]])
+        self.H = np.array([[1, 0, 0, 0], [0, 1, 0, 0]])
 
         # Initial Process Noise Covariance
         self.Q = (
-            np.matrix(
+            np.array(
                 [
                     [(self.dt**4) / 4, 0, (self.dt**3) / 2, 0],
                     [0, (self.dt**4) / 4, 0, (self.dt**3) / 2],
@@ -85,7 +86,7 @@ class KalmanFilter(object):
             # use prediction of previous
             z = self.x[0:2]  # + (self.dt * self.x[:2])
 
-        S = np.dot(self.H, np.dot(self.P, self.H.T)) + self.R
+        S = np.add(np.dot(self.H, np.dot(self.P, self.H.T)), self.R)
         # Calculate the Kalman Gain
         # K = P * H'* inv(H*P*H'+R)
         K = np.dot(np.dot(self.P, self.H.T), np.linalg.inv(S))  # Eq.(11)
