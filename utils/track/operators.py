@@ -131,6 +131,9 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
         # get the fps of the clip and set the environment accordingly
         fps = cap.get(cv2.CAP_PROP_FPS)
+        if fps < 1:
+            fps == 30
+            print("\nWARNING: Invalid FPS value read from input file. Defaulting to FPS = 30")
         video_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         video_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
