@@ -2,6 +2,7 @@
 [![license](https://img.shields.io/github/license/FabianPlum/OmniTrax.svg?style=flat)](https://github.com/FabianPlum/OmniTrax)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![Build Status](https://app.travis-ci.com/FabianPlum/OmniTrax.svg?branch=main)](https://app.travis-ci.com/github/FabianPlum/OmniTrax)
+[![status](https://joss.theoj.org/papers/48a3822e63785944c2014ea7696037c3/status.svg)](https://joss.theoj.org/papers/48a3822e63785944c2014ea7696037c3)
 
 <img src=images/omnitrax_logo.svg#gh-dark-mode-only height="100">
 <img src=images/omnitrax_logo_light.svg#gh-light-mode-only height="100"> 
