@@ -3,6 +3,7 @@
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![Build Status](https://app.travis-ci.com/FabianPlum/OmniTrax.svg?branch=main)](https://app.travis-ci.com/github/FabianPlum/OmniTrax)
 [![status](https://joss.theoj.org/papers/48a3822e63785944c2014ea7696037c3/status.svg)](https://joss.theoj.org/papers/48a3822e63785944c2014ea7696037c3)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10817892.svg)](https://doi.org/10.5281/zenodo.10817892)
 
 <img src=images/omnitrax_logo.svg#gh-dark-mode-only height="100">
 <img src=images/omnitrax_logo_light.svg#gh-light-mode-only height="100"> 
