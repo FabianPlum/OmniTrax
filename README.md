@@ -160,6 +160,7 @@ large)
 
 
 ## Updates:
+* 14/03/2024 - Added [**release** version 1.0.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_1.0.0) official release with the ![status](https://joss.theoj.org/papers/48a3822e63785944c2014ea7696037c3/status.svg) software paper.
 * 05/12/2023 - Added [**release** version 0.3.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.3.1) improved exception handling and stability.
 * 11/10/2023 - Added [**release** version 0.3.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.3.0) minor fixes, major Ubuntu support! (well, on CPU at least)
 * 02/07/2023 - Added [**release** version 0.2.3](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.2.3) fixing prior issues relating to masking and yolo path handling.
@@ -179,12 +180,12 @@ large)
 When using **OmniTrax** and/or our other projects in your work, 
 please make sure to cite them:
     
-    @misc{Plum2022,
+    @misc{Plum2024,
         title = {OmniTrax},
         author = {Plum, Fabian},
         resource = {GitHub repository},
         howpublished = {https://github.com/FabianPlum/OmniTrax},
-        year = {2022}
+        year = {2024}
         }
 
     @article{Plum2023a,
