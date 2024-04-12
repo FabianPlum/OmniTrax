@@ -181,13 +181,16 @@ large)
 When using **OmniTrax** and/or our other projects in your work, 
 please make sure to cite them:
     
-    @misc{Plum2024,
-        title = {OmniTrax},
-        author = {Plum, Fabian},
-        resource = {GitHub repository},
-        howpublished = {https://github.com/FabianPlum/OmniTrax},
-        year = {2024}
-        }
+    @article{Plum2024, 
+         doi = {10.21105/joss.05549}, 
+         url = {https://doi.org/10.21105/joss.05549}, 
+         year = {2024}, 
+         publisher = {The Open Journal}, 
+         volume = {9}, 
+         number = {95}, 
+         pages = {5549}, 
+         author = {Fabian Plum}, 
+         title = {OmniTrax: A deep learning-driven multi-animal tracking and pose-estimation add-on for Blender}, journal = {Journal of Open Source Software} }
 
     @article{Plum2023a,
         title = {replicAnt: a pipeline for generating annotated images of animals in complex environments using Unreal Engine},
