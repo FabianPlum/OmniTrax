@@ -27,7 +27,7 @@ class names.
 * [ResNet101 "full_human" pose estimation](https://drive.google.com/drive/folders/1BLulUYkwww7SfzXgSSVM71GLI4dQysP5?usp=share_link)
   converted for **DeepLabCut** and **OmniTrax** from the original [DeeperCut publication](https://arxiv.org/abs/1605.03170)
 
-You can also make use of [DeepLabCuts official Model Zoo](https://www.mackenziemathislab.org/dlc-modelzoo). To use these
+You can also make use of [DeepLabCuts official Model Zoo](https://deeplabcut.github.io/DeepLabCut/docs/ModelZoo.html). To use these
 models within **OmniTrax**, you will need to run the **deeplabcut.export_model** command. Refer to the [Pose-estimation
 tutorial](tutorial-pose-estimation.md).
 

@@ -9,7 +9,7 @@ It combines detection-based buffer-and-recover tracking with **Blender**'s inter
 streamline the annotation and analysis process of large video files with hundreds of individuals.
 Integrating [DeepLabCut-Live](https://github.com/DeepLabCut/DeepLabCut-live) into this pipeline makes
 it possible to additionally run marker-less pose-estimation on arbitrary numbers of animals, leveraging the existing
-[DLC-Model-Zoo](https://www.mackenziemathislab.org/dlc-modelzoo), as well as
+[DLC-Model-Zoo](https://deeplabcut.github.io/DeepLabCut/docs/ModelZoo.html), as well as
 custom [trained networks](trained_networks.md).
 
 Alongside **OmniTrax** we offer a selection of [example video](example_footage.md) footage

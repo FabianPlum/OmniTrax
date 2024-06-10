@@ -11,7 +11,7 @@ files with
 hundreds of individuals. Integrating [DeepLabCut-Live](https://github.com/DeepLabCut/DeepLabCut-live) into this
 pipeline makes
 it possible to additionally run marker-less pose-estimation on virtually arbitrary numbers of animals, leveraging the 
-existing [DLC-Model-Zoo](https://www.mackenziemathislab.org/dlc-modelzoo), as well as our own
+existing [DLC-Model-Zoo](https://deeplabcut.github.io/DeepLabCut/docs/ModelZoo.html), as well as our own
 custom [trained networks](trained_networks.md).
 
 Alongside **OmniTrax**, we offer a selection of [example video](example_footage.md) footage
@@ -175,7 +175,7 @@ inference on each extracted ROI defined in the **tracking** step.
 ## Other examples
 
 Of course, as long as you have a suitable trained model, use one from our list of [trained networks](trained_networks.md),
-or the [emerging model zoos](https://www.mackenziemathislab.org/dlc-modelzoo), you can run 
+or the [emerging model zoos](https://deeplabcut.github.io/DeepLabCut/docs/ModelZoo.html), you can run 
 pose-estimation on just about any footage.
 
 ![](../images/Human_Tracking.gif)

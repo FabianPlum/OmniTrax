@@ -24,7 +24,7 @@ OmniTrax integrates with Blender's internal motion tracking pipeline, making it 
 analyzing large video files containing numerous freely moving subjects. 
 Additionally, it integrates [DeepLabCut-Live](https://github.com/DeepLabCut/DeepLabCut) for marker-less 
 pose estimation on arbitrary numbers of animals, using both the 
-[DeepLabCut Model Zoo](https://www.mackenziemathislab.org/dlc-modelzoo) and custom-trained detector and 
+[DeepLabCut Model Zoo](https://deeplabcut.github.io/DeepLabCut/docs/ModelZoo.html) and custom-trained detector and 
 pose estimator networks.
 
 **OmniTrax** is designed to be a plug-and-play toolkit for biologists to facilitate the extraction of kinematic and behavioural data of freely moving animals. 
