@@ -1,0 +1,2 @@
+# exclude URLs from being checked (Blender LTS releases often fail and come back online)
+https://download.blender.org/release/Blender2.92/
