@@ -70,35 +70,40 @@ if not setup_complete:
 
     print("\nInstalled packages:", installed_packages, "\n")
 
+    # New in 1.1.0:
+    # Because Numpy 2.0 messes with all the packages, we instead perform all installations in a single step so pip can actually
+    # solve things correctly and we don't need to define each package version explicitly.
+
+    # Check which packages need to be installed
+    packages_to_install = []
     for library in required_libraries:
         if library in installed_packages:
             print(f"{library!r} already installed!")
+            setup_state_f_contents.append(library + "=True")
         else:
-            print(f"{library!r} not found! Installing package...\n")
-            if first_pkg:
-                # ensure pip is installed
-                subprocess.call([py_exec, "-m", "ensurepip", "--user"])
-                # update pip
-                subprocess.call([py_exec, "-m", "pip", "install", "--upgrade", "pip"])
-                first_pkg = False
-
-            if platform.system() != "Linux":
-                subprocess.call(
-                    [
-                        py_exec,
-                        "-m",
-                        "pip",
-                        "install",
-                        f"--target={py_exec[:-14]}" + "lib",
-                        required_libraries[library],
-                    ]
-                )
-            else:
-                subprocess.call(
-                    [py_exec, "-m", "pip", "install", required_libraries[library]]
-                )
-
-        setup_state_f_contents.append(library + "=True")
+            print(f"{library!r} not found! Will be installed...\n")
+            packages_to_install.append(required_libraries[library])
+            
+    # Install missing packages if any
+    if packages_to_install:
+        # ensure pip is installed and updated
+        subprocess.call([py_exec, "-m", "ensurepip", "--user"])
+        subprocess.call([py_exec, "-m", "pip", "install", "--upgrade", "pip"])
+        
+        # Construct install command with numpy constraint
+        install_cmd = [py_exec, "-m", "pip", "install", "numpy<2.0"]
+        install_cmd.extend(packages_to_install)
+        
+        if platform.system() != "Linux":
+            install_cmd.insert(4, f"--target={py_exec[:-14]}lib")
+            
+        # Install all missing packages in one command
+        subprocess.call(install_cmd)
+        
+        # Mark newly installed packages as complete
+        for library in required_libraries:
+            if library not in installed_packages:
+                setup_state_f_contents.append(library + "=True")
 
     # We need to suppress loading tkinter as the package is incompatible with (some versions of) Blender python
     # We therefore overwrite the "display.py" file within lib/dlclive
