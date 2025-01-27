@@ -161,6 +161,7 @@ large)
 
 
 ## Updates:
+* 27/01/2025 - Added [**release** version 1.0.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_1.0.1) with improved package installation
 * 14/03/2024 - Added [**release** version 1.0.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_1.0.0) official release with the ![status](https://joss.theoj.org/papers/48a3822e63785944c2014ea7696037c3/status.svg) software paper.
 * 05/12/2023 - Added [**release** version 0.3.1](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.3.1) improved exception handling and stability.
 * 11/10/2023 - Added [**release** version 0.3.0](https://github.com/FabianPlum/OmniTrax/releases/tag/V_0.3.0) minor fixes, major Ubuntu support! (well, on CPU at least)
