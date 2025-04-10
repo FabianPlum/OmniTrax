@@ -29,17 +29,26 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         default=False,
     )
 
+    run_webcam_demo: BoolProperty(
+        name="Run Webcam Demo",
+        description="Runs Detection-based tracker on live webcam footage, instead of a loaded video. WARNING: This is just a demo and will not result in blender-editable tracks.",
+        default=False,
+    )
+
     def execute(self, context):
-        # start by checking all necessary paths are provided before attempting to do anything
-        clip = context.edit_movieclip
-        try:
-            video = bpy.path.abspath(clip.filepath)
-        except:
-            self.report(
-                {"ERROR"},
-                "Open a video to track from your drive, then click TRACK / RESTART Tracking again",
-            )
-            return {"CANCELLED"}
+        if not self.run_webcam_demo:
+            # start by checking all necessary paths are provided before attempting to do anything
+            clip = context.edit_movieclip
+            try:
+                video = bpy.path.abspath(clip.filepath)
+            except:
+                self.report(
+                    {"ERROR"},
+                    "Open a video to track from your drive, then click TRACK / RESTART Tracking again",
+                )
+                return {"CANCELLED"}
+        else:
+            clip = None
 
         # check required YOLO paths
         yolo_cfg_path_temp = bpy.path.abspath(context.scene.detection_config_path)
@@ -126,14 +135,25 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         # enter the number of annotated frames:
         tracked_frames = context.scene.frame_end
 
-        # now we can load the captured video file and display it
-        cap = cv2.VideoCapture(video)
+        if self.run_webcam_demo:
+            fps = 30.0 # set to 30 fps by default
+            # for a test, use first available webcam, which means that external webcams are preferred over integrated ones
+            cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+            cap.set(cv2.CAP_PROP_FPS, fps)
+            cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
 
-        # get the fps of the clip and set the environment accordingly
-        fps = cap.get(cv2.CAP_PROP_FPS)
-        if fps < 1:
-            fps == 30
-            print("\nWARNING: Invalid FPS value read from input file. Defaulting to FPS = 30")
+        else:
+            # now we can load the captured video file and display it
+            cap = cv2.VideoCapture(video)
+
+            # get the fps of the clip and set the environment accordingly
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            if fps < 1:
+                fps == 30
+                print("\nWARNING: Invalid FPS value read from input file. Defaulting to FPS = 30")
+
         video_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         video_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
@@ -222,7 +242,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             dt=1 / fps,
         )
 
-        if self.restart_tracking:
+        if self.restart_tracking or self.run_webcam_demo:
             tracker_continue = False
         else:
             # remove previous tracks in tracker_KF and initialise from current state
@@ -263,7 +283,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         print("INITIALISED TRACKER!")
 
         # and produce an output file
-        if context.scene.tracker_save_video:
+        if context.scene.tracker_save_video and not self.run_webcam_demo:
             video_output = (
                 bpy.path.abspath(bpy.context.edit_movieclip.filepath)[:-4]
                 + "_online_tracking.avi"
@@ -275,9 +295,13 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                 (int(cap.get(3)), int(cap.get(4))),
             )
 
-        # check the number of frames of the imported video file
-        numFramesMax = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        print("The imported clip:", video, "has a total of", numFramesMax, "frames.\n")
+        if self.run_webcam_demo:
+            numFramesMax = -1
+            print("Running webcam demo, press Q to terminate the inference loop.")
+        else:
+            # check the number of frames of the imported video file
+            numFramesMax = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            print("The imported clip:", video, "has a total of", numFramesMax, "frames.\n")
 
         # load configuration and weights (synthetic)
         yolo_cfg = bpy.path.abspath(context.scene.detection_config_path)
@@ -410,7 +434,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                         break
                 elif (
                     frame_counter
-                    == context.scene.frame_end + 3 - context.scene.frame_start
+                    == context.scene.frame_end + 3 - context.scene.frame_start and not self.run_webcam_demo
                 ):
                     bpy.context.scene.frame_current = context.scene.frame_end
                     break
@@ -455,7 +479,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                     bpy.context.scene.frame_current = (
                         executed_from_frame + frame_counter + 1
                     )
-                else:
+                elif not self.run_webcam_demo:
                     bpy.context.scene.frame_current = (
                         bpy.context.scene.frame_start + frame_counter
                     )
@@ -594,99 +618,101 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                                 and x2 <= clip_width
                                 and y2 <= clip_height
                             ):
-                                if mname not in clip.tracking.objects[0].tracks:
-                                    # add new tracks to the set of markers
-                                    bpy.ops.clip.add_marker(
-                                        location=(x2 / clip_width, 1 - y2 / clip_height)
-                                    )
-                                    clip.tracking.tracks.active.name = mname
-                                    # return {"FINISHED"}
+                                # only write out tracks onto clip when NOT in webcam demo mode
+                                if not self.run_webcam_demo:
+                                    if mname not in clip.tracking.objects[0].tracks:
+                                        # add new tracks to the set of markers
+                                        bpy.ops.clip.add_marker(
+                                            location=(x2 / clip_width, 1 - y2 / clip_height)
+                                        )
+                                        clip.tracking.tracks.active.name = mname
+                                        # return {"FINISHED"}
 
-                                # write track to clip markers
-                                # update marker positions on the current frame
-                                # remember to invert the y axis, because things are never easy or correct by default
-                                # constrain x1 and
-                                clip.tracking.objects[0].tracks[
-                                    mname
-                                ].markers.insert_frame(
-                                    hind_sight_frame,
-                                    co=(x2 / clip_width, 1 - y2 / clip_height),
-                                )
-                                if context.scene.detection_enforce_constant_size:
+                                    # write track to clip markers
+                                    # update marker positions on the current frame
+                                    # remember to invert the y axis, because things are never easy or correct by default
+                                    # constrain x1 and
                                     clip.tracking.objects[0].tracks[
                                         mname
-                                    ].markers.find_frame(
-                                        hind_sight_frame
-                                    ).pattern_corners = (
-                                        (ROI_size / clip_width, ROI_size / clip_height),
-                                        (
-                                            ROI_size / clip_width,
-                                            -ROI_size / clip_height,
-                                        ),
-                                        (
-                                            -ROI_size / clip_width,
-                                            -ROI_size / clip_height,
-                                        ),
-                                        (
-                                            -ROI_size / clip_width,
-                                            ROI_size / clip_height,
-                                        ),
+                                    ].markers.insert_frame(
+                                        hind_sight_frame,
+                                        co=(x2 / clip_width, 1 - y2 / clip_height),
                                     )
-                                else:
-                                    clip.tracking.objects[0].tracks[
-                                        mname
-                                    ].markers.find_frame(
-                                        hind_sight_frame
-                                    ).pattern_corners = (
-                                        (
+                                    if context.scene.detection_enforce_constant_size:
+                                        clip.tracking.objects[0].tracks[
+                                            mname
+                                        ].markers.find_frame(
+                                            hind_sight_frame
+                                        ).pattern_corners = (
+                                            (ROI_size / clip_width, ROI_size / clip_height),
                                             (
-                                                tracker_KF.tracks[i].bbox_trace[-1][0]
-                                                - x2
-                                            )
-                                            / clip_width,
+                                                ROI_size / clip_width,
+                                                -ROI_size / clip_height,
+                                            ),
                                             (
-                                                tracker_KF.tracks[i].bbox_trace[-1][3]
-                                                - y2
-                                            )
-                                            / clip_height,
-                                        ),
-                                        (
+                                                -ROI_size / clip_width,
+                                                -ROI_size / clip_height,
+                                            ),
                                             (
-                                                tracker_KF.tracks[i].bbox_trace[-1][1]
-                                                - x2
-                                            )
-                                            / clip_width,
+                                                -ROI_size / clip_width,
+                                                ROI_size / clip_height,
+                                            ),
+                                        )
+                                    else:
+                                        clip.tracking.objects[0].tracks[
+                                            mname
+                                        ].markers.find_frame(
+                                            hind_sight_frame
+                                        ).pattern_corners = (
                                             (
-                                                tracker_KF.tracks[i].bbox_trace[-1][3]
-                                                - y2
-                                            )
-                                            / clip_height,
-                                        ),
-                                        (
+                                                (
+                                                    tracker_KF.tracks[i].bbox_trace[-1][0]
+                                                    - x2
+                                                )
+                                                / clip_width,
+                                                (
+                                                    tracker_KF.tracks[i].bbox_trace[-1][3]
+                                                    - y2
+                                                )
+                                                / clip_height,
+                                            ),
                                             (
-                                                tracker_KF.tracks[i].bbox_trace[-1][1]
-                                                - x2
-                                            )
-                                            / clip_width,
+                                                (
+                                                    tracker_KF.tracks[i].bbox_trace[-1][1]
+                                                    - x2
+                                                )
+                                                / clip_width,
+                                                (
+                                                    tracker_KF.tracks[i].bbox_trace[-1][3]
+                                                    - y2
+                                                )
+                                                / clip_height,
+                                            ),
                                             (
-                                                tracker_KF.tracks[i].bbox_trace[-1][2]
-                                                - y2
-                                            )
-                                            / clip_height,
-                                        ),
-                                        (
+                                                (
+                                                    tracker_KF.tracks[i].bbox_trace[-1][1]
+                                                    - x2
+                                                )
+                                                / clip_width,
+                                                (
+                                                    tracker_KF.tracks[i].bbox_trace[-1][2]
+                                                    - y2
+                                                )
+                                                / clip_height,
+                                            ),
                                             (
-                                                tracker_KF.tracks[i].bbox_trace[-1][0]
-                                                - x2
-                                            )
-                                            / clip_width,
-                                            (
-                                                tracker_KF.tracks[i].bbox_trace[-1][2]
-                                                - y2
-                                            )
-                                            / clip_height,
-                                        ),
-                                    )
+                                                (
+                                                    tracker_KF.tracks[i].bbox_trace[-1][0]
+                                                    - x2
+                                                )
+                                                / clip_width,
+                                                (
+                                                    tracker_KF.tracks[i].bbox_trace[-1][2]
+                                                    - y2
+                                                )
+                                                / clip_height,
+                                            ),
+                                        )
 
                             cv2.putText(
                                 image,
@@ -707,7 +733,8 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                     video_out.write(image)
                 cv2.imshow("Live tracking", image)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
-                    bpy.context.scene.frame_current -= 2
+                    if not self.run_webcam_demo:
+                        bpy.context.scene.frame_current -= 2
                     break
 
                 frame_counter += 1
@@ -718,26 +745,31 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
 
         cv2.destroyAllWindows()
         # always reset frame from capture at the end to avoid incorrect skips during access
-        cap.set(1, context.scene.frame_start - 1)
+        if not self.run_webcam_demo:
+            cap.set(1, context.scene.frame_start - 1)
         cap.release()
         if context.scene.tracker_save_video:
             video_out.release()
 
-        print("Cleaning short tracks...")
-        for mname in clip.tracking.objects[0].tracks:
-            mname.select = False
-            if len(mname.markers) < context.scene.tracking_min_track_length:
-                mname.select = True
-                print("removed", mname.name, "of length", len(mname.markers))
-
-        bpy.ops.clip.delete_track()
-
-        # remove markers from initial frame, if tracking was stopped early
-        if executed_from_frame > bpy.context.scene.frame_current:
+        if not self.run_webcam_demo:
+            print("Cleaning short tracks...")
             for mname in clip.tracking.objects[0].tracks:
-                mname.select = True
-                bpy.ops.clip.delete_marker()
                 mname.select = False
+                if len(mname.markers) < context.scene.tracking_min_track_length:
+                    mname.select = True
+                    print("removed", mname.name, "of length", len(mname.markers))
+
+            bpy.ops.clip.delete_track()
+
+            # remove markers from initial frame, if tracking was stopped early
+            if executed_from_frame > bpy.context.scene.frame_current:
+                for mname in clip.tracking.objects[0].tracks:
+                    mname.select = True
+                    bpy.ops.clip.delete_marker()
+                    mname.select = False
+
+        # reset Webcam DEMO bool to false, otherwise we can't switch back to video file processing
+        self.run_webcam_demo = False
 
         return {"FINISHED"}
 
