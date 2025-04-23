@@ -207,6 +207,10 @@ class OMNITRAX_PT_TrackingPanel(bpy.types.Panel):
         col.operator(
             "scene.detection_run", text="RESTART Tracking"
         ).restart_tracking = True
+        col.label(text="Experimental Features")
+        col.operator(
+            "scene.detection_run", text="Run Webcam DEMO"
+        ).run_webcam_demo = True
 
 
 class EXPORT_PT_ManualTrackingPanel(bpy.types.Panel):
