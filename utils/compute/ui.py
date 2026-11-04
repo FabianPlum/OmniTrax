@@ -1,15 +1,39 @@
+import os
+import subprocess
+
 import bpy
 from bpy.props import EnumProperty as EnumProperty
-
-try:
-    import tensorflow as tf
-except ImportError:
-    # TensorFlow lists the GPUs and runs pose estimation, CPU detection works without
-    tf = None
 
 # number of the CPU in the compute_device enum. The numbers are saved in .blend
 # files, GPU_n keeps number n, as when GPUs were the only devices offered.
 CPU_DEVICE_NUMBER = 1000
+
+DARKNET_FOLDER = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "darknet"
+)
+
+
+def gpu_count():
+    """
+    Number of GPUs available for GPU inference (darknet).
+
+    On Windows, these are the GPUs TensorFlow finds. Elsewhere, GPU inference
+    needs a self-built libdarknet.so, and the GPUs are counted with nvidia-smi:
+    TensorFlow is not imported there, as it crashes some Linux builds of Blender.
+    """
+    if os.name == "nt":
+        import tensorflow as tf
+
+        physical_devices = tf.config.list_physical_devices()
+        print("INFO: Found computational devices:\n", physical_devices)
+        return len([d for d in physical_devices if d.device_type == "GPU"])
+
+    if not os.path.isfile(os.path.join(DARKNET_FOLDER, "libdarknet.so")):
+        return 0
+    output = subprocess.run(
+        ["nvidia-smi", "-L"], capture_output=True, text=True, timeout=30
+    ).stdout
+    return sum(line.startswith("GPU ") for line in output.splitlines())
 
 
 class OMNITRAX_PT_ComputePanel(bpy.types.Panel):
@@ -22,17 +46,11 @@ class OMNITRAX_PT_ComputePanel(bpy.types.Panel):
     bl_region_type = "TOOLS"
     bl_category = "OmniTrax"
 
-    # GPU inference (darknet) needs a CUDA-capable GPU that TensorFlow can see,
-    # CPU inference (OpenCV) is always available
+    # GPU inference (darknet) needs a CUDA-capable GPU, CPU inference (OpenCV) is
+    # always available
     devices = []
     try:
-        if tf is None:
-            raise ImportError("TensorFlow is not installed")
-        physical_devices = tf.config.list_physical_devices()
-        print("INFO: Found computational devices:\n", physical_devices)
-
-        gpus = [device for device in physical_devices if device.device_type == "GPU"]
-        for g in range(len(gpus)):
+        for g in range(gpu_count()):
             devices.append(
                 (
                     "GPU_" + str(g),

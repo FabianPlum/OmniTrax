@@ -7,7 +7,7 @@ import os
 import sys
 import time
 
-from ..omni_trax_utils import scale_detections, cvDrawBoxes, setInferenceDevive
+from ..omni_trax_utils import scale_detections, cvDrawBoxes
 from ..setup.CUDA_checks import check_CUDA_installation
 from .tracker import Tracker
 from ..YOLOader import YOLOader
@@ -74,10 +74,9 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         """
         Check which compute device is selected and set it as active
         """
-        setInferenceDevive(context.scene.compute_device)
-
         # GPU inference runs on darknet (compiled CUDA DLLs, Windows only),
-        # CPU inference on OpenCV's DNN module (any OS, no compiled libraries needed)
+        # CPU inference on OpenCV's DNN module (any OS, no compiled libraries needed).
+        # TensorFlow is not involved, its device is set for pose estimation only.
         if context.scene.compute_device.split("_")[0] == "GPU":
             if not check_CUDA_installation():
                 self.report(

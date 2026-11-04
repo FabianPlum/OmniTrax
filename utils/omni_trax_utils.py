@@ -5,12 +5,6 @@ import os
 import math
 import time
 
-try:
-    import tensorflow as tf
-except ImportError:
-    # only needed to select the device for pose estimation (DLC-live)
-    tf = None
-
 
 ### Various Processing functions ###
 
@@ -83,24 +77,29 @@ def cvDrawBoxes(detections, img, min_size=20, constant_size=False, class_colours
 
 def setInferenceDevive(device):
     """
-    Set the (CUDA) inference device for the project
-    :param device: e.g. "CPU_0" or "GPU_0"
+    Set the compute device TensorFlow (pose estimation) runs on
+    :param device: e.g. "CPU_0" or "GPU_0". Anything else, such as the empty name
+                   of a device that was saved on another machine, selects the CPU.
     """
-    if tf is None:
+    # TensorFlow is only needed for pose estimation, and importing it crashes
+    # some Linux builds of Blender, so it is only imported here
+    try:
+        import tensorflow as tf
+    except ImportError:
         print("INFO: TensorFlow is not installed, running inference on:", device)
         return
 
     # disables all but the selected computational device (by setting them invisible)
-    device_type, index = device.split("_")
+    device_type, _, index = device.partition("_")
     try:
-        if device_type == "CPU":
+        if device_type == "GPU" and index.isdigit():
+            tf.config.set_visible_devices(
+                tf.config.list_physical_devices("GPU")[int(index)],
+                device_type="GPU",
+            )
+        else:
             # CPU only, so pose estimation does not use a GPU either
             tf.config.set_visible_devices([], device_type="GPU")
-        else:
-            tf.config.set_visible_devices(
-                tf.config.list_physical_devices(device_type)[int(index)],
-                device_type=device_type,
-            )
     except Exception:
         # Invalid device, or TensorFlow is already initialised (the visible devices
         # cannot change after that, until Blender is restarted)
