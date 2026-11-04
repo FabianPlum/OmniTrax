@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 import os
 import platform
-import addon_utils
 from .CUDA_checks import check_CUDA_installation
 
 script_file = os.path.realpath(__file__)
@@ -158,73 +157,9 @@ if not setup_complete:
     except FileNotFoundError:
         print("INFO: Did not suppress DLC imports - indicating unit testing")
 
-    if platform.system() != "Linux":
-        setup_state_f_contents.append("setup_complete=True")
-
-    else:
-        # clone and make darknet (for cpu support)
-        print(
-            "\n\n----------------------------------------------------------------------------\n"
-        )
-        print("INFO: Linux environment found - building darknet from source...")
-        print(
-            "INFO: for GPU, OPENMP, AVX, or OPENCV support, edit Makefile and make again!"
-        )
-        print(
-            "\n----------------------------------------------------------------------------\n\n"
-        )
-
-        try:
-            for mod in addon_utils.modules():
-                addon_name = mod.bl_info.get("name")
-                if addon_name == "omni_trax":
-                    addon_loc = mod.__file__[:-12]
-
-            print("INFO: removing current darknet folder...")
-            # remove pre-built Windows darknet
-            subprocess.call(
-                ["rm", "-r", "-f", Path.joinpath(Path(addon_loc), "../../darknet")]
-            )
-            # clone darknet from source
-            subprocess.call(["git", "clone", "https://github.com/AlexeyAB/darknet"])
-            # (if required) move to correct location
-            subprocess.call(["mv", "darknet", Path(addon_loc)])
-            # update makefile to build .so
-
-            print("INFO: Updating Makefile...")
-            darknet_makefile = open(
-                str(Path.joinpath(Path(addon_loc), "../../darknet", "Makefile")), "r"
-            )
-            updated_file_content = ""
-
-            for line in darknet_makefile:
-                if line == "LIBSO=0\n":
-                    line = "LIBSO=1\n"
-
-                updated_file_content += line
-
-            darknet_makefile.close()
-
-            darknet_makefile = open(
-                str(Path.joinpath(Path(addon_loc), "../../darknet", "Makefile")), "w"
-            )
-            darknet_makefile.write(updated_file_content)
-            print("\nINFO: /darknet/Makefile has been updated.")
-            darknet_makefile.close()
-
-            # make darknet
-            print("INFO: Making darknet...")
-            subprocess.call(
-                ["make", "-C", Path.joinpath(Path(addon_loc), "../../darknet")]
-            )
-            setup_state_f_contents.append("compiled_darknet=True")
-            setup_state_f_contents.append("setup_complete=True")
-
-        except Exception as e:
-            print(e)
-            print("WARNING: Failed to rebuild darknet!")
-            setup_state_f_contents.append("compiled_darknet=False")
-            setup_state_f_contents.append("setup_complete=False")
+    # CPU inference runs on OpenCV's DNN module on every OS, so nothing needs to be
+    # compiled here (Linux used to build darknet from source for CPU inference)
+    setup_state_f_contents.append("setup_complete=True")
 
     with open(os.path.join(directory, "setup_state.txt"), "w") as f:
         for line in setup_state_f_contents:
