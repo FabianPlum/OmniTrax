@@ -28,6 +28,7 @@ Darknet's behaviour is reproduced on purpose, so that CPU results match the GPU
   image passed to ``detect_image``, in the same order Darknet returns them.
 """
 
+import locale
 import os
 import random
 import re
@@ -132,6 +133,11 @@ def load_network(config_file, data_file, weights, batch_size=1):
     # spaces or non-ASCII characters work on every platform.
     cfg_buffer = np.frombuffer(_cfg_for_opencv(sections).encode("utf-8"), np.uint8)
     weights_buffer = np.fromfile(weights, dtype=np.uint8)
+    if weights_buffer.size < 16:
+        raise ValueError(
+            f"{weights} has only {weights_buffer.size} bytes, which is not a "
+            "complete Darknet weights file."
+        )
     layout = _weights_layout(sections, weights_buffer)
     if layout is None:
         print(
@@ -151,18 +157,18 @@ def load_network(config_file, data_file, weights, batch_size=1):
         _match_darknet_batchnorm(weights_buffer, variance_slices)
     try:
         net = cv2.dnn.readNetFromDarknet(cfg_buffer, weights_buffer)
+        net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+        net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+        # [yolo] and [region] sections become "Region" layers, listed in cfg
+        # order (OpenCV creates the layers here, which can fail as well)
+        detection_layers = [
+            name for name in net.getLayerNames() if net.getLayer(name).type == "Region"
+        ]
     except cv2.error as e:
         raise RuntimeError(
             f"OpenCV could not load the YOLO model from {config_file} "
             f"and {weights}: {e}"
         ) from e
-    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
-
-    # [yolo] and [region] sections become "Region" layers, listed in cfg order
-    detection_layers = [
-        name for name in net.getLayerNames() if net.getLayer(name).type == "Region"
-    ]
     if not detection_layers:
         raise ValueError(f"{config_file} has no [yolo] layer")
     network = DarknetNetwork(
@@ -384,12 +390,19 @@ def _resize_like_darknet(frame, w, h):
 
 
 def _read_text(path):
+    """
+    Read a text file. Files OmniTrax writes are UTF-8 in Blender 2.93 and newer,
+    older versions write them in the system's code page, which Darknet reads
+    with fopen() as well.
+    """
     with open(path, "rb") as f:
         raw = f.read()
-    try:
-        return raw.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        return raw.decode("latin-1")
+    for encoding in ("utf-8-sig", locale.getpreferredencoding(False)):
+        try:
+            return raw.decode(encoding)
+        except (UnicodeDecodeError, LookupError):
+            pass
+    return raw.decode("latin-1")
 
 
 def _parse_cfg(cfg_text):

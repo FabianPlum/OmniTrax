@@ -331,27 +331,6 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         context.scene.detection_data_path = yolo_paths.data
         context.scene.detection_names_path = yolo_paths.names
 
-        # read obj.names file to create custom colours for each class
-
-        class_names = []
-        with open(yolo_paths.names, "r") as yn:
-            for line in yn:
-                class_names.append(line.strip())
-
-        class_colours = {}  # from green to red, low class to high class (light to heavy)
-        class_id = {}
-        if len(class_names) == 1:
-            class_colours[class_names[0]] = [20, 150, 20]
-            class_id[class_names[0]] = 0
-        else:
-            for c, cn in enumerate(class_names):
-                class_colours[cn] = [
-                    int((255 / len(class_names)) * (c + 1)),
-                    int(255 - (255 / len(class_names)) * c),
-                    0,
-                ]
-                class_id[cn] = c
-
         if not os.path.exists(yolo_paths.cfg):
             raise ValueError(
                 "Invalid config path `" + os.path.abspath(yolo_paths.cfg) + "`"
@@ -365,8 +344,17 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                 "Invalid data file path `" + os.path.abspath(yolo_paths.data) + "`"
             )
         # the loaded network is reused between runs, unless the compute device
-        # (and with it the backend) or the network files have changed
-        current_source = (darknet.__name__, yolo_paths.cfg, yolo_paths.weights)
+        # (and with it the backend) or one of the network files has changed
+        current_source = (
+            darknet.__name__,
+            yolo_paths.cfg,
+            yolo_paths.weights,
+            yolo_paths.data,
+            yolo_paths.names,
+            os.path.getmtime(yolo_paths.names)
+            if os.path.isfile(yolo_paths.names)
+            else None,
+        )
         if network is not None and network_source != current_source:
             print("\nINFO: Detection settings changed, reloading the network...\n")
             # darknet networks hold (GPU) memory that is only released explicitly
@@ -387,6 +375,23 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             except Exception as e:  # work on python 3.x
                 self.report({"ERROR"}, str(e))
                 return {"CANCELLED"}
+
+        # custom colours for each class (from green to red, low class to high
+        # class), for the class names the network reports with its detections
+        class_names = list(network_class_names)
+        class_colours = {}
+        class_id = {}
+        if len(class_names) == 1:
+            class_colours[class_names[0]] = [20, 150, 20]
+            class_id[class_names[0]] = 0
+        else:
+            for c, cn in enumerate(class_names):
+                class_colours[cn] = [
+                    int((255 / len(class_names)) * (c + 1)),
+                    int(255 - (255 / len(class_names)) * c),
+                    0,
+                ]
+                class_id[cn] = c
 
         if altNames is None:
             try:

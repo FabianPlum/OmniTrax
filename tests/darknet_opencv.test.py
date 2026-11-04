@@ -85,12 +85,18 @@ try:
                 ((1, 8), (3, 4)),  # single row
                 ((8, 1), (4, 3)),  # single column
                 ((17, 31), (8, 8)),  # anisotropic
+                # the last row is sampled just below the last input row in
+                # float32, Darknet then keeps only (1 - dy) * row H-2 (about 0)
+                ((14, 6), (12, 5)),
+                ((720, 4), (544, 4)),
             ]:
                 frame = rng.integers(0, 256, (H, W, 3), dtype=np.uint8)
                 expected = resize_reference(frame, w, h)
                 result = dk._resize_like_darknet(frame, w, h)
                 self.assertEqual(result.dtype, np.float32)
                 np.testing.assert_array_equal(result, expected)
+                if (H, h) in ((14, 12), (720, 544)):
+                    self.assertLess(result[-1].max(), 1e-3)
 
         def test_copy_image_from_bytes(self):
             image = dk.make_image(4, 3, 3)
@@ -136,6 +142,7 @@ try:
             sections = dk._parse_cfg("[net]\n[yolo]\nnew_coords=1 # scaled\n")
             original = dk.cv2
             try:
+                dk.cv2 = types.SimpleNamespace(dnn=original.dnn, __version__="4.5.4")
                 dk._check_opencv_support(sections, "x.cfg")
                 dk.cv2 = types.SimpleNamespace(dnn=original.dnn, __version__="4.5.3")
                 with self.assertRaises(RuntimeError):
@@ -188,6 +195,20 @@ try:
                     f.write("classes = 1\nnames = missing.names\n")
                 with self.assertRaises(FileNotFoundError):
                     dk._load_class_names(data)
+                # Blender 2.92 writes .data files in the system's code page
+                folder = os.path.join(tmp, "Bajić")
+                os.makedirs(folder)
+                with open(os.path.join(folder, "ants.names"), "w") as f:
+                    f.write("ant\n")
+                line = "classes = 1\nnames = " + os.path.join(folder, "ants.names")
+                with open(data, "wb") as f:
+                    f.write(line.encode("cp1250"))
+                original = dk.locale.getpreferredencoding
+                dk.locale.getpreferredencoding = lambda do_setlocale=True: "cp1250"
+                try:
+                    self.assertEqual(dk._load_class_names(data), ["ant"])
+                finally:
+                    dk.locale.getpreferredencoding = original
             finally:
                 shutil.rmtree(tmp)
 
@@ -248,6 +269,60 @@ try:
             self.assertIn("75.0", [s for _, s, _ in result])
             with self.assertRaises(ValueError):
                 dk.detect_image(fake_network(rows), names + ["c"], image)
+
+            # greedy NMS: A suppresses B, so B no longer suppresses C, although
+            # IoU(B, C) = 0.6 (IoU(A, B) = 0.6, IoU(A, C) = 1/3)
+            chain = [
+                [0.5, 0.5, 0.2, 0.2, 1, 0.9],
+                [0.55, 0.5, 0.2, 0.2, 1, 0.8],
+                [0.6, 0.5, 0.2, 0.2, 1, 0.7],
+            ]
+            check(
+                dk.detect_image(
+                    fake_network(chain), ["a"], image, thresh=0.25, nms=0.45
+                ),
+                [("a", "70.0", (120, 50, 40, 20)), ("a", "90.0", (100, 50, 40, 20))],
+            )
+            # an IoU equal to the NMS threshold does not suppress
+            a_and_c = fake_network([chain[0], chain[2]])
+            self.assertEqual(
+                len(dk.detect_image(a_and_c, ["a"], image, thresh=0.25, nms=1 / 3)), 2
+            )
+            self.assertEqual(
+                len(dk.detect_image(a_and_c, ["a"], image, thresh=0.25, nms=0.33)), 1
+            )
+
+            # equal confidence strings keep Darknet's order: do_nms_sort leaves the
+            # rows sorted by the score of the last class, without NMS they keep
+            # the order of the network outputs
+            pair = [
+                [0.1, 0.5, 0.1, 0.1, 1, 0.7500001, 0.5],
+                [0.9, 0.5, 0.1, 0.1, 1, 0.75, 0.6],
+            ]
+            for nms, expected in [
+                (
+                    0.45,
+                    [
+                        ("b", "50.0", 20),
+                        ("b", "60.0", 180),
+                        ("a", "75.0", 180),
+                        ("a", "75.0", 20),
+                    ],
+                ),
+                (
+                    0,
+                    [
+                        ("b", "50.0", 20),
+                        ("b", "60.0", 180),
+                        ("a", "75.0", 20),
+                        ("a", "75.0", 180),
+                    ],
+                ),
+            ]:
+                result = dk.detect_image(
+                    fake_network(pair), names, image, thresh=0.25, nms=nms
+                )
+                self.assertEqual([(n, s, round(b[0])) for n, s, b in result], expected)
 
         def test_weights_layout(self):
             cfg = dk._parse_cfg(
@@ -368,14 +443,15 @@ try:
                     batch_size=1,
                 )
                 # an incomplete weights file is reported instead of loaded
-                with open(os.path.join(tmp, "tiny.weights"), "wb") as f:
-                    f.write(weights[:-4])
-                with self.assertRaises(ValueError):
-                    dk.load_network(
-                        os.path.join(tmp, "tiny.cfg"),
-                        os.path.join(tmp, "tiny.data"),
-                        os.path.join(tmp, "tiny.weights"),
-                    )
+                for size in (len(weights) - 4, 15, 0):
+                    with open(os.path.join(tmp, "tiny.weights"), "wb") as f:
+                        f.write(weights[:size])
+                    with self.assertRaises(ValueError):
+                        dk.load_network(
+                            os.path.join(tmp, "tiny.cfg"),
+                            os.path.join(tmp, "tiny.data"),
+                            os.path.join(tmp, "tiny.weights"),
+                        )
             finally:
                 shutil.rmtree(tmp)
             self.assertEqual(names, ["ant"])
