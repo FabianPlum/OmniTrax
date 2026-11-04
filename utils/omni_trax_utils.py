@@ -4,7 +4,6 @@ import csv
 import os
 import math
 import time
-import tensorflow as tf
 
 
 ### Various Processing functions ###
@@ -78,24 +77,35 @@ def cvDrawBoxes(detections, img, min_size=20, constant_size=False, class_colours
 
 def setInferenceDevive(device):
     """
-    Set the (CUDA) inference device for the project
-    :param device: e.g. "CPU_0" or "GPU_0"
+    Set the compute device TensorFlow (pose estimation) runs on
+    :param device: e.g. "CPU_0" or "GPU_0". Anything else, such as the empty name
+                   of a device that was saved on another machine, selects the CPU.
     """
-    # disables all but the selected computational device (by setting them invisible)
-    physical_devices = tf.config.list_physical_devices(device.split("_")[0])
+    # TensorFlow is only needed for pose estimation, and importing it crashes
+    # some Linux builds of Blender, so it is only imported here
     try:
-        tf.config.set_visible_devices(
-            physical_devices[int(device.split("_")[1])],
-            device_type=device.split("_")[0],
-        )
-        logical_devices = tf.config.list_logical_devices()
-        # Logical device was not created for first GPU
-    except:
-        # Invalid device or cannot modify virtual devices once initialized.
-        print("WARNING: Unable to switch active compute device")
-        pass
+        import tensorflow as tf
+    except ImportError:
+        print("INFO: TensorFlow is not installed, running inference on:", device)
+        return
 
-    print("Running inference on: ", logical_devices)
+    # disables all but the selected computational device (by setting them invisible)
+    device_type, _, index = device.partition("_")
+    try:
+        if device_type == "GPU" and index.isdigit():
+            tf.config.set_visible_devices(
+                tf.config.list_physical_devices("GPU")[int(index)],
+                device_type="GPU",
+            )
+        else:
+            # CPU only, so pose estimation does not use a GPU either
+            tf.config.set_visible_devices([], device_type="GPU")
+    except Exception:
+        # Invalid device, or TensorFlow is already initialised (the visible devices
+        # cannot change after that, until Blender is restarted)
+        print("WARNING: Unable to switch active compute device")
+
+    print("Running inference on: ", tf.config.list_logical_devices())
 
 
 def import_tracks(path, numFrames, export=False):

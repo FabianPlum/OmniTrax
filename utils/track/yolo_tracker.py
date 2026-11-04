@@ -134,15 +134,15 @@ class YoloTracker:
         Check which compute device is selected and set it as active
         """
 
-        if inference_device is not None:
-            # load darknet with compiled DLLs for windows for either GPU or CPU inference from respective path
-            if inference_device.split("_")[0] == "CPU":
-                from darknet import darknet_cpu as darknet
+        if inference_device is not None and inference_device.split("_")[0] == "CPU":
+            # CPU inference runs on OpenCV's DNN module
+            from darknet import darknet_opencv as darknet
         else:
-            # use GPU inference by default
+            # use GPU inference (darknet with compiled CUDA DLLs) by default
             from darknet import darknet as darknet
 
-            darknet.set_compute_device(int(inference_device.split("_")[1]))
+            gpu = "GPU_0" if inference_device is None else inference_device
+            darknet.set_compute_device(int(gpu.split("_")[1]))
 
         self.network, self.class_names, self.class_colours = darknet.load_network(
             self.net_cfg, self.net_data, self.net_weight, batch_size=1

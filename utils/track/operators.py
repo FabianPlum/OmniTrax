@@ -4,10 +4,10 @@ from bpy.props import BoolProperty as BoolProperty
 import numpy as np
 import cv2
 import os
+import sys
 import time
-import platform
 
-from ..omni_trax_utils import scale_detections, cvDrawBoxes, setInferenceDevive
+from ..omni_trax_utils import scale_detections, cvDrawBoxes
 from ..setup.CUDA_checks import check_CUDA_installation
 from .tracker import Tracker
 from ..YOLOader import YOLOader
@@ -74,37 +74,32 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         """
         Check which compute device is selected and set it as active
         """
-        setInferenceDevive(context.scene.compute_device)
-
-        # load darknet with compiled DLLs for windows for either GPU or CPU inference from respective path
+        # GPU inference runs on darknet (compiled CUDA DLLs, Windows only),
+        # CPU inference on OpenCV's DNN module (any OS, no compiled libraries needed).
+        # TensorFlow is not involved, its device is set for pose estimation only.
         if context.scene.compute_device.split("_")[0] == "GPU":
-            required_CUDA_version = "11.2"
-            CUDA_match = check_CUDA_installation(
-                required_CUDA_version=required_CUDA_version
-            )
-
-            if not CUDA_match:
+            if not check_CUDA_installation():
                 self.report(
                     {"ERROR"},
-                    "No matching CUDA version found! Refer to console for full error message",
+                    "GPU inference is not available, the console lists what is "
+                    "missing. Select the CPU to run without CUDA.",
                 )
                 return {"CANCELLED"}
 
-            from ..darknet import darknet as darknet
+            try:
+                from ..darknet import darknet as darknet
+            except OSError as e:
+                print(e)
+                self.report(
+                    {"ERROR"},
+                    "Could not load darknet for GPU inference, see the console. "
+                    "Select the CPU to run without CUDA.",
+                )
+                return {"CANCELLED"}
 
             darknet.set_compute_device(int(context.scene.compute_device.split("_")[1]))
         else:
-            if platform.system() != "Linux":
-                from ..darknet import darknet_cpu as darknet
-            else:
-                if bpy.app.version_string == "2.92.0":
-                    from ..darknet import darknet as darknet
-                else:
-                    self.report(
-                        {"ERROR"},
-                        "To use CPU inference, you need to use OmniTrax with Blender version 2.9.2!",
-                    )
-                    return {"CANCELLED"}
+            from ..darknet import darknet_opencv as darknet
 
         """
         Tracker settings
@@ -118,6 +113,8 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         """
 
         global network
+        global network_source
+        global network_class_names
         global altNames
         global class_names
         global class_colours
@@ -126,10 +123,12 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         global tracker_KF
 
         if "network" in globals():
-            print("\nINFO: Initialised darknet network found!\n")
+            print("\nINFO: Initialised detection network found!\n")
         else:
-            print("\nINFO: Initialising darkent network...\n")
+            print("\nINFO: Initialising detection network...\n")
             network = None
+            network_source = None
+            network_class_names = None
             altNames = None
 
         # enter the number of annotated frames:
@@ -331,27 +330,6 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         context.scene.detection_data_path = yolo_paths.data
         context.scene.detection_names_path = yolo_paths.names
 
-        # read obj.names file to create custom colours for each class
-
-        class_names = []
-        with open(yolo_paths.names, "r") as yn:
-            for line in yn:
-                class_names.append(line.strip())
-
-        class_colours = {}  # from green to red, low class to high class (light to heavy)
-        class_id = {}
-        if len(class_names) == 1:
-            class_colours[class_names[0]] = [20, 150, 20]
-            class_id[class_names[0]] = 0
-        else:
-            for c, cn in enumerate(class_names):
-                class_colours[cn] = [
-                    int((255 / len(class_names)) * (c + 1)),
-                    int(255 - (255 / len(class_names)) * c),
-                    0,
-                ]
-                class_id[cn] = c
-
         if not os.path.exists(yolo_paths.cfg):
             raise ValueError(
                 "Invalid config path `" + os.path.abspath(yolo_paths.cfg) + "`"
@@ -364,14 +342,55 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
             raise ValueError(
                 "Invalid data file path `" + os.path.abspath(yolo_paths.data) + "`"
             )
+        # the loaded network is reused between runs, unless the compute device
+        # (and with it the backend) or one of the network files has changed
+        current_source = (
+            darknet.__name__,
+            yolo_paths.cfg,
+            yolo_paths.weights,
+            yolo_paths.data,
+            yolo_paths.names,
+            os.path.getmtime(yolo_paths.names)
+            if os.path.isfile(yolo_paths.names)
+            else None,
+        )
+        if network is not None and network_source != current_source:
+            print("\nINFO: Detection settings changed, reloading the network...\n")
+            # darknet networks hold (GPU) memory that is only released explicitly
+            if network_source is not None:
+                previous_backend = sys.modules.get(network_source[0])
+                if hasattr(previous_backend, "free_network_ptr"):
+                    previous_backend.free_network_ptr(network)
+            network = None
+            altNames = None
+
         if network is None:
             try:
-                network, class_names, _ = darknet.load_network(
+                # the class names of the network, as read from the .data file
+                network, network_class_names, _ = darknet.load_network(
                     yolo_paths.cfg, yolo_paths.data, yolo_paths.weights, batch_size=1
                 )
+                network_source = current_source
             except Exception as e:  # work on python 3.x
-                self.report({"ERROR"}, e)
+                self.report({"ERROR"}, str(e))
                 return {"CANCELLED"}
+
+        # custom colours for each class (from green to red, low class to high
+        # class), for the class names the network reports with its detections
+        class_names = list(network_class_names)
+        class_colours = {}
+        class_id = {}
+        if len(class_names) == 1:
+            class_colours[class_names[0]] = [20, 150, 20]
+            class_id[class_names[0]] = 0
+        else:
+            for c, cn in enumerate(class_names):
+                class_colours[cn] = [
+                    int((255 / len(class_names)) * (c + 1)),
+                    int(255 - (255 / len(class_names)) * c),
+                    0,
+                ]
+                class_id[cn] = c
 
         if altNames is None:
             try:
@@ -394,7 +413,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                     except TypeError:
                         pass
             except Exception as e:  # work on python 3.x
-                self.report({"ERROR"}, e)
+                self.report({"ERROR"}, str(e))
                 return {"CANCELLED"}
 
         print("Starting the YOLO loop...")
@@ -464,7 +483,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                 # nms : non maximum suppression -> higher = allow for closer proximity between detections
                 detections = darknet.detect_image(
                     network,
-                    class_names,
+                    network_class_names,
                     darknet_image,
                     thresh=bpy.context.scene.detection_activation_threshold,
                     nms=bpy.context.scene.detection_nms,
@@ -740,7 +759,7 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
                 frame_counter += 1
 
             except Exception as e:  # work on python 3.x
-                self.report({"ERROR"}, e)
+                self.report({"ERROR"}, str(e))
                 return {"CANCELLED"}
 
         cv2.destroyAllWindows()
