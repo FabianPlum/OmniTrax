@@ -5,6 +5,8 @@ import cv2
 import os
 import yaml
 
+from ..omni_trax_utils import setInferenceDevive
+
 
 class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
     """
@@ -31,6 +33,9 @@ class OMNITRAX_OT_PoseEstimationOperator(bpy.types.Operator):
                 "Enter a valid path to a trained and exported DLC model folder",
             )
             return {"CANCELLED"}
+
+        # run on the selected compute device, even if no tracking ran before
+        setInferenceDevive(context.scene.compute_device)
 
         print("\nRUNNING POSE ESTIMATION\n")
 

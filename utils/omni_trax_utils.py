@@ -4,7 +4,12 @@ import csv
 import os
 import math
 import time
-import tensorflow as tf
+
+try:
+    import tensorflow as tf
+except ImportError:
+    # only needed to select the device for pose estimation (DLC-live)
+    tf = None
 
 
 ### Various Processing functions ###
@@ -81,21 +86,27 @@ def setInferenceDevive(device):
     Set the (CUDA) inference device for the project
     :param device: e.g. "CPU_0" or "GPU_0"
     """
-    # disables all but the selected computational device (by setting them invisible)
-    physical_devices = tf.config.list_physical_devices(device.split("_")[0])
-    try:
-        tf.config.set_visible_devices(
-            physical_devices[int(device.split("_")[1])],
-            device_type=device.split("_")[0],
-        )
-        logical_devices = tf.config.list_logical_devices()
-        # Logical device was not created for first GPU
-    except:
-        # Invalid device or cannot modify virtual devices once initialized.
-        print("WARNING: Unable to switch active compute device")
-        pass
+    if tf is None:
+        print("INFO: TensorFlow is not installed, running inference on:", device)
+        return
 
-    print("Running inference on: ", logical_devices)
+    # disables all but the selected computational device (by setting them invisible)
+    device_type, index = device.split("_")
+    try:
+        if device_type == "CPU":
+            # CPU only, so pose estimation does not use a GPU either
+            tf.config.set_visible_devices([], device_type="GPU")
+        else:
+            tf.config.set_visible_devices(
+                tf.config.list_physical_devices(device_type)[int(index)],
+                device_type=device_type,
+            )
+    except Exception:
+        # Invalid device, or TensorFlow is already initialised (the visible devices
+        # cannot change after that, until Blender is restarted)
+        print("WARNING: Unable to switch active compute device")
+
+    print("Running inference on: ", tf.config.list_logical_devices())
 
 
 def import_tracks(path, numFrames, export=False):

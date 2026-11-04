@@ -1,6 +1,15 @@
 import bpy
-import tensorflow as tf
 from bpy.props import EnumProperty as EnumProperty
+
+try:
+    import tensorflow as tf
+except ImportError:
+    # TensorFlow lists the GPUs and runs pose estimation, CPU detection works without
+    tf = None
+
+# number of the CPU in the compute_device enum. The numbers are saved in .blend
+# files, GPU_n keeps number n, as when GPUs were the only devices offered.
+CPU_DEVICE_NUMBER = 1000
 
 
 class OMNITRAX_PT_ComputePanel(bpy.types.Panel):
@@ -13,31 +22,37 @@ class OMNITRAX_PT_ComputePanel(bpy.types.Panel):
     bl_region_type = "TOOLS"
     bl_category = "OmniTrax"
 
+    # GPU inference (darknet) needs a CUDA-capable GPU that TensorFlow can see,
+    # CPU inference (OpenCV) is always available
+    devices = []
     try:
+        if tf is None:
+            raise ImportError("TensorFlow is not installed")
         physical_devices = tf.config.list_physical_devices()
         print("INFO: Found computational devices:\n", physical_devices)
 
-        devices = []
-        for d, device in enumerate(physical_devices):
-            if device.device_type == "GPU":
-                devices.append(
-                    (
-                        "GPU_" + str(d - 1),
-                        "GPU_" + str(d - 1),
-                        "Use GPU for inference (requires CUDA)",
-                    )
+        gpus = [device for device in physical_devices if device.device_type == "GPU"]
+        for g in range(len(gpus)):
+            devices.append(
+                (
+                    "GPU_" + str(g),
+                    "GPU_" + str(g),
+                    "Use GPU for inference (requires CUDA)",
+                    g,
                 )
-            else:
-                if bpy.app.version_string == "2.92.0":
-                    devices.append(("CPU_" + str(d), "CPU", "Use CPU for inference"))
-    except:
-        print("WARNING: Did not find suitable inference devices.")
+            )
+    except Exception as e:
+        print("WARNING: Could not list GPUs, only CPU inference is available:", e)
+    devices.append(
+        ("CPU_0", "CPU", "Use CPU for inference (no CUDA required)", CPU_DEVICE_NUMBER)
+    )
 
     bpy.types.Scene.compute_device = EnumProperty(
         name="",
         description="Select inference device",
         items=devices,
-        default=devices[-1][0],
+        # prefer the (last) GPU if there is one, as before
+        default=devices[-2][0] if len(devices) > 1 else "CPU_0",
     )
 
     def draw(self, context):
