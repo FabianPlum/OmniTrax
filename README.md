@@ -54,7 +54,8 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 ## Installation Guide
 ### Requirements / Notes
 * **OmniTrax GPU** is currently only supported on **Windows 10 / 11**. For Ubuntu support on CPU, use [**Blender version 2.92.0**](https://download.blender.org/release/Blender2.92/) and skip the steps on CUDA installation.
-* download and install [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/) to match dependencies. If you are planning on running inference on your CPU instead (which is considerably slower) use [**Blender version 2.92.0**](https://download.blender.org/release/Blender2.92/).
+* download and install [Blender LTS 3.3](https://www.blender.org/download/lts/3-3/) to match dependencies.
+* **CPU inference** runs on [OpenCV's DNN module](https://docs.opencv.org/4.x/d2/d58/tutorial_table_of_content_dnn.html) and works without a GPU or CUDA installation. It uses the same trained networks and detection settings as GPU inference, only slower.
 * As we are using **tensorflow 2.7**, to run inference on your GPU, you will need to install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1](https://developer.nvidia.com/rdp/cudnn-archive). Refer to [this](https://www.tensorflow.org/install/source#gpu) official guide for version matching and installation instructions.
 * When installing the **OmniTrax** package, you need to run **Blender** in **administrator mode** (on **Windows**). Otherwise, the additional required python packages may not be installable.
 
@@ -65,7 +66,7 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 > If you are new to using blender, have a look at the [official Blender docs](https://docs.blender.org/manual/en/latest/interface/window_system/workspaces.html#save-and-override) 
 > to learn how to set up a workspace and arrange different types of editor windows.
 
-2. Install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1.0](https://developer.nvidia.com/rdp/cudnn-archive). Here, we provide a separate [CUDA installation guide](docs/CUDA_installation_guide.md). 
+2. Install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1.0](https://developer.nvidia.com/rdp/cudnn-archive). Here, we provide a separate [CUDA installation guide](docs/CUDA_installation_guide.md). This step is only needed for GPU inference, skip it if you are going to run inference on your CPU.
    
    - **For advanced users**: If you already have a separate CUDA installation on your system, make sure to **additionally** install 11.2 and update your PATH environment variable. Conflicting versions may mean that OmniTrax is unable to find your GPU which may lead to unexpected crashes.
 
@@ -107,7 +108,7 @@ _For a more detailed guide, refer to the **[Tracking](docs/tutorial-tracking.md)
 
 ![](images/use_01.jpg)
 
-**2.** Next, select your compute device. If you have a **CUDA supported GPU** *(and the CUDA installation went as planned...)*, make sure your **GPU is selected** here, **before** running any of the inference functions, as the compute device cannot be changed at runtime. By default, assuming your computer has a one supported GPU, **OmniTrax** will select it as **GPU_0**.
+**2.** Next, select your compute device. If you have a **CUDA supported GPU** *(and the CUDA installation went as planned...)*, make sure your **GPU is selected** here, **before** running any of the inference functions, as the compute device cannot be changed at runtime. By default, assuming your computer has a one supported GPU, **OmniTrax** will select it as **GPU_0**. Without a supported GPU, select **CPU**, which needs no CUDA installation.
 
 ![](images/use_02.jpg)
 

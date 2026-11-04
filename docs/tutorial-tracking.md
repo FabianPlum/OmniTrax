@@ -48,6 +48,9 @@ If you have a **CUDA supported GPU** *(and the [CUDA installation](CUDA_installa
 make sure your **GPU is selected** here, **before** running any of the inference functions, as the computational device
 cannot be changed at runtime.
 
+Without a supported GPU, select **CPU**. CPU inference runs on OpenCV's DNN module, needs no CUDA installation and uses
+the same trained networks and detection settings as GPU inference, only slower.
+
 <img src=../images/use_02.jpg width="350">
 
 ## 3. Load trained [YOLO](https://github.com/AlexeyAB/darknet) network and select a video to analyse
