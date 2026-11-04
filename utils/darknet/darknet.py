@@ -252,12 +252,22 @@ if os.name == "posix":
     cwd = os.path.dirname(__file__)
     lib = CDLL(cwd + "/libdarknet.so", RTLD_GLOBAL)
 elif os.name == "nt":
-    cwd = os.path.dirname(__file__)
+    cwd = os.path.dirname(os.path.abspath(__file__))
+    dll = os.path.join(cwd, "darknet.dll")
+    try:
+        from . import cuda_dlls
+    except ImportError:  # imported as a top-level module
+        import cuda_dlls
+
+    # find the CUDA and cuDNN DLLs darknet.dll needs and make them loadable
+    missing = cuda_dlls.prepare(dll)
     os.environ["PATH"] = cwd + ";" + os.environ["PATH"]
     try:
-        lib = CDLL("darknet.dll", RTLD_GLOBAL)
-    except FileNotFoundError:
-        lib = CDLL(cwd + "\\darknet.dll", RTLD_GLOBAL)
+        lib = CDLL(dll, RTLD_GLOBAL)
+    except OSError as e:
+        raise OSError(
+            f"Could not load {dll}: {e}\n{cuda_dlls.describe(missing, dll)}"
+        ) from e
 else:
     print("Unsupported OS")
     exit

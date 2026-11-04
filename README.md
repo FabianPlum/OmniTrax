@@ -68,7 +68,7 @@ _Pose estimation and skeleton overlay example (trained on [synthetic data](https
 
 2. Install [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exelocal) and [cudNN 8.1.0](https://developer.nvidia.com/rdp/cudnn-archive). Here, we provide a separate [CUDA installation guide](docs/CUDA_installation_guide.md). This step is only needed for GPU inference, skip it if you are going to run inference on your CPU.
    
-   - **For advanced users**: If you already have a separate CUDA installation on your system, make sure to **additionally** install 11.2 and update your PATH environment variable. Conflicting versions may mean that OmniTrax is unable to find your GPU which may lead to unexpected crashes.
+   - **For advanced users**: If you already have a different CUDA version installed, install 11.2 **in addition**. The versions can stay installed side by side: OmniTrax looks for the CUDA 11 and cuDNN 8 DLLs in every CUDA installation (CUDA_PATH, CUDA_PATH_V11_2, ...) and on the PATH. If GPU inference is not available, the System Console lists the DLLs that are missing.
 
 3. Download the latest release [![latest-release](https://img.shields.io/github/tag/FabianPlum/OmniTrax.svg?label=version&style=flat)](https://github.com/FabianPlum/OmniTrax/releases) of [OmniTrax](https://github.com/FabianPlum/OmniTrax/releases/latest/download/omni_trax.zip). **No need to unzip** the file! You can install it straight from the **Blender > Preferences > Add-on** menu in the next step.
 

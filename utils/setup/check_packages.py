@@ -10,8 +10,8 @@ directory = os.path.dirname(script_file)
 
 print("\nINFO: Checking requirements for omni_trax addon...\n")
 
-required_CUDA_version = "11.2"
-CUDA_match = check_CUDA_installation(required_CUDA_version=required_CUDA_version)
+# report whether GPU inference is available (CPU inference always is)
+CUDA_match = check_CUDA_installation()
 
 # only run the following checks upon initial installation
 # setup_state.txt keeps track of the installation state

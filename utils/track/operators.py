@@ -79,19 +79,24 @@ class OMNITRAX_OT_DetectionOperator(bpy.types.Operator):
         # GPU inference runs on darknet (compiled CUDA DLLs, Windows only),
         # CPU inference on OpenCV's DNN module (any OS, no compiled libraries needed)
         if context.scene.compute_device.split("_")[0] == "GPU":
-            required_CUDA_version = "11.2"
-            CUDA_match = check_CUDA_installation(
-                required_CUDA_version=required_CUDA_version
-            )
-
-            if not CUDA_match:
+            if not check_CUDA_installation():
                 self.report(
                     {"ERROR"},
-                    "No matching CUDA version found! Refer to console for full error message",
+                    "GPU inference is not available, the console lists what is "
+                    "missing. Select the CPU to run without CUDA.",
                 )
                 return {"CANCELLED"}
 
-            from ..darknet import darknet as darknet
+            try:
+                from ..darknet import darknet as darknet
+            except OSError as e:
+                print(e)
+                self.report(
+                    {"ERROR"},
+                    "Could not load darknet for GPU inference, see the console. "
+                    "Select the CPU to run without CUDA.",
+                )
+                return {"CANCELLED"}
 
             darknet.set_compute_device(int(context.scene.compute_device.split("_")[1]))
         else:
