@@ -49,10 +49,16 @@ if not setup_complete:
         "pandas": "pandas",
         "PyYAML": "PyYAML",
         "matplotlib": "matplotlib",
-        "opencv-python": "opencv-python",
+        # OpenCV 5 no longer reads Darknet models, which CPU inference relies on
+        "opencv-python": "opencv-python<5",
         "scikit-learn": "scikit-learn",
-        "deeplabcut-live": "deeplabcut-live",
-        "opencv-contrib-python": "opencv-contrib-python",
+        # deeplabcut-live 1.1 no longer installs TensorFlow, which pose estimation
+        # needs. 1.0.4 installs TensorFlow 2.10 (the last version with GPU support
+        # on native Windows), but it requires Python < 3.11.
+        "deeplabcut-live": (
+            "deeplabcut-live<1.1" if sys.version_info < (3, 11) else "deeplabcut-live"
+        ),
+        "opencv-contrib-python": "opencv-contrib-python<5",
     }
 
     try:
